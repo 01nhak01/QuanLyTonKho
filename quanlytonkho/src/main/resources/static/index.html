@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý RFID & Mô phỏng Cửa hàng</title>
+    <!-- Google Fonts: Inter cho giao diện chung, JetBrains Mono cho số hiệu và mã -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome cho các biểu tượng -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS Design System - Swiss/Tech stance với nền màu Navy đậm */
+        :root {
+            --bg-dark: #050b14;
+            --bg-panel: #081220;
+            --bg-card: #0d1e33;
+            --border-color: #13263f;
+            --border-hover: #1e3a5f;
+            
+            --text-primary: #e2efff;
+            --text-secondary: #6782a5;
+            --text-dim: #445973;
+
+            /* Màu sắc nổi bật (Accents) */
+            --color-cyan: #00c8ff;
+            --color-green: #39ff14;
+            --color-amber: #ffaa00;
+            --color-purple: #b026ff;
+            
+            --shadow-glow: 0 0 12px rgba(0, 200, 255, 0.25);
+            --shadow-green-glow: 0 0 12px rgba(57, 255, 20, 0.3);
+            
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Bố cục ứng dụng */
+        .app-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Định dạng thanh cuộn (Scrollbars) */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* KHU VỰC BÊN TRÁI - Bảng điều khiển quản lý */
+        .left-panel {
+            width: 38%;
+            min-width: 420px;
+            max-width: 500px;
+            height: 100%;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tiêu đề bảng điều khiển */
+        .dashboard-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dashboard-header h1 {
+            font-family: var(--font-mono);
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--color-green);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+        }
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--color-green);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--color-green);
+            animation: blink-pulse 2s infinite;
+        }
+        .header-sub {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Thanh thông tin chỉ số (Stats Bar) */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .stat-box {
+            padding: 16px 20px;
+            border-right: 1px solid var(--border-color);
+        }
+        .stat-box:last-child {
+            border-right: none;
+        }
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--color-cyan);
+        }
+        .count-value {
+            color: var(--text-secondary);
+        }
+        .count-value.active {
+            color: var(--color-cyan);
+            text-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+        }
+        .session-value {
+            color: var(--color-purple);
+        }
+
+        /* Đèn chỉ báo trạng thái của từng hành lang quét */
+        .aisle-indicators {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(5, 11, 20, 0.4);
+        }
+        .aisle-indicator {
+            padding: 10px 4px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+        .aisle-indicator:last-child {
+            border-right: none;
+        }
+        .aisle-indicator .ind-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--text-dim);
+            transition: all 0.3s ease;
+        }
+        .aisle-indicator.active {
+            color: var(--color-cyan);
+            background-color: rgba(0, 200, 255, 0.05);
+        }
+        .aisle-indicator.active .ind-dot {
+            background-color: var(--color-cyan);
+            box-shadow: 0 0 8px var(--color-cyan);
+        }
+
+        /* Điều hướng Tabs điều khiển */
+        .tabs-nav {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(5, 11, 20, 0.2);
+        }
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 14px 6px;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+        .tab-btn.active {
+            color: var(--color-cyan);
+            border-bottom-color: var(--color-cyan);
+            background-color: rgba(0, 200, 255, 0.02);
+        }
+
+        /* Khung hiển thị nội dung các Tab */
+        .tab-viewport {
+            flex: 1;
+            overflow-y: auto;
+            background-color: rgba(5, 11, 20, 0.25);
+        }
+        .tab-content {
+            display: none;
+            height: 100%;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tab: Live Feed - Sự kiện hoạt động */
+        .events-scroll-container {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .event-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: border-color 0.2s ease;
+            animation: fade-in-slide 0.3s ease;
+        }
+        .event-card:hover {
+            border-color: var(--border-hover);
+        }
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .event-tag {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--color-cyan);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .event-time {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .event-msg {
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            line-height: 1.35;
+        }
+        .event-loc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* Bảng hiển thị chung (Danh mục / Giỏ hàng) */
+        .table-container {
+            height: 100%;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            text-align: left;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-panel);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 12px 12px;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1;
+        }
+        td {
+            padding: 12px 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+        .tag-badge {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 3px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--border-color);
+        }
+        .status-pill {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .status-pill.instock {
+            background-color: rgba(0, 200, 255, 0.1);
+            color: var(--color-cyan);
+            border: 1px solid rgba(0, 200, 255, 0.2);
+        }
+        .status-pill.outofstock {
+            background-color: rgba(255, 170, 0, 0.1);
+            color: var(--color-amber);
+            border: 1px solid rgba(255, 170, 0, 0.2);
+        }
+
+        /* Giỏ hàng thanh toán */
+        .cart-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .cart-table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .empty-cart-msg {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 48px 0;
+            font-style: italic;
+        }
+        .cart-summary {
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+        .font-large {
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .badge {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+        }
+        #cart-payment-status.pending {
+            background-color: rgba(255, 170, 0, 0.1);
+            color: var(--color-amber);
+            border: 1px solid rgba(255, 170, 0, 0.25);
+        }
+        #cart-payment-status.paid {
+            background-color: rgba(57, 255, 20, 0.1);
+            color: var(--color-green);
+            border: 1px solid rgba(57, 255, 20, 0.25);
+            box-shadow: var(--shadow-green-glow);
+        }
+
+        /* Footer bên trái */
+        .dashboard-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bot-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.78rem;
+            color: var(--text-primary);
+        }
+        .bot-badge {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            background-color: rgba(0, 200, 255, 0.1);
+            color: var(--color-cyan);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+        }
+        #bot-status-text {
+            color: var(--text-secondary);
+        }
+        .btn-reset {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-reset:hover {
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .btn-reset:active {
+            transform: scale(0.97);
+        }
+
+        /* ==========================================================================
+           KHU VỰC BÊN PHẢI - Sơ đồ mô phỏng cửa hàng
+           ========================================================================== */
+        .right-panel {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-dark);
+        }
+
+        /* Tiêu đề mô phỏng */
+        .sim-header {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-panel);
+        }
+        .sim-header h2 {
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
+        }
+        .sim-legend {
+            display: flex;
+            gap: 16px;
+        }
+        .legend-item {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Trạng thái màu đèn trong Legend */
+        .status-idle { background-color: var(--text-secondary); }
+        .status-moving { background-color: var(--color-cyan); box-shadow: 0 0 6px var(--color-cyan); }
+        .status-scanning { background-color: var(--color-amber); box-shadow: 0 0 6px var(--color-amber); }
+        .status-checkout { background-color: var(--color-green); box-shadow: 0 0 6px var(--color-green); }
+        .status-complete { background-color: var(--color-green); }
+
+        /* Bảng vẽ sơ đồ cửa hàng */
+        .sim-canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            overflow: hidden;
+        }
+        .svg-wrapper {
+            width: 100%;
+            max-width: 860px;
+            aspect-ratio: 4/3;
+            background-color: #03080f;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+        .store-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* SVG Labels */
+        .svg-label {
+            fill: var(--text-primary);
+            font-size: 11px;
+            font-weight: 600;
+            pointer-events: none;
+        }
+        .svg-label.bold {
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .svg-label-sub {
+            fill: var(--text-secondary);
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+        .font-mono {
+            font-family: var(--font-mono);
+        }
+
+        /* Màu nhãn nổi bật */
+        .cyan-text { color: var(--color-cyan); fill: var(--color-cyan); }
+        .green-text { color: var(--color-green); fill: var(--color-green); }
+        .amber-text { color: var(--color-amber); fill: var(--color-amber); }
+
+        /* Ăng-ten thu phát RFID */
+        .antenna-base {
+            fill: #0c1b30;
+            stroke: #2c5e9c;
+            stroke-width: 1.5;
+        }
+        .antenna-core {
+            fill: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .antenna-wave {
+            fill: none;
+            stroke: var(--color-cyan);
+            stroke-width: 1;
+            opacity: 0;
+            transform-origin: center;
+        }
+
+        /* Ăng-ten phát sóng khi active */
+        .antenna-group.active .antenna-core {
+            fill: var(--color-cyan);
+        }
+        .antenna-group.active .wave-1 {
+            animation: signal-pulse 1.5s infinite linear;
+        }
+        .antenna-group.active .wave-2 {
+            animation: signal-pulse 1.5s infinite linear 0.75s;
+        }
+
+        /* Các sản phẩm trên kệ hàng */
+        .product-dot {
+            transition: opacity 0.5s ease-out;
+            opacity: 1;
+        }
+        .product-dot.picked {
+            opacity: 0.08;
+        }
+        .dairy-color { fill: var(--color-cyan); background-color: var(--color-cyan); }
+        .bev-color { fill: var(--color-green); background-color: var(--color-green); }
+        .snack-color { fill: var(--color-amber); background-color: var(--color-amber); }
+        .pantry-color { fill: var(--color-purple); background-color: var(--color-purple); }
+
+        /* Quầy thanh toán */
+        .checkout-reg-dot {
+            fill: var(--text-dim);
+            stroke: none;
+        }
+        .checkout-reg-dot.active {
+            fill: var(--color-green);
+            box-shadow: var(--shadow-green-glow);
+        }
+
+        /* Robot Mô phỏng */
+        #bot-container {
+            transition: transform 0.8s ease-in-out;
+        }
+        #bot-glow {
+            transition: fill 0.3s ease, stroke 0.3s ease;
+        }
+        #bot-body {
+            transition: fill 0.3s ease, stroke 0.3s ease;
+        }
+
+        /* Màu sắc hiển thị tương ứng trạng thái của Bot */
+        .bot-body-idle { fill: #071220; stroke: var(--text-secondary); stroke-width: 2; }
+        .bot-glow-idle { fill: none; }
+
+        .bot-body-moving { fill: #002d3a; stroke: var(--color-cyan); stroke-width: 2.5; }
+        .bot-glow-moving { fill: var(--color-cyan); fill-opacity: 0.15; }
+
+        .bot-body-scanning { fill: #3d2800; stroke: var(--color-amber); stroke-width: 2.5; }
+        .bot-glow-scanning { fill: var(--color-amber); fill-opacity: 0.15; }
+
+        .bot-body-checkout { fill: #0e3d06; stroke: var(--color-green); stroke-width: 2.5; }
+        .bot-glow-checkout { fill: var(--color-green); fill-opacity: 0.15; }
+
+        .bot-text-label {
+            fill: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 8px;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        /* Vòng quét radar khi Bot quét RFID */
+        .bot-radar-ring {
+            fill: none;
+            stroke: var(--color-amber);
+            stroke-width: 1;
+            opacity: 0;
+            transform-origin: center;
+        }
+        .bot-radar-active {
+            animation: radar-pulse 1s infinite linear;
+        }
+
+        /* Tia sóng RFID (RFID Beams) */
+        .rfid-beam-line {
+            stroke: var(--color-cyan);
+            stroke-width: 1.5;
+            stroke-dasharray: 4 4;
+            animation: dash-flow 1s infinite linear;
+            opacity: 0.8;
+        }
+
+        /* Footer bên phải */
+        .sim-footer {
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            padding: 16px 24px;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .sim-footer .legend-dot {
+            margin-right: 4px;
+        }
+        .sim-footer-right {
+            margin-left: auto;
+            display: flex;
+            gap: 16px;
+        }
+        .payment-complete-dot {
+            background-color: var(--color-green);
+            box-shadow: var(--shadow-green-glow);
+        }
+
+        /* Keyframes hiệu ứng */
+        @keyframes blink-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes signal-pulse {
+            0% {
+                r: 10px;
+                opacity: 0.8;
+            }
+            100% {
+                r: 32px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes radar-pulse {
+            0% {
+                r: 14px;
+                opacity: 1;
+            }
+            100% {
+                r: 36px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes dash-flow {
+            to {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        @keyframes fade-in-slide {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-pulse {
+            animation: blink-pulse 2s infinite;
+        }
+
+        .loading-placeholder {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            min-height: 150px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- LEFT PANEL: Bảng điều khiển quản lý RFID -->
+        <div class="left-panel">
+            <header class="dashboard-header">
+                <div class="header-main">
+                    <h1><i class="fa-solid fa-wifi-signal-receiver cyan-text animate-pulse"></i> HỆ THỐNG QUẢN LÝ RFID</h1>
+                    <span class="status-badge"><span class="pulse-dot"></span> TRỰC TUYẾN</span>
+                </div>
+                <div class="header-sub">
+                    FreshMart #042 · v2.4.1 · 192.168.1.101
+                </div>
+            </header>
+
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stat-box">
+                    <div class="stat-label"><i class="fa-solid fa-tower-broadcast"></i> CỔNG ĐỌC</div>
+                    <div class="stat-value" id="stat-readers">4 / 4</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label"><i class="fa-solid fa-cart-shopping"></i> GIỎ HÀNG</div>
+                    <div class="stat-value count-value" id="stat-cart">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label"><i class="fa-solid fa-clock-rotate-left"></i> PHIÊN QUÉT</div>
+                    <div class="stat-value session-value" id="stat-sessions">0</div>
+                </div>
+            </div>
+
+            <!-- Aisle Readers Indicators -->
+            <div class="aisle-indicators">
+                <div class="aisle-indicator" id="ind-aisle-a"><span class="ind-dot"></span> LỐI ĐI A</div>
+                <div class="aisle-indicator" id="ind-aisle-b"><span class="ind-dot"></span> LỐI ĐI B</div>
+                <div class="aisle-indicator" id="ind-aisle-c"><span class="ind-dot"></span> LỐI ĐI C</div>
+                <div class="aisle-indicator" id="ind-aisle-d"><span class="ind-dot"></span> LỐI ĐI D</div>
+            </div>
+
+            <!-- Tabs Điều hướng -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" onclick="switchTab('feed')">DÒNG SỰ KIỆN</button>
+                <button class="tab-btn" onclick="switchTab('inventory')">KHO HÀNG</button>
+                <button class="tab-btn" onclick="switchTab('cart')">GIỎ HÀNG (<span id="cart-tab-count">0</span>)</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="tab-viewport">
+                <!-- LIVE FEED TAB -->
+                <div class="tab-content active" id="tab-feed">
+                    <div class="events-scroll-container" id="events-list">
+                        <div class="loading-placeholder">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải dòng sự kiện...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INVENTORY TAB -->
+                <div class="tab-content" id="tab-inventory">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>SẢN PHẨM</th>
+                                    <th>KỆ HÀNG</th>
+                                    <th>TỒN KHO</th>
+                                    <th>ĐƠN GIÁ</th>
+                                    <th>MÃ SKU (RFID)</th>
+                                    <th>TRẠNG THÁI</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-list">
+                                <!-- Populated from database -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CART TAB -->
+                <div class="tab-content" id="tab-cart">
+                    <div class="cart-container">
+                        <div class="table-container cart-table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>SẢN PHẨM</th>
+                                        <th>SỐ LƯỢNG</th>
+                                        <th>ĐƠN GIÁ</th>
+                                        <th>TỔNG CỘNG</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cart-list">
+                                    <tr>
+                                        <td colspan="4" class="empty-cart-msg">Giỏ hàng trống</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="cart-summary">
+                            <div class="summary-row">
+                                <span>Tổng phụ giỏ hàng:</span>
+                                <span id="cart-subtotal">0 đ</span>
+                            </div>
+                            <div class="summary-row font-large">
+                                <span>Tổng thanh toán:</span>
+                                <span class="green-text" id="cart-total">0 đ</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Trạng thái:</span>
+                                <span class="badge" id="cart-payment-status">CHỜ QUÉT</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Left Panel Footer -->
+            <footer class="dashboard-footer">
+                <div class="bot-status">
+                    <span class="bot-badge"><i class="fa-solid fa-robot"></i> BOT-01</span>
+                    <span id="bot-status-text">Đang chờ tại cổng vào</span>
+                </div>
+                <button class="btn-reset" onclick="resetSystem()">
+                    <i class="fa-solid fa-rotate-right"></i> Đặt lại
+                </button>
+            </footer>
+        </div>
+
+        <!-- RIGHT PANEL: Sơ đồ cửa hàng trực quan -->
+        <div class="right-panel">
+            <header class="sim-header">
+                <h2><i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · TRỰC QUAN</h2>
+                <div class="sim-legend">
+                    <span class="legend-item"><span class="legend-dot status-idle"></span> CHỜ</span>
+                    <span class="legend-item"><span class="legend-dot status-moving"></span> DI CHUYỂN</span>
+                    <span class="legend-item"><span class="legend-dot status-scanning"></span> QUÉT RFID</span>
+                    <span class="legend-item"><span class="legend-dot status-checkout"></span> THANH TOÁN</span>
+                    <span class="legend-item"><span class="legend-dot status-complete"></span> HOÀN THÀNH</span>
+                </div>
+            </header>
+
+            <div class="sim-canvas-container">
+                <div class="svg-wrapper">
+                    <!-- Floor Plan SVG Map -->
+                    <svg viewBox="0 0 800 600" width="100%" height="100%" class="store-svg">
+                        <!-- Grid Background -->
+                        <defs>
+                            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0e1f35" stroke-width="1"/>
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        
+                        <!-- Floor Outer Border -->
+                        <rect x="20" y="20" width="760" height="560" fill="none" stroke="#1c375b" stroke-width="2" rx="10"/>
+
+                        <!-- QUẦY THANH TOÁN #1 -->
+                        <g id="checkout-counter" class="sim-component">
+                            <rect x="250" y="50" width="300" height="60" fill="#0c1b30" stroke="#254d7e" stroke-width="1.5" rx="5"/>
+                            <rect x="250" y="50" width="300" height="15" fill="#0d2547" opacity="0.8"/>
+                            <text x="400" y="90" class="svg-label font-mono green-text" text-anchor="middle" letter-spacing="4">QUẦY THANH TOÁN #1</text>
+                            
+                            <!-- Register Lines (Dots) -->
+                            <circle cx="280" cy="58" r="4" class="checkout-reg-dot" />
+                            <circle cx="360" cy="58" r="4" class="checkout-reg-dot" />
+                            <circle cx="440" cy="58" r="4" class="checkout-reg-dot" />
+                            <circle cx="520" cy="58" r="4" class="checkout-reg-dot" />
+                        </g>
+
+                        <!-- SHELF AISLES -->
+                        <!-- AISLE A: DAIRY -->
+                        <g id="aisle-dairy" class="sim-component">
+                            <rect x="60" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
+                            <line x1="120" y1="160" x2="120" y2="400" stroke="#122742" stroke-dasharray="4 4" stroke-width="1"/>
+                            <!-- Shelves -->
+                            <line x1="65" y1="220" x2="175" y2="220" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="65" y1="280" x2="175" y2="280" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="65" y1="340" x2="175" y2="340" stroke="#19375e" stroke-width="1.5"/>
+                            <text x="120" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG A</text>
+                            <text x="120" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM A</text>
+
+                            <!-- RFID Antenna A -->
+                            <g class="antenna-group" id="ant-a">
+                                <line x1="120" y1="120" x2="120" y2="160" stroke="#2c5e9c" stroke-width="1.5"/>
+                                <circle cx="120" cy="120" r="10" class="antenna-base"/>
+                                <circle cx="120" cy="120" r="4" class="antenna-core"/>
+                                <circle cx="120" cy="120" r="16" class="antenna-wave wave-1"/>
+                                <circle cx="120" cy="120" r="24" class="antenna-wave wave-2"/>
+                            </g>
+                        </g>
+
+                        <!-- AISLE B: BEVERAGES -->
+                        <g id="aisle-beverages" class="sim-component">
+                            <rect x="240" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
+                            <line x1="300" y1="160" x2="300" y2="400" stroke="#122742" stroke-dasharray="4 4" stroke-width="1"/>
+                            <!-- Shelves -->
+                            <line x1="245" y1="220" x2="355" y2="220" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="245" y1="280" x2="355" y2="280" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="245" y1="340" x2="355" y2="340" stroke="#19375e" stroke-width="1.5"/>
+                            <text x="300" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG B</text>
+                            <text x="300" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM B</text>
+
+                            <!-- RFID Antenna B -->
+                            <g class="antenna-group" id="ant-b">
+                                <line x1="300" y1="120" x2="300" y2="160" stroke="#2c5e9c" stroke-width="1.5"/>
+                                <circle cx="300" cy="120" r="10" class="antenna-base"/>
+                                <circle cx="300" cy="120" r="4" class="antenna-core"/>
+                                <circle cx="300" cy="120" r="16" class="antenna-wave wave-1"/>
+                                <circle cx="300" cy="120" r="24" class="antenna-wave wave-2"/>
+                            </g>
+                        </g>
+
+                        <!-- AISLE C: SNACKS -->
+                        <g id="aisle-snacks" class="sim-component">
+                            <rect x="420" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
+                            <line x1="480" y1="160" x2="480" y2="400" stroke="#122742" stroke-dasharray="4 4" stroke-width="1"/>
+                            <!-- Shelves -->
+                            <line x1="425" y1="220" x2="535" y2="220" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="425" y1="280" x2="535" y2="280" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="425" y1="340" x2="535" y2="340" stroke="#19375e" stroke-width="1.5"/>
+                            <text x="480" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG C</text>
+                            <text x="480" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM C</text>
+
+                            <!-- RFID Antenna C -->
+                            <g class="antenna-group" id="ant-c">
+                                <line x1="480" y1="120" x2="480" y2="160" stroke="#2c5e9c" stroke-width="1.5"/>
+                                <circle cx="480" cy="120" r="10" class="antenna-base"/>
+                                <circle cx="480" cy="120" r="4" class="antenna-core"/>
+                                <circle cx="480" cy="120" r="16" class="antenna-wave wave-1"/>
+                                <circle cx="480" cy="120" r="24" class="antenna-wave wave-2"/>
+                            </g>
+                        </g>
+
+                        <!-- AISLE D: PANTRY -->
+                        <g id="aisle-pantry" class="sim-component">
+                            <rect x="600" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
+                            <line x1="660" y1="160" x2="660" y2="400" stroke="#122742" stroke-dasharray="4 4" stroke-width="1"/>
+                            <!-- Shelves -->
+                            <line x1="605" y1="220" x2="715" y2="220" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="605" y1="280" x2="715" y2="280" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="605" y1="340" x2="715" y2="340" stroke="#19375e" stroke-width="1.5"/>
+                            <text x="660" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG D</text>
+                            <text x="660" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM D</text>
+
+                            <!-- RFID Antenna D -->
+                            <g class="antenna-group" id="ant-d">
+                                <line x1="660" y1="120" x2="660" y2="160" stroke="#2c5e9c" stroke-width="1.5"/>
+                                <circle cx="660" cy="120" r="10" class="antenna-base"/>
+                                <circle cx="660" cy="120" r="4" class="antenna-core"/>
+                                <circle cx="660" cy="120" r="16" class="antenna-wave wave-1"/>
+                                <circle cx="660" cy="120" r="24" class="antenna-wave wave-2"/>
+                            </g>
+                        </g>
+
+                        <!-- ENTRANCE (CỔNG VÀO) -->
+                        <g id="store-entrance" class="sim-component">
+                            <rect x="330" y="490" width="140" height="45" fill="#0c1b30" stroke="#1f416c" stroke-width="1.5" rx="5"/>
+                            <text x="400" y="518" class="svg-label font-mono bold" text-anchor="middle" fill="#587eab" letter-spacing="3">CỔNG VÀO</text>
+                            
+                            <!-- Circle base icon inside Entrance -->
+                            <circle cx="400" cy="478" r="12" fill="#071220" stroke="#00c8ff" stroke-width="1.5"/>
+                            <path d="M 395 478 L 405 478 M 400 473 L 400 483" stroke="#00c8ff" stroke-width="1.5"/>
+                        </g>
+
+                        <!-- DYNAMIC PRODUCT DOTS CONTAINER -->
+                        <g id="dynamic-product-dots-group">
+                            <!-- Populated dynamically from backend products -->
+                        </g>
+
+                        <!-- RFID BEAMS -->
+                        <g id="rfid-beams">
+                            <!-- Beams drawn dynamically via JS -->
+                        </g>
+
+                        <!-- ROBOT BOT-01 -->
+                        <g id="bot-container">
+                            <circle cx="400" cy="478" r="16" id="bot-glow" class="bot-glow-idle"/>
+                            <circle cx="400" cy="478" r="12" id="bot-body" class="bot-body-idle"/>
+                            <text x="400" y="454" id="bot-label" class="bot-text-label" text-anchor="middle">BOT-01</text>
+                            
+                            <!-- Scanner radar ring -->
+                            <circle cx="400" cy="478" r="26" id="bot-scanner" class="bot-radar-ring"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Footer bar for Right panel -->
+            <footer class="sim-footer">
+                <span class="legend-dot dairy-color"></span> HÀNH LANG A
+                <span class="legend-dot bev-color"></span> HÀNH LANG B
+                <span class="legend-dot snack-color"></span> HÀNH LANG C
+                <span class="legend-dot pantry-color"></span> HÀNH LANG D
+                <div class="sim-footer-right">
+                    <span class="legend-dot bot-glow-idle"></span> ROBOT
+                    <span class="legend-dot payment-complete-dot"></span> THANH TOÁN
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JS Logic inline -->
+    <script>
+        // Config and State
+        const API_BASE = '/api';
+        let currentTab = 'feed';
+        let products = [];
+        let cart = { items: [], total: 0, count: 0 };
+        let events = [];
+        let sessionCount = 0;
+
+        // Bảng dịch tiếng Việt cho loại sản phẩm
+        const categoryMap = {
+            'Dairy': 'Sữa & Bơ sữa',
+            'Beverages': 'Nước giải khát',
+            'Snacks': 'Bánh kẹo & Ăn vặt',
+            'Pantry': 'Gia vị & Đồ khô'
+        };
+
+        // Bot simulation variables
+        let simTimeoutId = null;
+        let botMode = 'IDLE'; // IDLE, MOVING, SCANNING, CHECKOUT, COMPLETE
+        const botCoordinates = {
+            entrance: { x: 400, y: 478 },
+            aisleA: { x: 120, y: 360 },
+            aisleB: { x: 300, y: 360 },
+            aisleC: { x: 480, y: 360 },
+            aisleD: { x: 660, y: 360 },
+            checkout: { x: 400, y: 90 }
+        };
+
+        // Initial stocks mapping to track if items have been scanned/picked in the current run
+        // Configured dynamically from database records
+        const initialStocks = {};
+
+        // Dynamic lists of products to scan per aisle (populated dynamically based on fetched products)
+        let aisleAProducts = [];
+        let aisleBProducts = [];
+        let aisleCProducts = [];
+        let aisleDProducts = [];
+
+        // On Page Load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial fetch
+            refreshAllData(true); // pass true to trigger simulation start on first fetch
+            
+            // Auto-refresh tables and events every 2 seconds
+            setInterval(() => refreshAllData(false), 2000);
+        });
+
+        // Switch Dashboard Tabs
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Update button states
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${tabId}')"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Update viewport visibility
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            
+            renderData();
+        }
+
+        // Fetch data from database APIs
+        async function refreshAllData(isFirstLoad = false) {
+            try {
+                const [productsRes, cartRes, eventsRes] = await Promise.all([
+                    fetch(`${API_BASE}/products`),
+                    fetch(`${API_BASE}/cart`),
+                    fetch(`${API_BASE}/events`)
+                ]);
+
+                if (productsRes.ok) products = await productsRes.json();
+                if (cartRes.ok) cart = await cartRes.json();
+                if (eventsRes.ok) events = await eventsRes.json();
+
+                // Dynamic stock baseline configuration
+                products.forEach(prod => {
+                    if (!(prod.sku in initialStocks)) {
+                        initialStocks[prod.sku] = prod.stockQuantity;
+                    }
+                });
+
+                // Split products into scanning queues dynamically (distributing across 4 aisles)
+                aisleAProducts = products.filter((p, i) => i % 4 === 0).map(p => p.sku);
+                aisleBProducts = products.filter((p, i) => i % 4 === 1).map(p => p.sku);
+                aisleCProducts = products.filter((p, i) => i % 4 === 2).map(p => p.sku);
+                aisleDProducts = products.filter((p, i) => i % 4 === 3).map(p => p.sku);
+
+                renderData();
+                renderSvgProducts();
+
+                if (isFirstLoad) {
+                    startSimulation();
+                }
+            } catch (error) {
+                console.error("Error refreshing dashboard data:", error);
+            }
+        }
+
+        // Render dynamic elements in dashboard panels
+        function renderData() {
+            // 1. Stats Bar
+            document.getElementById('stat-cart').innerText = cart.count;
+            document.getElementById('cart-tab-count').innerText = cart.count;
+            document.getElementById('stat-sessions').innerText = sessionCount;
+            
+            const cartStat = document.getElementById('stat-cart');
+            if (cart.count > 0) {
+                cartStat.classList.add('active');
+            } else {
+                cartStat.classList.remove('active');
+            }
+
+            // 2. Tab Contents: Live Feed
+            if (currentTab === 'feed') {
+                const feedContainer = document.getElementById('events-list');
+                if (events.length === 0) {
+                    feedContainer.innerHTML = '<div class="loading-placeholder">Chưa có sự kiện nào được ghi nhận.</div>';
+                } else {
+                    feedContainer.innerHTML = events.slice(0, 50).map(evt => {
+                        const timeStr = formatTimestamp(evt.timestamp);
+                        return `
+                            <div class="event-card">
+                                <div class="event-header">
+                                    <span class="event-tag"><i class="fa-solid fa-barcode"></i> ${evt.tagId}</span>
+                                    <span class="event-time">${timeStr}</span>
+                                </div>
+                                <div class="event-msg">${evt.message}</div>
+                                <div class="event-loc"><i class="fa-solid fa-location-dot"></i> ${evt.location}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // 3. Tab Contents: Inventory
+            if (currentTab === 'inventory') {
+                const invContainer = document.getElementById('inventory-list');
+                if (products.length === 0) {
+                    invContainer.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 24px; color:var(--text-secondary);">Không có dữ liệu sản phẩm nào trong database</td></tr>';
+                } else {
+                    invContainer.innerHTML = products.map((prod, index) => {
+                        const statusClass = prod.stockQuantity > 0 ? 'instock' : 'outofstock';
+                        const statusText = prod.stockQuantity > 0 ? 'CÒN HÀNG' : 'HẾT HÀNG';
+                        
+                        // Map shelf dynamically
+                        const aisleLetter = String.fromCharCode(65 + (index % 4));
+                        const shelfPosition = index % 3 === 0 ? 'Trên' : (index % 3 === 1 ? 'Giữa' : 'Dưới');
+                        const dynamicShelf = `Lối đi ${aisleLetter} - Kệ ${shelfPosition}`;
+
+                        return `
+                            <tr>
+                                <td style="font-weight: 600;">${prod.name}</td>
+                                <td>${dynamicShelf}</td>
+                                <td class="font-mono">${prod.stockQuantity}</td>
+                                <td class="font-mono" style="color: var(--color-green); font-weight:600;">${prod.price.toLocaleString('vi-VN')} đ</td>
+                                <td><span class="tag-badge">${prod.sku}</span></td>
+                                <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // 4. Tab Contents: Cart
+            if (currentTab === 'cart') {
+                const cartContainer = document.getElementById('cart-list');
+                if (cart.items.length === 0) {
+                    cartContainer.innerHTML = '<tr><td colspan="4" class="empty-cart-msg">Giỏ hàng trống</td></tr>';
+                    
+                    const botState = botMode;
+                    if (botState === 'COMPLETE') {
+                        document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
+                        document.getElementById('cart-payment-status').className = 'badge paid';
+                    } else {
+                        document.getElementById('cart-payment-status').innerText = 'CHỜ QUÉT';
+                        document.getElementById('cart-payment-status').className = 'badge pending';
+                    }
+                } else {
+                    cartContainer.innerHTML = cart.items.map(item => `
+                        <tr>
+                            <td style="font-weight:600;">${item.productName}</td>
+                            <td class="font-mono">${item.quantity}</td>
+                            <td class="font-mono">${item.price.toLocaleString('vi-VN')} đ</td>
+                            <td class="font-mono" style="font-weight:600; color:var(--color-cyan);">${(item.price * item.quantity).toLocaleString('vi-VN')} đ</td>
+                        </tr>
+                    `).join('');
+                    
+                    const botState = botMode;
+                    if (botState === 'COMPLETE') {
+                        document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
+                        document.getElementById('cart-payment-status').className = 'badge paid';
+                    } else {
+                        document.getElementById('cart-payment-status').innerText = 'CHỜ THANH TOÁN';
+                        document.getElementById('cart-payment-status').className = 'badge pending';
+                    }
+                }
+                document.getElementById('cart-subtotal').innerText = `${cart.total.toLocaleString('vi-VN')} đ`;
+                document.getElementById('cart-total').innerText = `${cart.total.toLocaleString('vi-VN')} đ`;
+            }
+        }
+
+        // Dynamically render product dots on SVG shelves based on database records
+        function renderSvgProducts() {
+            const group = document.getElementById('dynamic-product-dots-group');
+            group.innerHTML = '';
+            
+            products.forEach((prod, index) => {
+                const aisleIndex = index % 4;
+                const shelfIndex = Math.floor(index / 4) % 3;
+                
+                const cx = 120 + 180 * aisleIndex;
+                const cy = 190 + 60 * shelfIndex;
+                
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', 7);
+                
+                // Color based on Aisle
+                let colorClass = 'dairy-color';
+                if (aisleIndex === 1) colorClass = 'bev-color';
+                if (aisleIndex === 2) colorClass = 'snack-color';
+                if (aisleIndex === 3) colorClass = 'pantry-color';
+                
+                circle.setAttribute('class', `product-dot ${colorClass}`);
+                circle.setAttribute('id', `prod-${prod.sku}`);
+                
+                // Opacity fades out if stock decreases relative to initial stock baseline
+                const isPicked = prod.stockQuantity < initialStocks[prod.sku];
+                if (isPicked || prod.stockQuantity <= 0) {
+                    circle.classList.add('picked');
+                }
+                
+                group.appendChild(circle);
+            });
+        }
+
+        // Format LocalDateTime string to HH:MM:SS
+        function formatTimestamp(timestampStr) {
+            if (!timestampStr) return '';
+            try {
+                const date = new Date(timestampStr);
+                return date.toTimeString().split(' ')[0];
+            } catch (e) {
+                return timestampStr;
+            }
+        }
+
+        // Bot Simulation Loop
+        function startSimulation() {
+            runStepEntrance();
+        }
+
+        function moveBot(coords, mode, durationMs) {
+            botMode = mode;
+            updateBotVisualClass(mode);
+            
+            const botContainer = document.getElementById('bot-container');
+            const dx = coords.x - 400;
+            const dy = coords.y - 478;
+            
+            botContainer.style.transition = `transform ${durationMs}ms ease-in-out`;
+            botContainer.style.transform = `translate(${dx}px, ${dy}px)`;
+            
+            const scanner = document.getElementById('bot-scanner');
+            if (mode === 'SCANNING') {
+                scanner.classList.add('bot-radar-active');
+            } else {
+                scanner.classList.remove('bot-radar-active');
+            }
+        }
+
+        function updateBotVisualClass(mode) {
+            const body = document.getElementById('bot-body');
+            const glow = document.getElementById('bot-glow');
+            
+            body.className = '';
+            glow.className = '';
+            
+            if (mode === 'IDLE') {
+                body.classList.add('bot-body-idle');
+                glow.classList.add('bot-glow-idle');
+            } else if (mode === 'MOVING') {
+                body.classList.add('bot-body-moving');
+                glow.classList.add('bot-glow-moving');
+            } else if (mode === 'SCANNING') {
+                body.classList.add('bot-body-scanning');
+                glow.classList.add('bot-glow-scanning');
+            } else if (mode === 'CHECKOUT' || mode === 'COMPLETE') {
+                body.classList.add('bot-body-checkout');
+                glow.classList.add('bot-glow-checkout');
+            }
+        }
+
+        function setAisleIndicatorActive(aisleLetter) {
+            document.querySelectorAll('.aisle-indicator').forEach(ind => {
+                ind.classList.remove('active');
+            });
+            document.querySelectorAll('.antenna-group').forEach(ant => {
+                ant.classList.remove('active');
+            });
+            
+            if (aisleLetter) {
+                document.getElementById(`ind-aisle-${aisleLetter.toLowerCase()}`).classList.add('active');
+                document.getElementById(`ant-${aisleLetter.toLowerCase()}`).classList.add('active');
+            }
+        }
+
+        // Bot Simulation Step Definitions
+        function runStepEntrance() {
+            setAisleIndicatorActive(null);
+            moveBot(botCoordinates.entrance, 'IDLE', 0);
+            document.getElementById('bot-status-text').innerText = 'Đang chờ tại cổng vào';
+            
+            simTimeoutId = setTimeout(() => {
+                runStepMoveToAisle('A', botCoordinates.aisleA, runStepScanAisleA);
+            }, 2000);
+        }
+
+        function runStepMoveToAisle(aisleLetter, coords, nextStepCallback) {
+            moveBot(coords, 'MOVING', 1500);
+            document.getElementById('bot-status-text').innerText = `Di chuyển tới Lối đi ${aisleLetter}`;
+            
+            simTimeoutId = setTimeout(nextStepCallback, 1500);
+        }
+
+        function runStepScanAisleA() {
+            scanAisle('A', aisleAProducts, () => {
+                runStepMoveToAisle('B', botCoordinates.aisleB, runStepScanAisleB);
+            });
+        }
+
+        function runStepScanAisleB() {
+            scanAisle('B', aisleBProducts, () => {
+                runStepMoveToAisle('C', botCoordinates.aisleC, runStepScanAisleC);
+            });
+        }
+
+        function runStepScanAisleC() {
+            scanAisle('C', aisleCProducts, () => {
+                runStepMoveToAisle('D', botCoordinates.aisleD, runStepScanAisleD);
+            });
+        }
+
+        function runStepScanAisleD() {
+            scanAisle('D', aisleDProducts, runStepMoveToCheckout);
+        }
+
+        function scanAisle(aisleLetter, tagIds, completeCallback) {
+            moveBot(botCoordinates[`aisle${aisleLetter}`], 'SCANNING', 0);
+            setAisleIndicatorActive(aisleLetter);
+            document.getElementById('bot-status-text').innerText = `Đang quét Lối đi ${aisleLetter}`;
+            
+            // If no items in database correspond to this aisle, complete immediately
+            if (tagIds.length === 0) {
+                setTimeout(completeCallback, 1000);
+                return;
+            }
+            
+            drawBeams(aisleLetter, tagIds);
+            
+            let scanCount = 0;
+            function scanNextItem() {
+                if (scanCount < tagIds.length) {
+                    const tag = tagIds[scanCount];
+                    scanItemOnServer(tag);
+                    scanCount++;
+                    setTimeout(scanNextItem, 800);
+                } else {
+                    clearBeams();
+                    completeCallback();
+                }
+            }
+            
+            setTimeout(scanNextItem, 500);
+        }
+
+        function drawBeams(aisleLetter, tagIds) {
+            const beamsGroup = document.getElementById('rfid-beams');
+            beamsGroup.innerHTML = '';
+            
+            let antennaX = 0;
+            if (aisleLetter === 'A') antennaX = 120;
+            if (aisleLetter === 'B') antennaX = 300;
+            if (aisleLetter === 'C') antennaX = 480;
+            if (aisleLetter === 'D') antennaX = 660;
+            
+            tagIds.forEach(tag => {
+                const dot = document.getElementById(`prod-${tag}`);
+                if (dot && !dot.classList.contains('picked')) {
+                    const dotY = dot.getAttribute('cy');
+                    
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', antennaX);
+                    line.setAttribute('y1', 120);
+                    line.setAttribute('x2', antennaX);
+                    line.setAttribute('y2', dotY);
+                    line.setAttribute('class', 'rfid-beam-line');
+                    beamsGroup.appendChild(line);
+                }
+            });
+        }
+
+        function clearBeams() {
+            document.getElementById('rfid-beams').innerHTML = '';
+        }
+
+        async function scanItemOnServer(tagId) {
+            try {
+                const response = await fetch(`${API_BASE}/cart/add?tagId=${tagId}`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    refreshAllData();
+                }
+            } catch (e) {
+                console.error("Lỗi khi ghi nhận thẻ RFID quét:", e);
+            }
+        }
+
+        function runStepMoveToCheckout() {
+            setAisleIndicatorActive(null);
+            moveBot(botCoordinates.checkout, 'MOVING', 2000);
+            document.getElementById('bot-status-text').innerText = 'Đang di chuyển đến quầy thanh toán';
+            
+            simTimeoutId = setTimeout(runStepCheckoutPayment, 2000);
+        }
+
+        function runStepCheckoutPayment() {
+            moveBot(botCoordinates.checkout, 'CHECKOUT', 0);
+            document.getElementById('bot-status-text').innerText = 'Đang xử lý thanh toán giỏ hàng...';
+            
+            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
+                dot.classList.add('active');
+            });
+            
+            setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/checkout`, { method: 'POST' });
+                    if (response.ok) {
+                        botMode = 'COMPLETE';
+                        updateBotVisualClass('COMPLETE');
+                        document.getElementById('bot-status-text').innerText = 'Thanh toán hoàn tất! Hóa đơn đã ghi nhận.';
+                        
+                        if (currentTab === 'cart') {
+                            document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
+                            document.getElementById('cart-payment-status').className = 'badge paid';
+                        }
+                        
+                        setTimeout(() => {
+                            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
+                                dot.classList.remove('active');
+                            });
+                            
+                            sessionCount++;
+                            moveBot(botCoordinates.entrance, 'MOVING', 1500);
+                            document.getElementById('bot-status-text').innerText = 'Đang quay lại cổng vào';
+                            
+                            simTimeoutId = setTimeout(() => {
+                                refreshAllData(false);
+                                runStepEntrance();
+                            }, 1500);
+                            
+                        }, 2000);
+                    }
+                } catch (e) {
+                    console.error("Thanh toán thất bại:", e);
+                    runStepEntrance();
+                }
+            }, 2000);
+        }
+
+        // Reset system database and simulation
+        async function resetSystem() {
+            if (simTimeoutId) clearTimeout(simTimeoutId);
+            clearBeams();
+            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
+                dot.classList.remove('active');
+            });
+            setAisleIndicatorActive(null);
+            
+            sessionCount = 0;
+            botMode = 'IDLE';
+            moveBot(botCoordinates.entrance, 'IDLE', 0);
+            document.getElementById('bot-status-text').innerText = 'Đang đặt lại cơ sở dữ liệu hệ thống...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/reset`, { method: 'POST' });
+                if (response.ok) {
+                    await refreshAllData(false);
+                    document.getElementById('bot-status-text').innerText = 'Đặt lại dữ liệu hệ thống thành công.';
+                    
+                    setTimeout(() => {
+                        startSimulation();
+                    }, 1000);
+                }
+            } catch (e) {
+                console.error("Đặt lại dữ liệu thất bại:", e);
+                startSimulation();
+            }
+        }
+    </script>
+</body>
+</html>
