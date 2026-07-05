@@ -61,6 +61,15 @@ public class StoreRestController {
         return storeService.addCartItemByTag(tagId);
     }
 
+    @DeleteMapping("/cart/remove/{id}")
+    public Map<String, String> deleteCartItem(@PathVariable Long id) {
+        storeService.removeCartItem(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "SUCCESS");
+        response.put("message", "Cart item removed");
+        return response;
+    }
+
     @PostMapping("/checkout")
     public Map<String, String> checkout() {
         storeService.checkout();

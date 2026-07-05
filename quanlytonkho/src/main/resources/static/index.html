@@ -671,6 +671,108 @@
         .product-popover.hidden {
             display: none;
         }
+
+        /* Bot Cart Popover */
+        .bot-cart-popover {
+            position: absolute;
+            width: 260px;
+            background: rgba(8, 18, 32, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--color-cyan);
+            border-radius: 12px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), var(--shadow-glow);
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            gap: 12px;
+            z-index: 110;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(0.9) translateY(-10px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .bot-cart-popover.visible {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .bot-cart-popover.hidden {
+            display: none;
+        }
+        .bot-cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        .bot-cart-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--color-cyan);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .bot-cart-list {
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 4px 0;
+        }
+        .bot-cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 6px 8px;
+        }
+        .bot-cart-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-width: 190px;
+        }
+        .bot-cart-item-name {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .bot-cart-item-meta {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .bot-cart-item-remove {
+            background: none;
+            border: none;
+            color: #ff453a;
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bot-cart-item-remove:hover {
+            background: rgba(255, 59, 48, 0.15);
+            transform: scale(1.1);
+        }
+        .bot-cart-empty {
+            text-align: center;
+            padding: 16px 8px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-style: italic;
+        }
         .close-popover-btn {
             position: absolute;
             top: 6px;
@@ -1057,9 +1159,9 @@
                             <line x1="65" y1="280" x2="175" y2="280" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="65" y1="340" x2="175" y2="340" stroke="#19375e" stroke-width="1.5"/>
                             <text x="120" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG A</text>
-                            <text x="120" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM A</text>
+                            <text x="120" y="435" class="svg-label-sub" text-anchor="middle">ÁO</text>
                         </g>
-
+ 
                         <!-- AISLE B: BEVERAGES -->
                         <g id="aisle-beverages" class="sim-component">
                             <rect x="240" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
@@ -1069,9 +1171,9 @@
                             <line x1="245" y1="280" x2="355" y2="280" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="245" y1="340" x2="355" y2="340" stroke="#19375e" stroke-width="1.5"/>
                             <text x="300" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG B</text>
-                            <text x="300" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM B</text>
+                            <text x="300" y="435" class="svg-label-sub" text-anchor="middle">QUẦN</text>
                         </g>
-
+ 
                         <!-- AISLE C: SNACKS -->
                         <g id="aisle-snacks" class="sim-component">
                             <rect x="420" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
@@ -1081,9 +1183,9 @@
                             <line x1="425" y1="280" x2="535" y2="280" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="425" y1="340" x2="535" y2="340" stroke="#19375e" stroke-width="1.5"/>
                             <text x="480" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG C</text>
-                            <text x="480" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM C</text>
+                            <text x="480" y="435" class="svg-label-sub" text-anchor="middle">ÁO KHOÁC</text>
                         </g>
-
+ 
                         <!-- AISLE D: PANTRY -->
                         <g id="aisle-pantry" class="sim-component">
                             <rect x="600" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
@@ -1093,7 +1195,7 @@
                             <line x1="605" y1="280" x2="715" y2="280" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="605" y1="340" x2="715" y2="340" stroke="#19375e" stroke-width="1.5"/>
                             <text x="660" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG D</text>
-                            <text x="660" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM D</text>
+                            <text x="660" y="435" class="svg-label-sub" text-anchor="middle">PHỤ KIỆN</text>
                         </g>
 
                         <!-- ENTRANCE (CỔNG VÀO) -->
@@ -1130,6 +1232,18 @@
                             <circle cx="400" cy="510" r="16" id="bot-glow" class="bot-glow-idle"/>
                             <circle cx="400" cy="510" r="12" id="bot-body" class="bot-body-idle"/>
                             <text x="400" y="486" id="bot-label" class="bot-text-label" text-anchor="middle">BOT-01</text>
+                            
+                            <!-- Bot Cart Icon: Top-Right of Bot, Clickable -->
+                            <g id="bot-cart-btn" class="bot-cart-icon" onclick="toggleBotCartPopover(event)" style="cursor: pointer;">
+                                <circle cx="418" cy="498" r="9" fill="#0c1b30" stroke="#00c8ff" stroke-width="1.5"/>
+                                <!-- Cart graphic inside the circle -->
+                                <path d="M 414 495 L 416 495 L 418 499 L 422 499 L 423 496 L 416 496" fill="none" stroke="#00c8ff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="418" cy="501" r="1" fill="#00c8ff"/>
+                                <circle cx="421" cy="501" r="1" fill="#00c8ff"/>
+                                <!-- Small badge for cart count -->
+                                <circle id="bot-cart-badge-bg" cx="425" cy="491" r="5.5" fill="#ff3b30" style="display: none;"/>
+                                <text id="bot-cart-badge-text" x="425" y="494" font-size="7.5px" fill="#ffffff" text-anchor="middle" font-weight="bold" style="display: none; pointer-events: none;">0</text>
+                            </g>
                         </g>
                     </svg>
 
@@ -1165,6 +1279,19 @@
                         </button>
                     </div>
 
+                    <!-- Bot Cart Popover Card -->
+                    <div id="bot-cart-popover" class="bot-cart-popover hidden">
+                        <div class="bot-cart-header">
+                            <div class="bot-cart-title">
+                                <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng của Bot
+                            </div>
+                            <button class="close-popover-btn" onclick="toggleBotCartPopover()" style="position:static; padding:4px;">&times;</button>
+                        </div>
+                        <div id="bot-cart-list" class="bot-cart-list">
+                            <!-- Items populated dynamically -->
+                        </div>
+                    </div>
+
                     <!-- Control Pad D-Pad (Thủ công) -->
                     <div class="control-pad">
                         <button class="ctrl-btn ctrl-up" onclick="moveManual('UP')"><i class="fa-solid fa-chevron-up"></i></button>
@@ -1179,10 +1306,10 @@
 
             <!-- Footer bar for Right panel -->
             <footer class="sim-footer">
-                <span class="legend-dot dairy-color"></span> HÀNH LANG A
-                <span class="legend-dot bev-color"></span> HÀNH LANG B
-                <span class="legend-dot snack-color"></span> HÀNH LANG C
-                <span class="legend-dot pantry-color"></span> HÀNH LANG D
+                <span class="legend-dot dairy-color"></span> HÀNH LANG A (ÁO)
+                <span class="legend-dot bev-color"></span> HÀNH LANG B (QUẦN)
+                <span class="legend-dot snack-color"></span> HÀNH LANG C (ÁO KHOÁC)
+                <span class="legend-dot pantry-color"></span> HÀNH LANG D (PHỤ KIỆN)
                 <div class="sim-footer-right">
                     <span class="legend-dot bot-glow-idle"></span> ROBOT
                     <span class="legend-dot payment-complete-dot"></span> THANH TOÁN
@@ -1240,6 +1367,43 @@
             return sizes;
         }
 
+        // Lấy tọa độ của sản phẩm (mỗi sản phẩm hiển thị bằng 2 chấm đối xứng 2 bên viền kệ của hàng đó)
+        function getProductCoordinates(prod) {
+            const skuUpper = (prod.sku || '').toUpperCase();
+            let aisleCode = 'AT';
+            let aisleIndex = 0;
+            
+            if (skuUpper.startsWith('AT')) {
+                aisleCode = 'AT';
+                aisleIndex = 0;
+            } else if (skuUpper.startsWith('QJ')) {
+                aisleCode = 'QJ';
+                aisleIndex = 1;
+            } else if (skuUpper.startsWith('AK')) {
+                aisleCode = 'AK';
+                aisleIndex = 2;
+            } else if (skuUpper.startsWith('PK')) {
+                aisleCode = 'PK';
+                aisleIndex = 3;
+            }
+            
+            const sameAisleProducts = products.filter(p => {
+                const pSku = (p.sku || '').toUpperCase();
+                return (aisleCode === 'AT' && pSku.startsWith('AT')) ||
+                       (aisleCode === 'QJ' && pSku.startsWith('QJ')) ||
+                       (aisleCode === 'AK' && pSku.startsWith('AK')) ||
+                       (aisleCode === 'PK' && pSku.startsWith('PK'));
+            });
+            
+            const shelfIndex = sameAisleProducts.findIndex(p => p.sku === prod.sku);
+            const xCenter = 120 + 180 * aisleIndex;
+            const cxLeft = xCenter - 40;
+            const cxRight = xCenter + 40;
+            const cy = 190 + 60 * shelfIndex;
+            
+            return { xCenter, cxLeft, cxRight, cy, aisleIndex, shelfIndex };
+        }
+
         // On Page Load
         document.addEventListener('DOMContentLoaded', () => {
             // Initial fetch
@@ -1250,7 +1414,41 @@
             
             // Set initial legend state
             setBotMode('IDLE');
+
+            // Click outside popover to close it
+            window.addEventListener('click', (e) => {
+                const popover = document.getElementById('bot-cart-popover');
+                const botCartBtn = document.getElementById('bot-cart-btn');
+                if (popover && !popover.classList.contains('hidden')) {
+                    if (!popover.contains(e.target) && !botCartBtn.contains(e.target)) {
+                        hideBotCartPopover();
+                    }
+                }
+            });
         });
+
+        // Kiểm tra xem tọa độ (x, y) có va chạm với các hành lang (kệ hàng) hay không
+        function checkCollision(x, y) {
+            const r = 12; // Bán kính Bot
+            const obstacles = [
+                { xMin: 60, xMax: 180, yMin: 160, yMax: 400 }, // Hành lang A
+                { xMin: 240, xMax: 360, yMin: 160, yMax: 400 }, // Hành lang B
+                { xMin: 420, xMax: 540, yMin: 160, yMax: 400 }, // Hành lang C
+                { xMin: 600, xMax: 720, yMin: 160, yMax: 400 }  // Hành lang D
+            ];
+            
+            for (const obs of obstacles) {
+                const closestX = Math.max(obs.xMin, Math.min(x, obs.xMax));
+                const closestY = Math.max(obs.yMin, Math.min(y, obs.yMax));
+                const distanceX = x - closestX;
+                const distanceY = y - closestY;
+                const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
+                if (distanceSquared < (r * r)) {
+                    return true; // Va chạm với hành lang!
+                }
+            }
+            return false;
+        }
 
         // Key Listeners for grid-aligned movement (exactly half a grid cell = 20px)
         let lastMoveTime = 0;
@@ -1276,24 +1474,30 @@
                 else if (e.code === 'ArrowLeft' || e.code === 'KeyA') dx = -step;
                 else if (e.code === 'ArrowRight' || e.code === 'KeyD') dx = step;
                 
-                botX += dx;
-                botY += dy;
+                let nextX = botX + dx;
+                let nextY = botY + dy;
                 
                 // Keep bot within outer layout boundaries (20px margins on all sides)
-                botX = Math.max(38, Math.min(762, botX));
-                botY = Math.max(38, Math.min(562, botY));
+                nextX = Math.max(38, Math.min(762, nextX));
+                nextY = Math.max(38, Math.min(562, nextY));
                 
-                updateBotPositionVisual(botX, botY);
-                setBotMode('MOVING');
-                
-                checkProximityTriggers();
-                
-                // Revert to IDLE after a short delay
-                setTimeout(() => {
-                    if (!isProcessingCheckout) {
-                        setBotMode('IDLE');
-                    }
-                }, 150);
+                if (!checkCollision(nextX, nextY)) {
+                    hideBotCartPopover();
+                    botX = nextX;
+                    botY = nextY;
+                    
+                    updateBotPositionVisual(botX, botY);
+                    setBotMode('MOVING');
+                    
+                    checkProximityTriggers();
+                    
+                    // Revert to IDLE after a short delay
+                    setTimeout(() => {
+                        if (!isProcessingCheckout) {
+                            setBotMode('IDLE');
+                        }
+                    }, 150);
+                }
             }
         });
 
@@ -1302,24 +1506,33 @@
             if (isProcessingCheckout) return;
             
             const step = 20; // Exactly half a grid cell (20px)
-            if (direction === 'UP') botY -= step;
-            if (direction === 'DOWN') botY += step;
-            if (direction === 'LEFT') botX -= step;
-            if (direction === 'RIGHT') botX += step;
+            let nextX = botX;
+            let nextY = botY;
             
-            botX = Math.max(38, Math.min(762, botX));
-            botY = Math.max(38, Math.min(562, botY));
+            if (direction === 'UP') nextY -= step;
+            if (direction === 'DOWN') nextY += step;
+            if (direction === 'LEFT') nextX -= step;
+            if (direction === 'RIGHT') nextX += step;
             
-            updateBotPositionVisual(botX, botY);
-            setBotMode('MOVING');
+            nextX = Math.max(38, Math.min(762, nextX));
+            nextY = Math.max(38, Math.min(562, nextY));
             
-            checkProximityTriggers();
-            
-            setTimeout(() => {
-                if (!isProcessingCheckout) {
-                    setBotMode('IDLE');
-                }
-            }, 150);
+            if (!checkCollision(nextX, nextY)) {
+                hideBotCartPopover();
+                botX = nextX;
+                botY = nextY;
+                
+                updateBotPositionVisual(botX, botY);
+                setBotMode('MOVING');
+                
+                checkProximityTriggers();
+                
+                setTimeout(() => {
+                    if (!isProcessingCheckout) {
+                        setBotMode('IDLE');
+                    }
+                }, 150);
+            }
         }
 
         function updateBotPositionVisual(x, y) {
@@ -1372,15 +1585,11 @@
             
             // Check proximity to individual product dots to display details card
             let nearbyProduct = null;
-            products.forEach((prod, index) => {
-                const aisleIndex = index % 4;
-                const shelfIndex = Math.floor(index / 4) % 3;
-                
-                const cx = 120 + 180 * aisleIndex;
-                const cy = 190 + 60 * shelfIndex;
-                
-                const dist = Math.sqrt((botX - cx) ** 2 + (botY - cy) ** 2);
-                if (dist < 32) { // 32 pixels boundary
+            products.forEach((prod) => {
+                const { cxLeft, cxRight, cy } = getProductCoordinates(prod);
+                const distLeft = Math.sqrt((botX - cxLeft) ** 2 + (botY - cy) ** 2);
+                const distRight = Math.sqrt((botX - cxRight) ** 2 + (botY - cy) ** 2);
+                if (distLeft < 45 || distRight < 45) { // 45 pixels boundary
                     nearbyProduct = prod;
                 }
             });
@@ -1440,10 +1649,30 @@
             if (activeBtn) {
                 activeBtn.classList.add('active');
             }
+            
+            // Update add to cart button status dynamically based on selected size stock
+            const product = products.find(p => p.sku === currentNearbySku);
+            if (product) {
+                const sizes = getProductSizes(product);
+                const selectedSizeStock = sizes[size] || 0;
+                const btn = document.getElementById('popover-cart-btn');
+                if (selectedSizeStock <= 0) {
+                    btn.disabled = true;
+                    btn.style.background = 'var(--text-dim)';
+                    btn.style.boxShadow = 'none';
+                    btn.innerHTML = '<i class="fa-solid fa-ban"></i> Hết hàng';
+                } else {
+                    btn.disabled = false;
+                    btn.style.background = 'var(--color-green)';
+                    btn.style.boxShadow = 'var(--shadow-green-glow)';
+                    btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Giỏ hàng';
+                }
+            }
         }
 
         // Show popover card with product details (dynamically positioned next to the robot)
         function showProductPopover(product) {
+            hideBotCartPopover();
             currentNearbySku = product.sku;
             
             document.getElementById('popover-title').innerText = product.name;
@@ -1452,30 +1681,73 @@
             document.getElementById('popover-stock').innerText = `Còn lại: ${product.stockQuantity}`;
             
             // Get size stocks
-            const sizes = getProductSizes(product);
-            const sizeList = ['S', 'M', 'L', 'XL'];
-            sizeList.forEach(sz => {
-                const stockVal = sizes[sz];
-                document.getElementById(`stock-${sz}`).innerText = stockVal;
+            const listForProd = productSizes.filter(ps => ps.productId === product.id || ps.product_id === product.id);
+            const hasStandardSizes = listForProd.some(ps => ps.size && ['S', 'M', 'L', 'XL'].includes(ps.size.toUpperCase()));
+            const sizeSection = document.querySelector('.popover-size-section');
+            const btn = document.getElementById('popover-cart-btn');
+
+            if (!hasStandardSizes) {
+                // Freesize product (e.g. accessories)
+                sizeSection.style.display = 'none';
+                popoverSelectedSize = 'Freesize';
                 
-                const szBtn = document.getElementById(`size-btn-${sz}`);
-                if (stockVal <= 0) {
-                    szBtn.disabled = true;
+                const nullSizeEntry = listForProd.find(ps => !ps.size || ps.size.toUpperCase() === 'NULL');
+                const freesizeStock = nullSizeEntry ? (nullSizeEntry.stockQuantity || nullSizeEntry.stock_quantity || 0) : product.stockQuantity;
+                
+                document.getElementById('popover-stock').innerText = `Còn lại: ${freesizeStock}`;
+                
+                if (freesizeStock <= 0) {
+                    btn.disabled = true;
+                    btn.style.background = 'var(--text-dim)';
+                    btn.style.boxShadow = 'none';
+                    btn.innerHTML = '<i class="fa-solid fa-ban"></i> Hết hàng';
                 } else {
-                    szBtn.disabled = false;
-                }
-            });
-            
-            // Auto-select a valid size
-            if (sizes[popoverSelectedSize] <= 0) {
-                const fallbackSz = sizeList.find(sz => sizes[sz] > 0);
-                if (fallbackSz) {
-                    setPopoverSelectedSize(fallbackSz);
-                } else {
-                    popoverSelectedSize = 'M'; // default
+                    btn.disabled = false;
+                    btn.style.background = 'var(--color-green)';
+                    btn.style.boxShadow = 'var(--shadow-green-glow)';
+                    btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Giỏ hàng';
                 }
             } else {
-                setPopoverSelectedSize(popoverSelectedSize);
+                // Standard size clothing product
+                sizeSection.style.display = 'block';
+                
+                const sizes = getProductSizes(product);
+                const sizeList = ['S', 'M', 'L', 'XL'];
+                sizeList.forEach(sz => {
+                    const stockVal = sizes[sz];
+                    document.getElementById(`stock-${sz}`).innerText = stockVal;
+                    
+                    const szBtn = document.getElementById(`size-btn-${sz}`);
+                    if (stockVal <= 0) {
+                        szBtn.disabled = true;
+                    } else {
+                        szBtn.disabled = false;
+                    }
+                });
+                
+                if (sizes[popoverSelectedSize] <= 0 || popoverSelectedSize === 'Freesize') {
+                    const fallbackSz = sizeList.find(sz => sizes[sz] > 0);
+                    if (fallbackSz) {
+                        setPopoverSelectedSize(fallbackSz);
+                    } else {
+                        popoverSelectedSize = 'M';
+                    }
+                } else {
+                    setPopoverSelectedSize(popoverSelectedSize);
+                }
+                
+                const selectedSizeStock = sizes[popoverSelectedSize] || 0;
+                if (product.stockQuantity <= 0 || selectedSizeStock <= 0) {
+                    btn.disabled = true;
+                    btn.style.background = 'var(--text-dim)';
+                    btn.style.boxShadow = 'none';
+                    btn.innerHTML = '<i class="fa-solid fa-ban"></i> Hết hàng';
+                } else {
+                    btn.disabled = false;
+                    btn.style.background = 'var(--color-green)';
+                    btn.style.boxShadow = 'var(--shadow-green-glow)';
+                    btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Giỏ hàng';
+                }
             }
             
             // Render images dynamically from database image_url or fallback
@@ -1501,20 +1773,6 @@
             
             popover.style.left = `${leftPct}%`;
             popover.style.top = `${topPct}%`;
-            
-            // Disable button if out of stock
-            const btn = document.getElementById('popover-cart-btn');
-            if (product.stockQuantity <= 0) {
-                btn.disabled = true;
-                btn.style.background = 'var(--text-dim)';
-                btn.style.boxShadow = 'none';
-                btn.innerHTML = '<i class="fa-solid fa-ban"></i> Hết hàng';
-            } else {
-                btn.disabled = false;
-                btn.style.background = 'var(--color-green)';
-                btn.style.boxShadow = 'var(--shadow-green-glow)';
-                btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Giỏ hàng';
-            }
             
             popover.classList.remove('hidden');
             setTimeout(() => {
@@ -1543,8 +1801,8 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ...';
             
             try {
-                // Append selected size suffix to the tagId
-                const tagIdWithSize = `${currentNearbySku}-${popoverSelectedSize}`;
+                // Append selected size suffix to the tagId if standard size clothing
+                const tagIdWithSize = popoverSelectedSize === 'Freesize' ? currentNearbySku : `${currentNearbySku}-${popoverSelectedSize}`;
                 const response = await fetch(`${API_BASE}/cart/add?tagId=${tagIdWithSize}`, {
                     method: 'POST'
                 });
@@ -1662,6 +1920,7 @@
 
                 renderData();
                 renderSvgProducts();
+                updateBotCartBadge();
 
                 if (isFirstLoad) {
                     botX = 400;
@@ -1715,14 +1974,17 @@
                 if (products.length === 0) {
                     invContainer.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 24px; color:var(--text-secondary);">Không có dữ liệu sản phẩm nào trong database</td></tr>';
                 } else {
-                    invContainer.innerHTML = products.map((prod, index) => {
+                    const shelfCounters = { 'AT': 0, 'QJ': 0, 'AK': 0, 'PK': 0 };
+                    invContainer.innerHTML = products.map((prod) => {
                         const statusClass = prod.stockQuantity > 0 ? 'instock' : 'outofstock';
                         const statusText = prod.stockQuantity > 0 ? 'CÒN HÀNG' : 'HẾT HÀNG';
                         
-                        // Map shelf dynamically
-                        const aisleLetter = String.fromCharCode(65 + (index % 4));
-                        const shelfPosition = index % 3 === 0 ? 'Trên' : (index % 3 === 1 ? 'Giữa' : 'Dưới');
-                        const dynamicShelf = `Lối đi ${aisleLetter} - Kệ ${shelfPosition}`;
+                        // Map shelf dynamically based on SKU category prefix using coordinates
+                        const { aisleIndex, shelfIndex } = getProductCoordinates(prod);
+                        const aisleLetter = String.fromCharCode(65 + aisleIndex);
+                        const aisleName = aisleLetter === 'A' ? 'Áo' : (aisleLetter === 'B' ? 'Quần' : (aisleLetter === 'C' ? 'Áo khoác' : 'Phụ kiện'));
+                        const shelfPosition = shelfIndex === 0 ? 'Trên' : (shelfIndex === 1 ? 'Giữa' : 'Dưới');
+                        const dynamicShelf = `Lối đi ${aisleLetter} (${aisleName}) - Kệ ${shelfPosition}`;
 
                         // Calculate size stock breakdown
                         const sizes = getProductSizes(prod);
@@ -1788,17 +2050,8 @@
             const group = document.getElementById('dynamic-product-dots-group');
             group.innerHTML = '';
             
-            products.forEach((prod, index) => {
-                const aisleIndex = index % 4;
-                const shelfIndex = Math.floor(index / 4) % 3;
-                
-                const cx = 120 + 180 * aisleIndex;
-                const cy = 190 + 60 * shelfIndex;
-                
-                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circle.setAttribute('cx', cx);
-                circle.setAttribute('cy', cy);
-                circle.setAttribute('r', 7);
+            products.forEach((prod) => {
+                const { cxLeft, cxRight, cy, aisleIndex } = getProductCoordinates(prod);
                 
                 // Color based on Aisle
                 let colorClass = 'dairy-color';
@@ -1806,15 +2059,29 @@
                 if (aisleIndex === 2) colorClass = 'snack-color';
                 if (aisleIndex === 3) colorClass = 'pantry-color';
                 
-                circle.setAttribute('class', `product-dot ${colorClass}`);
-                circle.setAttribute('id', `prod-${prod.sku}`);
-                
-                // Opacity fades out only if stock is completely depleted
+                // Left Dot
+                const circleLeft = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleLeft.setAttribute('cx', cxLeft);
+                circleLeft.setAttribute('cy', cy);
+                circleLeft.setAttribute('r', 7);
+                circleLeft.setAttribute('class', `product-dot ${colorClass}`);
+                circleLeft.setAttribute('id', `prod-${prod.sku}-left`);
                 if (prod.stockQuantity <= 0) {
-                    circle.classList.add('picked');
+                    circleLeft.classList.add('picked');
                 }
+                group.appendChild(circleLeft);
                 
-                group.appendChild(circle);
+                // Right Dot
+                const circleRight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleRight.setAttribute('cx', cxRight);
+                circleRight.setAttribute('cy', cy);
+                circleRight.setAttribute('r', 7);
+                circleRight.setAttribute('class', `product-dot ${colorClass}`);
+                circleRight.setAttribute('id', `prod-${prod.sku}-right`);
+                if (prod.stockQuantity <= 0) {
+                    circleRight.classList.add('picked');
+                }
+                group.appendChild(circleRight);
             });
         }
 
@@ -1890,6 +2157,7 @@
             updateBotPositionVisual(botX, botY);
             setBotMode('IDLE');
             hideProductPopover();
+            hideBotCartPopover();
             
             document.getElementById('bot-status-text').innerText = 'Đang đặt lại cơ sở dữ liệu hệ thống...';
             
@@ -1902,6 +2170,114 @@
             } catch (e) {
                 console.error("Đặt lại dữ liệu thất bại:", e);
                 document.getElementById('bot-status-text').innerText = 'Đặt lại dữ liệu thất bại. Sẵn sàng di chuyển!';
+            }
+        }
+
+        // Cập nhật số lượng huy hiệu giỏ hàng của bot trên bản đồ
+        function updateBotCartBadge() {
+            const badgeBg = document.getElementById('bot-cart-badge-bg');
+            const badgeText = document.getElementById('bot-cart-badge-text');
+            if (badgeBg && badgeText) {
+                if (cart && cart.count > 0) {
+                    badgeBg.style.display = 'block';
+                    badgeText.style.display = 'block';
+                    badgeText.textContent = cart.count;
+                } else {
+                    badgeBg.style.display = 'none';
+                    badgeText.style.display = 'none';
+                }
+            }
+        }
+
+        // Kết xuất danh sách mặt hàng trong giỏ của bot
+        function renderBotCartList() {
+            const listDiv = document.getElementById('bot-cart-list');
+            if (!listDiv) return;
+            
+            if (!cart.items || cart.items.length === 0) {
+                listDiv.innerHTML = '<div class="bot-cart-empty"><i class="fa-solid fa-folder-open"></i> Giỏ hàng trống</div>';
+                return;
+            }
+            
+            listDiv.innerHTML = cart.items.map(item => `
+                <div class="bot-cart-item">
+                    <div class="bot-cart-item-info">
+                        <span class="bot-cart-item-name" title="${item.productName}">${item.productName}</span>
+                        <span class="bot-cart-item-meta">${item.price.toLocaleString('vi-VN')} đ · SL: ${item.quantity}</span>
+                    </div>
+                    <button class="bot-cart-item-remove" onclick="removeCartItem(${item.id})" title="Xóa bớt">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Bật/tắt thẻ giỏ hàng của bot khi bấm vào icon giỏ
+        function toggleBotCartPopover(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            const popover = document.getElementById('bot-cart-popover');
+            if (!popover) return;
+            
+            if (popover.classList.contains('hidden')) {
+                // Đóng thẻ chi tiết sản phẩm nếu đang mở
+                hideProductPopover();
+                
+                // Kết xuất lại danh sách
+                renderBotCartList();
+                
+                // Tính toán vị trí popover kế cận Bot
+                let leftPct;
+                if (botX < 400) {
+                    leftPct = ((botX + 30) / 800) * 100;
+                } else {
+                    leftPct = ((botX - 290) / 800) * 100;
+                }
+                
+                let topVal = botY - 110;
+                topVal = Math.max(10, Math.min(300, topVal));
+                let topPct = (topVal / 600) * 100;
+                
+                popover.style.left = `${leftPct}%`;
+                popover.style.top = `${topPct}%`;
+                
+                popover.classList.remove('hidden');
+                setTimeout(() => {
+                    popover.classList.add('visible');
+                }, 10);
+            } else {
+                hideBotCartPopover();
+            }
+        }
+
+        // Đóng thẻ giỏ hàng của bot
+        function hideBotCartPopover() {
+            const popover = document.getElementById('bot-cart-popover');
+            if (popover && !popover.classList.contains('hidden')) {
+                popover.classList.remove('visible');
+                setTimeout(() => {
+                    if (!popover.classList.contains('visible')) {
+                        popover.classList.add('hidden');
+                    }
+                }, 300);
+            }
+        }
+
+        // Gọi API xóa bớt/loại bỏ sản phẩm khỏi giỏ hàng
+        async function removeCartItem(id) {
+            try {
+                const response = await fetch(`${API_BASE}/cart/remove/${id}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    await refreshAllData(false);
+                    // Cập nhật lại danh sách hiển thị
+                    renderBotCartList();
+                }
+            } catch (error) {
+                console.error("Lỗi khi loại bỏ sản phẩm khỏi giỏ:", error);
             }
         }
     </script>
