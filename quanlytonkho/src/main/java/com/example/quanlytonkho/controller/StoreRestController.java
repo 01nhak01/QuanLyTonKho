@@ -2,6 +2,7 @@ package com.example.quanlytonkho.controller;
 
 import com.example.quanlytonkho.model.CartItem;
 import com.example.quanlytonkho.model.Product;
+import com.example.quanlytonkho.model.ProductSize;
 import com.example.quanlytonkho.model.RfidEvent;
 import com.example.quanlytonkho.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,11 @@ public class StoreRestController {
     @GetMapping("/products")
     public List<Product> getAllProducts() {
         return storeService.getAllProducts();
+    }
+
+    @GetMapping("/product-sizes")
+    public List<ProductSize> getProductSizes() {
+        return storeService.getAllProductSizes();
     }
 
     @GetMapping("/cart")

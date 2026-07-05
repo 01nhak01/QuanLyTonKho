@@ -849,6 +849,47 @@
         .security-alert.hidden {
             display: none;
         }
+
+        /* Size Selector Styling */
+        .popover-size-section {
+            margin-top: 10px;
+            text-align: left;
+        }
+        .size-selector-group {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .size-btn {
+            flex: 1;
+            background: #0d1e36;
+            border: 1px solid #204575;
+            color: var(--text-primary);
+            padding: 5px 3px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .size-btn:hover {
+            border-color: var(--color-cyan);
+            background: #132a4a;
+        }
+        .size-btn.active {
+            background: var(--color-cyan);
+            border-color: var(--color-cyan);
+            color: #03080f;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+        }
+        .size-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            border-color: #162a45;
+            background: #071220;
+            color: var(--text-dim);
+        }
     </style>
 </head>
 <body>
@@ -1109,6 +1150,15 @@
                             <div class="popover-sku" id="popover-sku">SKU-XXXX</div>
                             <div class="popover-price" id="popover-price">0 đ</div>
                             <div class="popover-stock" id="popover-stock">Còn lại: 0</div>
+                            <div class="popover-size-section">
+                                <label style="font-size: 10px; color: var(--text-secondary); display:block; margin-bottom:4px; font-weight:600;">Chọn Kích Thước (Size):</label>
+                                <div class="size-selector-group">
+                                    <button class="size-btn" id="size-btn-S" onclick="setPopoverSelectedSize('S')">S (<span id="stock-S">0</span>)</button>
+                                    <button class="size-btn" id="size-btn-M" onclick="setPopoverSelectedSize('M')">M (<span id="stock-M">0</span>)</button>
+                                    <button class="size-btn" id="size-btn-L" onclick="setPopoverSelectedSize('L')">L (<span id="stock-L">0</span>)</button>
+                                    <button class="size-btn" id="size-btn-XL" onclick="setPopoverSelectedSize('XL')">XL (<span id="stock-XL">0</span>)</button>
+                                </div>
+                            </div>
                         </div>
                         <button class="popover-cart-btn" id="popover-cart-btn" onclick="addProductToCartFromPopover()">
                             <i class="fa-solid fa-cart-plus"></i> Giỏ hàng
@@ -1147,6 +1197,7 @@
         const API_BASE = '/api';
         let currentTab = 'feed';
         let products = [];
+        let productSizes = [];
         let cart = { items: [], total: 0, count: 0 };
         let events = [];
         let sessionCount = 0;
@@ -1174,6 +1225,20 @@
         let currentNearbySku = null;
         let hasAlertedSecurity = false;
         let hasCompletedSession = false;
+        let popoverSelectedSize = 'M';
+
+        // Lấy danh sách size và số lượng tồn kho tương ứng của mỗi size từ dữ liệu productSizes của database
+        function getProductSizes(prod) {
+            // Lọc ra các size có product_id trùng với id của sản phẩm này
+            const list = productSizes.filter(ps => ps.productId === prod.id || ps.product_id === prod.id);
+            const sizes = { 'S': 0, 'M': 0, 'L': 0, 'XL': 0 };
+            list.forEach(ps => {
+                const sz = ps.size;
+                const qty = ps.stockQuantity !== undefined ? ps.stockQuantity : ps.stock_quantity;
+                sizes[sz] = qty || 0;
+            });
+            return sizes;
+        }
 
         // On Page Load
         document.addEventListener('DOMContentLoaded', () => {
@@ -1365,6 +1430,18 @@
             }, 2000);
         }
 
+        // Set selected size state and update UI classes
+        function setPopoverSelectedSize(size) {
+            popoverSelectedSize = size;
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`size-btn-${size}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+        }
+
         // Show popover card with product details (dynamically positioned next to the robot)
         function showProductPopover(product) {
             currentNearbySku = product.sku;
@@ -1373,6 +1450,33 @@
             document.getElementById('popover-sku').innerText = `Mã: ${product.sku}`;
             document.getElementById('popover-price').innerText = `${product.price.toLocaleString('vi-VN')} đ`;
             document.getElementById('popover-stock').innerText = `Còn lại: ${product.stockQuantity}`;
+            
+            // Get size stocks
+            const sizes = getProductSizes(product);
+            const sizeList = ['S', 'M', 'L', 'XL'];
+            sizeList.forEach(sz => {
+                const stockVal = sizes[sz];
+                document.getElementById(`stock-${sz}`).innerText = stockVal;
+                
+                const szBtn = document.getElementById(`size-btn-${sz}`);
+                if (stockVal <= 0) {
+                    szBtn.disabled = true;
+                } else {
+                    szBtn.disabled = false;
+                }
+            });
+            
+            // Auto-select a valid size
+            if (sizes[popoverSelectedSize] <= 0) {
+                const fallbackSz = sizeList.find(sz => sizes[sz] > 0);
+                if (fallbackSz) {
+                    setPopoverSelectedSize(fallbackSz);
+                } else {
+                    popoverSelectedSize = 'M'; // default
+                }
+            } else {
+                setPopoverSelectedSize(popoverSelectedSize);
+            }
             
             // Render images dynamically from database image_url or fallback
             let imgUrl = product.image_url || 'https://via.placeholder.com/200x100?text=RFID+Product';
@@ -1439,7 +1543,9 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ...';
             
             try {
-                const response = await fetch(`${API_BASE}/cart/add?tagId=${currentNearbySku}`, {
+                // Append selected size suffix to the tagId
+                const tagIdWithSize = `${currentNearbySku}-${popoverSelectedSize}`;
+                const response = await fetch(`${API_BASE}/cart/add?tagId=${tagIdWithSize}`, {
                     method: 'POST'
                 });
                 if (response.ok) {
@@ -1519,13 +1625,31 @@
         // Fetch data from database APIs
         async function refreshAllData(isFirstLoad = false) {
             try {
-                const [productsRes, cartRes, eventsRes] = await Promise.all([
+                const [productsRes, sizesRes, cartRes, eventsRes] = await Promise.all([
                     fetch(`${API_BASE}/products`),
+                    fetch(`${API_BASE}/product-sizes`),
                     fetch(`${API_BASE}/cart`),
                     fetch(`${API_BASE}/events`)
                 ]);
 
-                if (productsRes.ok) products = await productsRes.json();
+                if (productsRes.ok) {
+                    const rawProducts = await productsRes.json();
+                    products = rawProducts.map(p => {
+                        p.stockQuantity = p.stock_quantity !== undefined ? p.stock_quantity : p.stockQuantity;
+                        p.imageUrl = p.image_url !== undefined ? p.image_url : p.imageUrl;
+                        return p;
+                    });
+                }
+                
+                if (sizesRes.ok) {
+                    const rawSizes = await sizesRes.json();
+                    productSizes = rawSizes.map(s => {
+                        s.productId = s.product_id !== undefined ? s.product_id : s.productId;
+                        s.stockQuantity = s.stock_quantity !== undefined ? s.stock_quantity : s.stockQuantity;
+                        return s;
+                    });
+                }
+                
                 if (cartRes.ok) cart = await cartRes.json();
                 if (eventsRes.ok) events = await eventsRes.json();
 
@@ -1541,7 +1665,7 @@
 
                 if (isFirstLoad) {
                     botX = 400;
-                    botY = 478;
+                    botY = 510;
                     updateBotPositionVisual(botX, botY);
                 }
             } catch (error) {
@@ -1600,11 +1724,18 @@
                         const shelfPosition = index % 3 === 0 ? 'Trên' : (index % 3 === 1 ? 'Giữa' : 'Dưới');
                         const dynamicShelf = `Lối đi ${aisleLetter} - Kệ ${shelfPosition}`;
 
+                        // Calculate size stock breakdown
+                        const sizes = getProductSizes(prod);
+                        const sizeBreakdown = `S:${sizes.S} | M:${sizes.M} | L:${sizes.L} | XL:${sizes.XL}`;
+
                         return `
                             <tr>
                                 <td style="font-weight: 600;">${prod.name}</td>
                                 <td>${dynamicShelf}</td>
-                                <td class="font-mono">${prod.stockQuantity}</td>
+                                <td class="font-mono">
+                                    <strong style="color:var(--text-primary); font-size:13px;">${prod.stockQuantity}</strong>
+                                    <span style="display:block; font-size:10px; color:var(--text-secondary); margin-top:2px;">${sizeBreakdown}</span>
+                                </td>
                                 <td class="font-mono" style="color: var(--color-green); font-weight:600;">${prod.price.toLocaleString('vi-VN')} đ</td>
                                 <td><span class="tag-badge">${prod.sku}</span></td>
                                 <td><span class="status-pill ${statusClass}">${statusText}</span></td>
@@ -1678,9 +1809,8 @@
                 circle.setAttribute('class', `product-dot ${colorClass}`);
                 circle.setAttribute('id', `prod-${prod.sku}`);
                 
-                // Opacity fades out if stock decreases relative to initial stock baseline
-                const isPicked = prod.stockQuantity < initialStocks[prod.sku];
-                if (isPicked || prod.stockQuantity <= 0) {
+                // Opacity fades out only if stock is completely depleted
+                if (prod.stockQuantity <= 0) {
                     circle.classList.add('picked');
                 }
                 

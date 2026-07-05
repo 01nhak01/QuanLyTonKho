@@ -2,6 +2,7 @@ package com.example.quanlytonkho.service;
 
 import com.example.quanlytonkho.model.CartItem;
 import com.example.quanlytonkho.model.Product;
+import com.example.quanlytonkho.model.ProductSize;
 import com.example.quanlytonkho.model.RfidEvent;
 import com.example.quanlytonkho.repository.CartItemRepository;
 import com.example.quanlytonkho.repository.RfidEventRepository;
@@ -32,6 +33,7 @@ public class StoreService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     
     private static final String SUPABASE_URL = "https://axexefvrpqstomhrsyhs.supabase.co/rest/v1/products";
+    private static final String SUPABASE_SIZES_URL = "https://axexefvrpqstomhrsyhs.supabase.co/rest/v1/product_sizes";
     private static final String SUPABASE_KEY = "sb_publishable_w-lw5c-fZE_MVBl4lfbRlw_47yKL74-";
     private static final String DEFAULT_SESSION = "SESSION-01";
 
@@ -84,6 +86,26 @@ public class StoreService {
         return Collections.emptyList();
     }
 
+    public List<ProductSize> getAllProductSizes() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SUPABASE_SIZES_URL + "?select=*&order=id.asc"))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+            
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                return objectMapper.readValue(response.body(), new TypeReference<List<ProductSize>>() {});
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi khi tải bảng size sản phẩm từ Supabase: " + e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
     public List<CartItem> getCartItems() {
         return cartItemRepository.findBySessionCode(DEFAULT_SESSION);
     }
@@ -100,18 +122,31 @@ public class StoreService {
 
     @Transactional
     public synchronized CartItem addCartItemByTag(String sku) {
-        Product product = getProductBySkuFromSupabase(sku);
+        String baseSku = sku;
+        String size = "M";
+        if (sku.contains("-") && (sku.endsWith("-S") || sku.endsWith("-M") || sku.endsWith("-L") || sku.endsWith("-XL"))) {
+            int lastDash = sku.lastIndexOf('-');
+            baseSku = sku.substring(0, lastDash);
+            size = sku.substring(lastDash + 1);
+        }
+
+        Product product = getProductBySkuFromSupabase(baseSku);
         if (product != null) {
-            if (product.getStockQuantity() > 0) {
-                int newStock = product.getStockQuantity() - 1;
+            int sizeStock = getProductSizeStockFromSupabase(product.getId(), size);
+            if (sizeStock > 0) {
+                // Decrement size stock
+                updateProductSizeStockOnSupabase(product.getId(), size, sizeStock - 1);
                 
-                // Update stock on Supabase via PATCH request
-                updateProductStockOnSupabase(sku, newStock);
+                // Decrement overall product stock
+                int newStock = product.getStockQuantity() - 1;
+                updateProductStockOnSupabase(baseSku, newStock);
 
                 // Add item to local cart
                 List<CartItem> cartItems = cartItemRepository.findBySessionCode(DEFAULT_SESSION);
+                String cartItemName = product.getName() + " (Size " + size + ")";
+                
                 Optional<CartItem> existingItemOpt = cartItems.stream()
-                        .filter(item -> item.getProductId().equals(product.getId()))
+                        .filter(item -> item.getProductId().equals(product.getId()) && item.getProductName().equals(cartItemName))
                         .findFirst();
 
                 CartItem cartItem;
@@ -119,27 +154,27 @@ public class StoreService {
                     cartItem = existingItemOpt.get();
                     cartItem.setQuantity(cartItem.getQuantity() + 1);
                 } else {
-                    cartItem = new CartItem(product.getId(), product.getName(), 1, product.getPrice(), DEFAULT_SESSION);
+                    cartItem = new CartItem(product.getId(), cartItemName, 1, product.getPrice(), DEFAULT_SESSION);
                 }
                 cartItemRepository.save(cartItem);
 
                 // Map location dynamically in logs
                 String location = "Khu Vực Quét";
-                if (sku.toLowerCase().contains("lap")) {
+                if (baseSku.toLowerCase().contains("at")) {
                     location = "Hành lang A";
-                } else if (sku.toLowerCase().contains("mou")) {
+                } else if (baseSku.toLowerCase().contains("qj")) {
                     location = "Hành lang B";
                 }
 
                 // Log event
-                logEvent(sku, location, "Quét sản phẩm: " + product.getName() + " (Tồn kho còn lại: " + newStock + ")");
+                logEvent(baseSku, location, "Quét sản phẩm: " + cartItemName + " (Tồn kho còn lại: " + newStock + ")");
                 return cartItem;
             } else {
                 String location = "Khu Vực Quét";
-                if (sku.toLowerCase().contains("lap")) location = "Hành lang A";
-                else if (sku.toLowerCase().contains("mou")) location = "Hành lang B";
+                if (baseSku.toLowerCase().contains("at")) location = "Hành lang A";
+                else if (baseSku.toLowerCase().contains("qj")) location = "Hành lang B";
                 
-                logEvent(sku, location, "Quét thất bại: " + product.getName() + " đã HẾT HÀNG");
+                logEvent(baseSku, location, "Quét thất bại: " + product.getName() + " (Size " + size + ") đã HẾT HÀNG");
             }
         }
         return null;
@@ -199,6 +234,49 @@ public class StoreService {
             httpClient.send(request, HttpResponse.BodyHandlers.discarding());
         } catch (Exception e) {
             System.err.println("Lỗi khi cập nhật tồn kho trên Supabase: " + e.getMessage());
+        }
+    }
+
+    private int getProductSizeStockFromSupabase(Long productId, String size) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SUPABASE_SIZES_URL + "?product_id=eq." + productId + "&size=eq." + size + "&select=*"))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+            
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                List<ProductSize> list = objectMapper.readValue(response.body(), new TypeReference<List<ProductSize>>() {});
+                if (list != null && !list.isEmpty()) {
+                    return list.get(0).getStockQuantity() != null ? list.get(0).getStockQuantity() : 0;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi khi tìm tồn kho size: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    private void updateProductSizeStockOnSupabase(Long productId, String size, int newStock) {
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("stock_quantity", newStock);
+            String jsonBody = objectMapper.writeValueAsString(body);
+            
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SUPABASE_SIZES_URL + "?product_id=eq." + productId + "&size=eq." + size))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+            
+            httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+        } catch (Exception e) {
+            System.err.println("Lỗi khi cập nhật tồn kho size trên Supabase: " + e.getMessage());
         }
     }
 }
