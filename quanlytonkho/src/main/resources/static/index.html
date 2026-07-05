@@ -1114,10 +1114,8 @@
             <header class="sim-header">
                 <h2><i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · ĐIỀU KHIỂN THỦ CÔNG</h2>
                 <div class="sim-legend">
-                    <span class="legend-item" id="leg-idle"><span class="legend-dot status-idle"></span> CHỜ</span>
                     <span class="legend-item" id="leg-moving"><span class="legend-dot status-moving"></span> DI CHUYỂN</span>
                     <span class="legend-item" id="leg-checkout"><span class="legend-dot status-checkout"></span> THANH TOÁN</span>
-                    <span class="legend-item" id="leg-complete"><span class="legend-dot status-complete"></span> HOÀN THÀNH</span>
                 </div>
             </header>
 
@@ -1540,6 +1538,7 @@
             const dx = x - 400;
             const dy = y - 510;
             botContainer.style.transform = `translate(${dx}px, ${dy}px)`;
+            updateBotVisualClass(botMode);
         }
 
         // Check if Bot is close to checkout (to pay) or individual product dots (to show info)
@@ -1573,15 +1572,7 @@
                 hasAlertedSecurity = false;
             }
             
-            // Entrance Session Completion Check: Y >= 502 and close to X=400 (Bot returns to entrance)
-            if (botY >= 502 && Math.abs(botX - 400) < 20) {
-                if (cart.count === 0 && !hasCompletedSession) {
-                    hasCompletedSession = true;
-                    triggerSessionCompletion();
-                }
-            } else {
-                hasCompletedSession = false;
-            }
+
             
             // Check proximity to individual product dots to display details card
             let nearbyProduct = null;
@@ -1613,31 +1604,7 @@
             }
         }
 
-        // Trigger session completion sequence when bot returns to the entrance
-        async function triggerSessionCompletion() {
-            setBotMode('COMPLETE');
-            document.getElementById('bot-status-text').innerText = 'Hoàn thành phiên mua sắm! Cảm ơn quý khách.';
-            
-            try {
-                await fetch(`${API_BASE}/events?tagId=SESSION-END&location=Cổng Ra&message=Hoàn thành phiên mua sắm thành công - Robot quay lại cổng ra.`, {
-                    method: 'POST'
-                });
-            } catch (e) {
-                console.error("Lỗi log sự kiện kết thúc phiên:", e);
-            }
-            
-            sessionCount++;
-            
-            // Wait 2 seconds, then reset state for next session
-            setTimeout(async () => {
-                botX = 400;
-                botY = 510;
-                updateBotPositionVisual(botX, botY);
-                setBotMode('IDLE');
-                hasCompletedSession = false;
-                refreshAllData(false);
-            }, 2000);
-        }
+
 
         // Set selected size state and update UI classes
         function setPopoverSelectedSize(size) {
@@ -2106,11 +2073,9 @@
             });
             
             // Map mode to legend item ID
-            let legendId = 'leg-idle';
-            if (mode === 'IDLE') legendId = 'leg-idle';
-            else if (mode === 'MOVING') legendId = 'leg-moving';
+            let legendId = null;
+            if (mode === 'MOVING') legendId = 'leg-moving';
             else if (mode === 'CHECKOUT') legendId = 'leg-checkout';
-            else if (mode === 'COMPLETE') legendId = 'leg-complete';
             
             const activeLegend = document.getElementById(legendId);
             if (activeLegend) {
@@ -2125,7 +2090,13 @@
             body.className = '';
             glow.className = '';
             
-            if (mode === 'IDLE') {
+            const atEntrance = (botX === 400 && botY === 510);
+            
+            if (atEntrance) {
+                // Ở vị trí cổng vào, bắt buộc Robot hiển thị màu xanh dương (cyan)
+                body.classList.add('bot-body-moving');
+                glow.classList.add('bot-glow-moving');
+            } else if (mode === 'IDLE') {
                 body.classList.add('bot-body-idle');
                 glow.classList.add('bot-glow-idle');
             } else if (mode === 'MOVING') {
