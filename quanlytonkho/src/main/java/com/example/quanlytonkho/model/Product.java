@@ -1,7 +1,9 @@
 package com.example.quanlytonkho.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Product {
     private Long id;
     private String sku;
@@ -14,16 +16,20 @@ public class Product {
     @JsonProperty("created_at")
     private String createdAt;
 
+    @JsonProperty("image_url")
+    private String imageUrl;
+
     public Product() {
     }
 
-    public Product(Long id, String sku, String name, Double price, Integer stockQuantity, String createdAt) {
+    public Product(Long id, String sku, String name, Double price, Integer stockQuantity, String createdAt, String imageUrl) {
         this.id = id;
         this.sku = sku;
         this.name = name;
         this.price = price;
         this.stockQuantity = stockQuantity;
         this.createdAt = createdAt;
+        this.imageUrl = imageUrl;
     }
 
     public Long getId() {
@@ -72,5 +78,13 @@ public class Product {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

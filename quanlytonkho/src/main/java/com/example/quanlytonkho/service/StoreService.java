@@ -5,14 +5,17 @@ import com.example.quanlytonkho.model.Product;
 import com.example.quanlytonkho.model.RfidEvent;
 import com.example.quanlytonkho.repository.CartItemRepository;
 import com.example.quanlytonkho.repository.RfidEventRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -25,7 +28,8 @@ public class StoreService {
     @Autowired
     private RfidEventRepository rfidEventRepository;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
     
     private static final String SUPABASE_URL = "https://axexefvrpqstomhrsyhs.supabase.co/rest/v1/products";
     private static final String SUPABASE_KEY = "sb_publishable_w-lw5c-fZE_MVBl4lfbRlw_47yKL74-";
@@ -37,14 +41,6 @@ public class StoreService {
             logEvent("SYS-CTRL", "Phòng Máy Chủ", "Hệ thống RFID Trực tuyến (Bộ điều khiển chính)");
             logEvent("READER-A..D", "Khu Vực Bán Hàng", "4 cổng đọc RFID đang hoạt động (Tất cả lối đi trực tuyến)");
         }
-    }
-
-    private HttpHeaders getSupabaseHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("apikey", SUPABASE_KEY);
-        headers.set("Authorization", "Bearer " + SUPABASE_KEY);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return headers;
     }
 
     @Transactional
@@ -70,21 +66,22 @@ public class StoreService {
 
     public List<Product> getAllProducts() {
         try {
-            HttpEntity<Void> entity = new HttpEntity<>(getSupabaseHeaders());
-            String url = SUPABASE_URL + "?select=*&order=id.asc";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SUPABASE_URL + "?select=*&order=id.asc"))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
             
-            ResponseEntity<List<Product>> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                new ParameterizedTypeReference<List<Product>>() {}
-            );
-            
-            return response.getBody() != null ? response.getBody() : Collections.emptyList();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                return objectMapper.readValue(response.body(), new TypeReference<List<Product>>() {});
+            }
         } catch (Exception e) {
             System.err.println("Lỗi khi tải sản phẩm từ Supabase: " + e.getMessage());
-            return Collections.emptyList();
         }
+        return Collections.emptyList();
     }
 
     public List<CartItem> getCartItems() {
@@ -164,19 +161,20 @@ public class StoreService {
 
     private Product getProductBySkuFromSupabase(String sku) {
         try {
-            HttpEntity<Void> entity = new HttpEntity<>(getSupabaseHeaders());
-            String url = SUPABASE_URL + "?sku=eq." + sku + "&select=*";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SUPABASE_URL + "?sku=eq." + sku + "&select=*"))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
             
-            ResponseEntity<List<Product>> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                new ParameterizedTypeReference<List<Product>>() {}
-            );
-            
-            List<Product> list = response.getBody();
-            if (list != null && !list.isEmpty()) {
-                return list.get(0);
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                List<Product> list = objectMapper.readValue(response.body(), new TypeReference<List<Product>>() {});
+                if (list != null && !list.isEmpty()) {
+                    return list.get(0);
+                }
             }
         } catch (Exception e) {
             System.err.println("Lỗi khi tìm sản phẩm qua SKU: " + e.getMessage());
@@ -188,16 +186,17 @@ public class StoreService {
         try {
             Map<String, Object> body = new HashMap<>();
             body.put("stock_quantity", newStock);
+            String jsonBody = objectMapper.writeValueAsString(body);
             
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, getSupabaseHeaders());
-            String url = SUPABASE_URL + "?sku=eq." + sku;
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SUPABASE_URL + "?sku=eq." + sku))
+                .header("apikey", SUPABASE_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
             
-            restTemplate.exchange(
-                url,
-                HttpMethod.PATCH,
-                entity,
-                Void.class
-            );
+            httpClient.send(request, HttpResponse.BodyHandlers.discarding());
         } catch (Exception e) {
             System.err.println("Lỗi khi cập nhật tồn kho trên Supabase: " + e.getMessage());
         }

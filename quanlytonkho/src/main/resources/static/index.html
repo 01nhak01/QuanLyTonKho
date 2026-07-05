@@ -132,10 +132,10 @@
             letter-spacing: 0.5px;
         }
 
-        /* Thanh thông tin chỉ số (Stats Bar) */
+        /* Thanh thông tin chỉ số (Stats Bar) - 2 Cột */
         .stats-bar {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             border-bottom: 1px solid var(--border-color);
         }
         .stat-box {
@@ -170,47 +170,6 @@
         }
         .session-value {
             color: var(--color-purple);
-        }
-
-        /* Đèn chỉ báo trạng thái của từng hành lang quét */
-        .aisle-indicators {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            border-bottom: 1px solid var(--border-color);
-            background-color: rgba(5, 11, 20, 0.4);
-        }
-        .aisle-indicator {
-            padding: 10px 4px;
-            text-align: center;
-            font-family: var(--font-mono);
-            font-size: 0.68rem;
-            color: var(--text-dim);
-            letter-spacing: 0.5px;
-            font-weight: 500;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: all 0.3s ease;
-        }
-        .aisle-indicator:last-child {
-            border-right: none;
-        }
-        .aisle-indicator .ind-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: var(--text-dim);
-            transition: all 0.3s ease;
-        }
-        .aisle-indicator.active {
-            color: var(--color-cyan);
-            background-color: rgba(0, 200, 255, 0.05);
-        }
-        .aisle-indicator.active .ind-dot {
-            background-color: var(--color-cyan);
-            box-shadow: 0 0 8px var(--color-cyan);
         }
 
         /* Điều hướng Tabs điều khiển */
@@ -510,20 +469,32 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            transition: all 0.3s ease;
         }
         .legend-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
             display: inline-block;
+            transition: all 0.3s ease;
         }
 
         /* Trạng thái màu đèn trong Legend */
         .status-idle { background-color: var(--text-secondary); }
         .status-moving { background-color: var(--color-cyan); box-shadow: 0 0 6px var(--color-cyan); }
-        .status-scanning { background-color: var(--color-amber); box-shadow: 0 0 6px var(--color-amber); }
         .status-checkout { background-color: var(--color-green); box-shadow: 0 0 6px var(--color-green); }
-        .status-complete { background-color: var(--color-green); }
+        .status-complete { background-color: var(--color-green); box-shadow: 0 0 6px var(--color-green); }
+
+        /* Hiệu ứng nháy sáng đặc biệt cho Legend Item active */
+        .legend-item.active {
+            color: var(--text-primary);
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+        }
+        .legend-item.active .legend-dot {
+            transform: scale(1.4);
+            animation: blink-pulse 1s infinite;
+        }
 
         /* Bảng vẽ sơ đồ cửa hàng */
         .sim-canvas-container {
@@ -576,35 +547,6 @@
         .green-text { color: var(--color-green); fill: var(--color-green); }
         .amber-text { color: var(--color-amber); fill: var(--color-amber); }
 
-        /* Ăng-ten thu phát RFID */
-        .antenna-base {
-            fill: #0c1b30;
-            stroke: #2c5e9c;
-            stroke-width: 1.5;
-        }
-        .antenna-core {
-            fill: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-        .antenna-wave {
-            fill: none;
-            stroke: var(--color-cyan);
-            stroke-width: 1;
-            opacity: 0;
-            transform-origin: center;
-        }
-
-        /* Ăng-ten phát sóng khi active */
-        .antenna-group.active .antenna-core {
-            fill: var(--color-cyan);
-        }
-        .antenna-group.active .wave-1 {
-            animation: signal-pulse 1.5s infinite linear;
-        }
-        .antenna-group.active .wave-2 {
-            animation: signal-pulse 1.5s infinite linear 0.75s;
-        }
-
         /* Các sản phẩm trên kệ hàng */
         .product-dot {
             transition: opacity 0.5s ease-out;
@@ -630,7 +572,7 @@
 
         /* Robot Mô phỏng */
         #bot-container {
-            transition: transform 0.8s ease-in-out;
+            transition: transform 0.1s linear; /* Mượt mà khi di chuyển tay */
         }
         #bot-glow {
             transition: fill 0.3s ease, stroke 0.3s ease;
@@ -646,9 +588,6 @@
         .bot-body-moving { fill: #002d3a; stroke: var(--color-cyan); stroke-width: 2.5; }
         .bot-glow-moving { fill: var(--color-cyan); fill-opacity: 0.15; }
 
-        .bot-body-scanning { fill: #3d2800; stroke: var(--color-amber); stroke-width: 2.5; }
-        .bot-glow-scanning { fill: var(--color-amber); fill-opacity: 0.15; }
-
         .bot-body-checkout { fill: #0e3d06; stroke: var(--color-green); stroke-width: 2.5; }
         .bot-glow-checkout { fill: var(--color-green); fill-opacity: 0.15; }
 
@@ -660,25 +599,160 @@
             pointer-events: none;
         }
 
-        /* Vòng quét radar khi Bot quét RFID */
-        .bot-radar-ring {
-            fill: none;
-            stroke: var(--color-amber);
-            stroke-width: 1;
-            opacity: 0;
-            transform-origin: center;
+        /* Bảng điều khiển D-Pad bằng kính (Glassmorphic Control Pad) */
+        .control-pad {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: rgba(8, 18, 32, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 10;
         }
-        .bot-radar-active {
-            animation: radar-pulse 1s infinite linear;
+        .ctrl-row {
+            display: flex;
+            gap: 6px;
+        }
+        .ctrl-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.15s ease;
+        }
+        .ctrl-btn:hover {
+            border-color: var(--color-cyan);
+            color: var(--color-cyan);
+            box-shadow: var(--shadow-glow);
+            background: rgba(0, 200, 255, 0.05);
+        }
+        .ctrl-btn:active {
+            transform: scale(0.92);
         }
 
-        /* Tia sóng RFID (RFID Beams) */
-        .rfid-beam-line {
-            stroke: var(--color-cyan);
-            stroke-width: 1.5;
-            stroke-dasharray: 4 4;
-            animation: dash-flow 1s infinite linear;
-            opacity: 0.8;
+        /* Product Popover Card */
+        .product-popover {
+            position: absolute;
+            width: 200px;
+            background: rgba(8, 18, 32, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 10px;
+            z-index: 100;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(0.9) translateY(-10px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .product-popover.visible {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .product-popover.hidden {
+            display: none;
+        }
+        .close-popover-btn {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: color 0.15s ease;
+            z-index: 101;
+        }
+        .close-popover-btn:hover {
+            color: var(--color-cyan);
+        }
+        .popover-image-wrapper {
+            width: 100%;
+            height: 100px;
+            background: #03080f;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .popover-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .popover-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .popover-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .popover-sku {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+        }
+        .popover-price {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--color-green);
+        }
+        .popover-stock {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .popover-cart-btn {
+            width: 100%;
+            background: var(--color-green);
+            color: #050b14;
+            border: none;
+            padding: 8px 12px;
+            font-family: var(--font-sans);
+            font-weight: 700;
+            font-size: 0.78rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-green-glow);
+        }
+        .popover-cart-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+        .popover-cart-btn:active {
+            transform: translateY(0);
         }
 
         /* Footer bên phải */
@@ -712,34 +786,6 @@
             50% { opacity: 0.3; }
         }
 
-        @keyframes signal-pulse {
-            0% {
-                r: 10px;
-                opacity: 0.8;
-            }
-            100% {
-                r: 32px;
-                opacity: 0;
-            }
-        }
-
-        @keyframes radar-pulse {
-            0% {
-                r: 14px;
-                opacity: 1;
-            }
-            100% {
-                r: 36px;
-                opacity: 0;
-            }
-        }
-
-        @keyframes dash-flow {
-            to {
-                stroke-dashoffset: -20;
-            }
-        }
-
         @keyframes fade-in-slide {
             from {
                 opacity: 0;
@@ -765,15 +811,53 @@
             color: var(--text-secondary);
             gap: 8px;
         }
+
+        /* RFID Security Gate Alarm Styles */
+        .gate-alarm-active {
+            animation: gate-alarm-blink 0.4s infinite alternate;
+        }
+        @keyframes gate-alarm-blink {
+            from { fill: #ff0050; filter: drop-shadow(0 0 6px #ff0050); }
+            to { fill: #200008; filter: none; }
+        }
+        .security-alert {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 50, 0.15);
+            backdrop-filter: blur(8px);
+            border: 2px solid #ff0050;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: #ffb3c1;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 0 20px rgba(255, 0, 80, 0.4);
+            z-index: 1000;
+            animation: slide-down 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+        @keyframes slide-down {
+            from { top: -60px; opacity: 0; }
+            to { top: 24px; opacity: 1; }
+        }
+        .security-alert.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- LEFT PANEL: Bảng điều khiển quản lý RFID -->
+        <!-- LEFT PANEL: Bảng điều khiển quản lý -->
         <div class="left-panel">
             <header class="dashboard-header">
                 <div class="header-main">
-                    <h1><i class="fa-solid fa-wifi-signal-receiver cyan-text animate-pulse"></i> HỆ THỐNG QUẢN LÝ RFID</h1>
+                    <h1><i class="fa-solid fa-cart-flatbed cyan-text animate-pulse"></i> HỆ THỐNG QUẢN LÝ CỬA HÀNG</h1>
                     <span class="status-badge"><span class="pulse-dot"></span> TRỰC TUYẾN</span>
                 </div>
                 <div class="header-sub">
@@ -781,28 +865,16 @@
                 </div>
             </header>
 
-            <!-- Stats Bar -->
+            <!-- Stats Bar - 2 Cột -->
             <div class="stats-bar">
-                <div class="stat-box">
-                    <div class="stat-label"><i class="fa-solid fa-tower-broadcast"></i> CỔNG ĐỌC</div>
-                    <div class="stat-value" id="stat-readers">4 / 4</div>
-                </div>
                 <div class="stat-box">
                     <div class="stat-label"><i class="fa-solid fa-cart-shopping"></i> GIỎ HÀNG</div>
                     <div class="stat-value count-value" id="stat-cart">0</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label"><i class="fa-solid fa-clock-rotate-left"></i> PHIÊN QUÉT</div>
+                    <div class="stat-label"><i class="fa-solid fa-clock-rotate-left"></i> PHIÊN THANH TOÁN</div>
                     <div class="stat-value session-value" id="stat-sessions">0</div>
                 </div>
-            </div>
-
-            <!-- Aisle Readers Indicators -->
-            <div class="aisle-indicators">
-                <div class="aisle-indicator" id="ind-aisle-a"><span class="ind-dot"></span> LỐI ĐI A</div>
-                <div class="aisle-indicator" id="ind-aisle-b"><span class="ind-dot"></span> LỐI ĐI B</div>
-                <div class="aisle-indicator" id="ind-aisle-c"><span class="ind-dot"></span> LỐI ĐI C</div>
-                <div class="aisle-indicator" id="ind-aisle-d"><span class="ind-dot"></span> LỐI ĐI D</div>
             </div>
 
             <!-- Tabs Điều hướng -->
@@ -833,7 +905,7 @@
                                     <th>KỆ HÀNG</th>
                                     <th>TỒN KHO</th>
                                     <th>ĐƠN GIÁ</th>
-                                    <th>MÃ SKU (RFID)</th>
+                                    <th>MÃ SKU</th>
                                     <th>TRẠNG THÁI</th>
                                 </tr>
                             </thead>
@@ -875,7 +947,7 @@
                             </div>
                             <div class="summary-row">
                                 <span>Trạng thái:</span>
-                                <span class="badge" id="cart-payment-status">CHỜ QUÉT</span>
+                                <span class="badge" id="cart-payment-status">CHỜ MUA SẮM</span>
                             </div>
                         </div>
                     </div>
@@ -897,13 +969,12 @@
         <!-- RIGHT PANEL: Sơ đồ cửa hàng trực quan -->
         <div class="right-panel">
             <header class="sim-header">
-                <h2><i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · TRỰC QUAN</h2>
+                <h2><i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · ĐIỀU KHIỂN THỦ CÔNG</h2>
                 <div class="sim-legend">
-                    <span class="legend-item"><span class="legend-dot status-idle"></span> CHỜ</span>
-                    <span class="legend-item"><span class="legend-dot status-moving"></span> DI CHUYỂN</span>
-                    <span class="legend-item"><span class="legend-dot status-scanning"></span> QUÉT RFID</span>
-                    <span class="legend-item"><span class="legend-dot status-checkout"></span> THANH TOÁN</span>
-                    <span class="legend-item"><span class="legend-dot status-complete"></span> HOÀN THÀNH</span>
+                    <span class="legend-item" id="leg-idle"><span class="legend-dot status-idle"></span> CHỜ</span>
+                    <span class="legend-item" id="leg-moving"><span class="legend-dot status-moving"></span> DI CHUYỂN</span>
+                    <span class="legend-item" id="leg-checkout"><span class="legend-dot status-checkout"></span> THANH TOÁN</span>
+                    <span class="legend-item" id="leg-complete"><span class="legend-dot status-complete"></span> HOÀN THÀNH</span>
                 </div>
             </header>
 
@@ -946,15 +1017,6 @@
                             <line x1="65" y1="340" x2="175" y2="340" stroke="#19375e" stroke-width="1.5"/>
                             <text x="120" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG A</text>
                             <text x="120" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM A</text>
-
-                            <!-- RFID Antenna A -->
-                            <g class="antenna-group" id="ant-a">
-                                <line x1="120" y1="120" x2="120" y2="160" stroke="#2c5e9c" stroke-width="1.5"/>
-                                <circle cx="120" cy="120" r="10" class="antenna-base"/>
-                                <circle cx="120" cy="120" r="4" class="antenna-core"/>
-                                <circle cx="120" cy="120" r="16" class="antenna-wave wave-1"/>
-                                <circle cx="120" cy="120" r="24" class="antenna-wave wave-2"/>
-                            </g>
                         </g>
 
                         <!-- AISLE B: BEVERAGES -->
@@ -967,15 +1029,6 @@
                             <line x1="245" y1="340" x2="355" y2="340" stroke="#19375e" stroke-width="1.5"/>
                             <text x="300" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG B</text>
                             <text x="300" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM B</text>
-
-                            <!-- RFID Antenna B -->
-                            <g class="antenna-group" id="ant-b">
-                                <line x1="300" y1="120" x2="300" y2="160" stroke="#2c5e9c" stroke-width="1.5"/>
-                                <circle cx="300" cy="120" r="10" class="antenna-base"/>
-                                <circle cx="300" cy="120" r="4" class="antenna-core"/>
-                                <circle cx="300" cy="120" r="16" class="antenna-wave wave-1"/>
-                                <circle cx="300" cy="120" r="24" class="antenna-wave wave-2"/>
-                            </g>
                         </g>
 
                         <!-- AISLE C: SNACKS -->
@@ -988,15 +1041,6 @@
                             <line x1="425" y1="340" x2="535" y2="340" stroke="#19375e" stroke-width="1.5"/>
                             <text x="480" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG C</text>
                             <text x="480" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM C</text>
-
-                            <!-- RFID Antenna C -->
-                            <g class="antenna-group" id="ant-c">
-                                <line x1="480" y1="120" x2="480" y2="160" stroke="#2c5e9c" stroke-width="1.5"/>
-                                <circle cx="480" cy="120" r="10" class="antenna-base"/>
-                                <circle cx="480" cy="120" r="4" class="antenna-core"/>
-                                <circle cx="480" cy="120" r="16" class="antenna-wave wave-1"/>
-                                <circle cx="480" cy="120" r="24" class="antenna-wave wave-2"/>
-                            </g>
                         </g>
 
                         <!-- AISLE D: PANTRY -->
@@ -1009,25 +1053,30 @@
                             <line x1="605" y1="340" x2="715" y2="340" stroke="#19375e" stroke-width="1.5"/>
                             <text x="660" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG D</text>
                             <text x="660" y="435" class="svg-label-sub" text-anchor="middle">SẢN PHẨM D</text>
-
-                            <!-- RFID Antenna D -->
-                            <g class="antenna-group" id="ant-d">
-                                <line x1="660" y1="120" x2="660" y2="160" stroke="#2c5e9c" stroke-width="1.5"/>
-                                <circle cx="660" cy="120" r="10" class="antenna-base"/>
-                                <circle cx="660" cy="120" r="4" class="antenna-core"/>
-                                <circle cx="660" cy="120" r="16" class="antenna-wave wave-1"/>
-                                <circle cx="660" cy="120" r="24" class="antenna-wave wave-2"/>
-                            </g>
                         </g>
 
                         <!-- ENTRANCE (CỔNG VÀO) -->
                         <g id="store-entrance" class="sim-component">
-                            <rect x="330" y="490" width="140" height="45" fill="#0c1b30" stroke="#1f416c" stroke-width="1.5" rx="5"/>
-                            <text x="400" y="518" class="svg-label font-mono bold" text-anchor="middle" fill="#587eab" letter-spacing="3">CỔNG VÀO</text>
+                            <rect x="330" y="525" width="140" height="45" fill="#0c1b30" stroke="#1f416c" stroke-width="1.5" rx="5"/>
+                            <text x="400" y="553" class="svg-label font-mono bold" text-anchor="middle" fill="#587eab" letter-spacing="3">CỔNG VÀO</text>
                             
                             <!-- Circle base icon inside Entrance -->
-                            <circle cx="400" cy="478" r="12" fill="#071220" stroke="#00c8ff" stroke-width="1.5"/>
-                            <path d="M 395 478 L 405 478 M 400 473 L 400 483" stroke="#00c8ff" stroke-width="1.5"/>
+                            <circle cx="400" cy="510" r="12" fill="#071220" stroke="#00c8ff" stroke-width="1.5"/>
+                            <path d="M 395 510 L 405 510 M 400 505 L 400 515" stroke="#00c8ff" stroke-width="1.5"/>
+                        </g>
+
+                        <!-- RFID SECURITY GATE (CỔNG AN NINH) TRƯỚC CỔNG VÀO -->
+                        <g id="security-gate" class="sim-component">
+                            <!-- Left Pillar -->
+                            <rect x="371" y="455" width="8" height="50" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="2"/>
+                            <!-- Right Pillar -->
+                            <rect x="421" y="455" width="8" height="50" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="2"/>
+                            <!-- Passage space indicator -->
+                            <path d="M 379 480 L 421 480" stroke="#122742" stroke-dasharray="2 2"/>
+                            <!-- Alarm beacons on top -->
+                            <circle id="gate-light-left" cx="375" cy="450" r="4" fill="#00c8ff"/>
+                            <circle id="gate-light-right" cx="425" cy="450" r="4" fill="#00c8ff"/>
+                            <text x="400" y="440" class="svg-label-sub font-mono" text-anchor="middle">CỔNG AN NINH</text>
                         </g>
 
                         <!-- DYNAMIC PRODUCT DOTS CONTAINER -->
@@ -1035,21 +1084,46 @@
                             <!-- Populated dynamically from backend products -->
                         </g>
 
-                        <!-- RFID BEAMS -->
-                        <g id="rfid-beams">
-                            <!-- Beams drawn dynamically via JS -->
-                        </g>
-
                         <!-- ROBOT BOT-01 -->
                         <g id="bot-container">
-                            <circle cx="400" cy="478" r="16" id="bot-glow" class="bot-glow-idle"/>
-                            <circle cx="400" cy="478" r="12" id="bot-body" class="bot-body-idle"/>
-                            <text x="400" y="454" id="bot-label" class="bot-text-label" text-anchor="middle">BOT-01</text>
-                            
-                            <!-- Scanner radar ring -->
-                            <circle cx="400" cy="478" r="26" id="bot-scanner" class="bot-radar-ring"/>
+                            <circle cx="400" cy="510" r="16" id="bot-glow" class="bot-glow-idle"/>
+                            <circle cx="400" cy="510" r="12" id="bot-body" class="bot-body-idle"/>
+                            <text x="400" y="486" id="bot-label" class="bot-text-label" text-anchor="middle">BOT-01</text>
                         </g>
                     </svg>
+
+                    <!-- Security Alert Notification Overlay -->
+                    <div id="security-alert" class="security-alert hidden">
+                        <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                        <span>CẢNH BÁO: CỔNG AN NINH PHÁT HIỆN HÀNG CHƯA THANH TOÁN!</span>
+                    </div>
+
+                    <!-- Product Popover Card (Hiển thị chi tiết sản phẩm kề cận) -->
+                    <div id="product-popover" class="product-popover hidden">
+                        <button class="close-popover-btn" onclick="hideProductPopover()">&times;</button>
+                        <div class="popover-image-wrapper">
+                            <img id="popover-img" src="" alt="Product Image">
+                        </div>
+                        <div class="popover-info">
+                            <div class="popover-title" id="popover-title">Tên sản phẩm</div>
+                            <div class="popover-sku" id="popover-sku">SKU-XXXX</div>
+                            <div class="popover-price" id="popover-price">0 đ</div>
+                            <div class="popover-stock" id="popover-stock">Còn lại: 0</div>
+                        </div>
+                        <button class="popover-cart-btn" id="popover-cart-btn" onclick="addProductToCartFromPopover()">
+                            <i class="fa-solid fa-cart-plus"></i> Giỏ hàng
+                        </button>
+                    </div>
+
+                    <!-- Control Pad D-Pad (Thủ công) -->
+                    <div class="control-pad">
+                        <button class="ctrl-btn ctrl-up" onclick="moveManual('UP')"><i class="fa-solid fa-chevron-up"></i></button>
+                        <div class="ctrl-row">
+                            <button class="ctrl-btn ctrl-left" onclick="moveManual('LEFT')"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="ctrl-btn ctrl-down" onclick="moveManual('DOWN')"><i class="fa-solid fa-chevron-down"></i></button>
+                            <button class="ctrl-btn ctrl-right" onclick="moveManual('RIGHT')"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1086,35 +1160,341 @@
         };
 
         // Bot simulation variables
-        let simTimeoutId = null;
-        let botMode = 'IDLE'; // IDLE, MOVING, SCANNING, CHECKOUT, COMPLETE
-        const botCoordinates = {
-            entrance: { x: 400, y: 478 },
-            aisleA: { x: 120, y: 360 },
-            aisleB: { x: 300, y: 360 },
-            aisleC: { x: 480, y: 360 },
-            aisleD: { x: 660, y: 360 },
-            checkout: { x: 400, y: 90 }
-        };
+        let botMode = 'IDLE'; // IDLE, MOVING, CHECKOUT, COMPLETE
+        let botX = 400;
+        let botY = 510;
 
         // Initial stocks mapping to track if items have been scanned/picked in the current run
-        // Configured dynamically from database records
         const initialStocks = {};
 
-        // Dynamic lists of products to scan per aisle (populated dynamically based on fetched products)
-        let aisleAProducts = [];
-        let aisleBProducts = [];
-        let aisleCProducts = [];
-        let aisleDProducts = [];
+        // Manual controls helper state
+        let isProcessingCheckout = false;
+
+        // Popover helper state
+        let currentNearbySku = null;
+        let hasAlertedSecurity = false;
+        let hasCompletedSession = false;
 
         // On Page Load
         document.addEventListener('DOMContentLoaded', () => {
             // Initial fetch
-            refreshAllData(true); // pass true to trigger simulation start on first fetch
+            refreshAllData(true);
             
             // Auto-refresh tables and events every 2 seconds
             setInterval(() => refreshAllData(false), 2000);
+            
+            // Set initial legend state
+            setBotMode('IDLE');
         });
+
+        // Key Listeners for grid-aligned movement (exactly half a grid cell = 20px)
+        let lastMoveTime = 0;
+        const MOVE_COOLDOWN_MS = 150; // Delay between steps when key is held down
+
+        document.addEventListener('keydown', (e) => {
+            if (isProcessingCheckout) return;
+            
+            const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'];
+            if (keys.includes(e.code)) {
+                e.preventDefault(); // Prevent page scrolling
+                
+                const now = Date.now();
+                if (now - lastMoveTime < MOVE_COOLDOWN_MS) return;
+                lastMoveTime = now;
+                
+                let dx = 0;
+                let dy = 0;
+                const step = 20; // Exactly half a grid cell (grid size = 40)
+                
+                if (e.code === 'ArrowUp' || e.code === 'KeyW') dy = -step;
+                else if (e.code === 'ArrowDown' || e.code === 'KeyS') dy = step;
+                else if (e.code === 'ArrowLeft' || e.code === 'KeyA') dx = -step;
+                else if (e.code === 'ArrowRight' || e.code === 'KeyD') dx = step;
+                
+                botX += dx;
+                botY += dy;
+                
+                // Keep bot within outer layout boundaries (20px margins on all sides)
+                botX = Math.max(38, Math.min(762, botX));
+                botY = Math.max(38, Math.min(562, botY));
+                
+                updateBotPositionVisual(botX, botY);
+                setBotMode('MOVING');
+                
+                checkProximityTriggers();
+                
+                // Revert to IDLE after a short delay
+                setTimeout(() => {
+                    if (!isProcessingCheckout) {
+                        setBotMode('IDLE');
+                    }
+                }, 150);
+            }
+        });
+
+        // On-screen D-Pad click handlers
+        function moveManual(direction) {
+            if (isProcessingCheckout) return;
+            
+            const step = 20; // Exactly half a grid cell (20px)
+            if (direction === 'UP') botY -= step;
+            if (direction === 'DOWN') botY += step;
+            if (direction === 'LEFT') botX -= step;
+            if (direction === 'RIGHT') botX += step;
+            
+            botX = Math.max(38, Math.min(762, botX));
+            botY = Math.max(38, Math.min(562, botY));
+            
+            updateBotPositionVisual(botX, botY);
+            setBotMode('MOVING');
+            
+            checkProximityTriggers();
+            
+            setTimeout(() => {
+                if (!isProcessingCheckout) {
+                    setBotMode('IDLE');
+                }
+            }, 150);
+        }
+
+        function updateBotPositionVisual(x, y) {
+            const botContainer = document.getElementById('bot-container');
+            const dx = x - 400;
+            const dy = y - 510;
+            botContainer.style.transform = `translate(${dx}px, ${dy}px)`;
+        }
+
+        // Check if Bot is close to checkout (to pay) or individual product dots (to show info)
+        function checkProximityTriggers() {
+            // Checkout Counter: X = 400, Y = 90
+            if (Math.abs(botX - 400) < 65 && Math.abs(botY - 90) < 45) {
+                if (cart.count > 0 && !isProcessingCheckout) {
+                    triggerManualCheckout();
+                }
+            }
+            
+            // RFID Security Gate: Center X = 400, Y = 480 (Directly in front of entrance)
+            const gateDist = Math.sqrt((botX - 400) ** 2 + (botY - 480) ** 2);
+            if (gateDist < 32) {
+                if (cart.count > 0) {
+                    // Trigger Alarm: Flashing beacons and alert overlay
+                    document.getElementById('gate-light-left').classList.add('gate-alarm-active');
+                    document.getElementById('gate-light-right').classList.add('gate-alarm-active');
+                    document.getElementById('security-alert').classList.remove('hidden');
+                    
+                    if (!hasAlertedSecurity) {
+                        hasAlertedSecurity = true;
+                        triggerSecurityAlarmLog();
+                    }
+                }
+            } else {
+                // Clear Security Alarm when Bot moves away from the security gate
+                document.getElementById('gate-light-left').classList.remove('gate-alarm-active');
+                document.getElementById('gate-light-right').classList.remove('gate-alarm-active');
+                document.getElementById('security-alert').classList.add('hidden');
+                hasAlertedSecurity = false;
+            }
+            
+            // Entrance Session Completion Check: Y >= 502 and close to X=400 (Bot returns to entrance)
+            if (botY >= 502 && Math.abs(botX - 400) < 20) {
+                if (cart.count === 0 && !hasCompletedSession) {
+                    hasCompletedSession = true;
+                    triggerSessionCompletion();
+                }
+            } else {
+                hasCompletedSession = false;
+            }
+            
+            // Check proximity to individual product dots to display details card
+            let nearbyProduct = null;
+            products.forEach((prod, index) => {
+                const aisleIndex = index % 4;
+                const shelfIndex = Math.floor(index / 4) % 3;
+                
+                const cx = 120 + 180 * aisleIndex;
+                const cy = 190 + 60 * shelfIndex;
+                
+                const dist = Math.sqrt((botX - cx) ** 2 + (botY - cy) ** 2);
+                if (dist < 32) { // 32 pixels boundary
+                    nearbyProduct = prod;
+                }
+            });
+            
+            if (nearbyProduct) {
+                showProductPopover(nearbyProduct);
+            } else {
+                hideProductPopover();
+            }
+        }
+
+        // Send security alarm events to the live logs
+        async function triggerSecurityAlarmLog() {
+            try {
+                await fetch(`${API_BASE}/events?tagId=SEC-ALARM&location=Cổng An Ninh&message=CẢNH BÁO: Phát hiện sản phẩm chưa thanh toán đi qua cổng an ninh!`, {
+                    method: 'POST'
+                });
+                refreshAllData(false);
+            } catch (e) {
+                console.error("Lỗi ghi nhận sự kiện cảnh báo an ninh:", e);
+            }
+        }
+
+        // Trigger session completion sequence when bot returns to the entrance
+        async function triggerSessionCompletion() {
+            setBotMode('COMPLETE');
+            document.getElementById('bot-status-text').innerText = 'Hoàn thành phiên mua sắm! Cảm ơn quý khách.';
+            
+            try {
+                await fetch(`${API_BASE}/events?tagId=SESSION-END&location=Cổng Ra&message=Hoàn thành phiên mua sắm thành công - Robot quay lại cổng ra.`, {
+                    method: 'POST'
+                });
+            } catch (e) {
+                console.error("Lỗi log sự kiện kết thúc phiên:", e);
+            }
+            
+            sessionCount++;
+            
+            // Wait 2 seconds, then reset state for next session
+            setTimeout(async () => {
+                botX = 400;
+                botY = 510;
+                updateBotPositionVisual(botX, botY);
+                setBotMode('IDLE');
+                hasCompletedSession = false;
+                refreshAllData(false);
+            }, 2000);
+        }
+
+        // Show popover card with product details (dynamically positioned next to the robot)
+        function showProductPopover(product) {
+            currentNearbySku = product.sku;
+            
+            document.getElementById('popover-title').innerText = product.name;
+            document.getElementById('popover-sku').innerText = `Mã: ${product.sku}`;
+            document.getElementById('popover-price').innerText = `${product.price.toLocaleString('vi-VN')} đ`;
+            document.getElementById('popover-stock').innerText = `Còn lại: ${product.stockQuantity}`;
+            
+            // Render images dynamically from database image_url or fallback
+            let imgUrl = product.image_url || 'https://via.placeholder.com/200x100?text=RFID+Product';
+            document.getElementById('popover-img').src = imgUrl;
+            
+            const popover = document.getElementById('product-popover');
+            
+            // Dynamically position next to the bot's current coordinates (using percentages to scale nicely)
+            let leftPct;
+            if (botX < 400) {
+                // If bot is on the left side of the store, place popover on the right
+                leftPct = ((botX + 30) / 800) * 100;
+            } else {
+                // If bot is on the right side of the store, place popover on the left
+                leftPct = ((botX - 230) / 800) * 100;
+            }
+            
+            // Center the popover vertically relative to the bot, bounded within [10px, 350px]
+            let topVal = botY - 110;
+            topVal = Math.max(10, Math.min(350, topVal));
+            let topPct = (topVal / 600) * 100;
+            
+            popover.style.left = `${leftPct}%`;
+            popover.style.top = `${topPct}%`;
+            
+            // Disable button if out of stock
+            const btn = document.getElementById('popover-cart-btn');
+            if (product.stockQuantity <= 0) {
+                btn.disabled = true;
+                btn.style.background = 'var(--text-dim)';
+                btn.style.boxShadow = 'none';
+                btn.innerHTML = '<i class="fa-solid fa-ban"></i> Hết hàng';
+            } else {
+                btn.disabled = false;
+                btn.style.background = 'var(--color-green)';
+                btn.style.boxShadow = 'var(--shadow-green-glow)';
+                btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Giỏ hàng';
+            }
+            
+            popover.classList.remove('hidden');
+            setTimeout(() => {
+                popover.classList.add('visible');
+            }, 10);
+        }
+
+        // Hide popover card
+        function hideProductPopover() {
+            currentNearbySku = null;
+            const popover = document.getElementById('product-popover');
+            popover.classList.remove('visible');
+            setTimeout(() => {
+                if (!popover.classList.contains('visible')) {
+                    popover.classList.add('hidden');
+                }
+            }, 300);
+        }
+
+        // Add product to cart directly from floating popover card
+        async function addProductToCartFromPopover() {
+            if (!currentNearbySku) return;
+            
+            const btn = document.getElementById('popover-cart-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/cart/add?tagId=${currentNearbySku}`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    await refreshAllData(false);
+                    // Update stock displayed on popover immediately
+                    const updatedProd = products.find(p => p.sku === currentNearbySku);
+                    if (updatedProd) {
+                        showProductPopover(updatedProd);
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi khi thêm sản phẩm vào giỏ:", e);
+            }
+        }
+
+        // Trigger checkout sequence when bot moves close to Register
+        function triggerManualCheckout() {
+            isProcessingCheckout = true;
+            setBotMode('CHECKOUT');
+            document.getElementById('bot-status-text').innerText = 'Đang xử lý thanh toán giỏ hàng...';
+            
+            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
+                dot.classList.add('active');
+            });
+            
+            setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/checkout`, { method: 'POST' });
+                    if (response.ok) {
+                        setBotMode('COMPLETE');
+                        document.getElementById('bot-status-text').innerText = 'Thanh toán hoàn tất! Hóa đơn đã ghi nhận.';
+                        
+                        if (currentTab === 'cart') {
+                            document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
+                            document.getElementById('cart-payment-status').className = 'badge paid';
+                        }
+                        
+                        setTimeout(() => {
+                            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
+                                dot.classList.remove('active');
+                            });
+                            
+                            sessionCount++;
+                            isProcessingCheckout = false;
+                            setBotMode('IDLE');
+                            refreshAllData(false);
+                        }, 2000);
+                    }
+                } catch (e) {
+                    console.error("Thanh toán thất bại:", e);
+                    isProcessingCheckout = false;
+                    setBotMode('IDLE');
+                }
+            }, 2000);
+        }
 
         // Switch Dashboard Tabs
         function switchTab(tabId) {
@@ -1156,17 +1536,13 @@
                     }
                 });
 
-                // Split products into scanning queues dynamically (distributing across 4 aisles)
-                aisleAProducts = products.filter((p, i) => i % 4 === 0).map(p => p.sku);
-                aisleBProducts = products.filter((p, i) => i % 4 === 1).map(p => p.sku);
-                aisleCProducts = products.filter((p, i) => i % 4 === 2).map(p => p.sku);
-                aisleDProducts = products.filter((p, i) => i % 4 === 3).map(p => p.sku);
-
                 renderData();
                 renderSvgProducts();
 
                 if (isFirstLoad) {
-                    startSimulation();
+                    botX = 400;
+                    botY = 478;
+                    updateBotPositionVisual(botX, botY);
                 }
             } catch (error) {
                 console.error("Error refreshing dashboard data:", error);
@@ -1249,7 +1625,7 @@
                         document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
                         document.getElementById('cart-payment-status').className = 'badge paid';
                     } else {
-                        document.getElementById('cart-payment-status').innerText = 'CHỜ QUÉT';
+                        document.getElementById('cart-payment-status').innerText = 'CHỜ MUA SẮM';
                         document.getElementById('cart-payment-status').className = 'badge pending';
                     }
                 } else {
@@ -1323,27 +1699,25 @@
             }
         }
 
-        // Bot Simulation Loop
-        function startSimulation() {
-            runStepEntrance();
-        }
-
-        function moveBot(coords, mode, durationMs) {
+        function setBotMode(mode) {
             botMode = mode;
             updateBotVisualClass(mode);
             
-            const botContainer = document.getElementById('bot-container');
-            const dx = coords.x - 400;
-            const dy = coords.y - 478;
+            // Remove active class from all legend items
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('active');
+            });
             
-            botContainer.style.transition = `transform ${durationMs}ms ease-in-out`;
-            botContainer.style.transform = `translate(${dx}px, ${dy}px)`;
+            // Map mode to legend item ID
+            let legendId = 'leg-idle';
+            if (mode === 'IDLE') legendId = 'leg-idle';
+            else if (mode === 'MOVING') legendId = 'leg-moving';
+            else if (mode === 'CHECKOUT') legendId = 'leg-checkout';
+            else if (mode === 'COMPLETE') legendId = 'leg-complete';
             
-            const scanner = document.getElementById('bot-scanner');
-            if (mode === 'SCANNING') {
-                scanner.classList.add('bot-radar-active');
-            } else {
-                scanner.classList.remove('bot-radar-active');
+            const activeLegend = document.getElementById(legendId);
+            if (activeLegend) {
+                activeLegend.classList.add('active');
             }
         }
 
@@ -1360,220 +1734,44 @@
             } else if (mode === 'MOVING') {
                 body.classList.add('bot-body-moving');
                 glow.classList.add('bot-glow-moving');
-            } else if (mode === 'SCANNING') {
-                body.classList.add('bot-body-scanning');
-                glow.classList.add('bot-glow-scanning');
             } else if (mode === 'CHECKOUT' || mode === 'COMPLETE') {
                 body.classList.add('bot-body-checkout');
                 glow.classList.add('bot-glow-checkout');
             }
         }
 
-        function setAisleIndicatorActive(aisleLetter) {
-            document.querySelectorAll('.aisle-indicator').forEach(ind => {
-                ind.classList.remove('active');
-            });
-            document.querySelectorAll('.antenna-group').forEach(ant => {
-                ant.classList.remove('active');
-            });
-            
-            if (aisleLetter) {
-                document.getElementById(`ind-aisle-${aisleLetter.toLowerCase()}`).classList.add('active');
-                document.getElementById(`ant-${aisleLetter.toLowerCase()}`).classList.add('active');
-            }
-        }
-
-        // Bot Simulation Step Definitions
-        function runStepEntrance() {
-            setAisleIndicatorActive(null);
-            moveBot(botCoordinates.entrance, 'IDLE', 0);
-            document.getElementById('bot-status-text').innerText = 'Đang chờ tại cổng vào';
-            
-            simTimeoutId = setTimeout(() => {
-                runStepMoveToAisle('A', botCoordinates.aisleA, runStepScanAisleA);
-            }, 2000);
-        }
-
-        function runStepMoveToAisle(aisleLetter, coords, nextStepCallback) {
-            moveBot(coords, 'MOVING', 1500);
-            document.getElementById('bot-status-text').innerText = `Di chuyển tới Lối đi ${aisleLetter}`;
-            
-            simTimeoutId = setTimeout(nextStepCallback, 1500);
-        }
-
-        function runStepScanAisleA() {
-            scanAisle('A', aisleAProducts, () => {
-                runStepMoveToAisle('B', botCoordinates.aisleB, runStepScanAisleB);
-            });
-        }
-
-        function runStepScanAisleB() {
-            scanAisle('B', aisleBProducts, () => {
-                runStepMoveToAisle('C', botCoordinates.aisleC, runStepScanAisleC);
-            });
-        }
-
-        function runStepScanAisleC() {
-            scanAisle('C', aisleCProducts, () => {
-                runStepMoveToAisle('D', botCoordinates.aisleD, runStepScanAisleD);
-            });
-        }
-
-        function runStepScanAisleD() {
-            scanAisle('D', aisleDProducts, runStepMoveToCheckout);
-        }
-
-        function scanAisle(aisleLetter, tagIds, completeCallback) {
-            moveBot(botCoordinates[`aisle${aisleLetter}`], 'SCANNING', 0);
-            setAisleIndicatorActive(aisleLetter);
-            document.getElementById('bot-status-text').innerText = `Đang quét Lối đi ${aisleLetter}`;
-            
-            // If no items in database correspond to this aisle, complete immediately
-            if (tagIds.length === 0) {
-                setTimeout(completeCallback, 1000);
-                return;
-            }
-            
-            drawBeams(aisleLetter, tagIds);
-            
-            let scanCount = 0;
-            function scanNextItem() {
-                if (scanCount < tagIds.length) {
-                    const tag = tagIds[scanCount];
-                    scanItemOnServer(tag);
-                    scanCount++;
-                    setTimeout(scanNextItem, 800);
-                } else {
-                    clearBeams();
-                    completeCallback();
-                }
-            }
-            
-            setTimeout(scanNextItem, 500);
-        }
-
-        function drawBeams(aisleLetter, tagIds) {
-            const beamsGroup = document.getElementById('rfid-beams');
-            beamsGroup.innerHTML = '';
-            
-            let antennaX = 0;
-            if (aisleLetter === 'A') antennaX = 120;
-            if (aisleLetter === 'B') antennaX = 300;
-            if (aisleLetter === 'C') antennaX = 480;
-            if (aisleLetter === 'D') antennaX = 660;
-            
-            tagIds.forEach(tag => {
-                const dot = document.getElementById(`prod-${tag}`);
-                if (dot && !dot.classList.contains('picked')) {
-                    const dotY = dot.getAttribute('cy');
-                    
-                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', antennaX);
-                    line.setAttribute('y1', 120);
-                    line.setAttribute('x2', antennaX);
-                    line.setAttribute('y2', dotY);
-                    line.setAttribute('class', 'rfid-beam-line');
-                    beamsGroup.appendChild(line);
-                }
-            });
-        }
-
-        function clearBeams() {
-            document.getElementById('rfid-beams').innerHTML = '';
-        }
-
-        async function scanItemOnServer(tagId) {
-            try {
-                const response = await fetch(`${API_BASE}/cart/add?tagId=${tagId}`, {
-                    method: 'POST'
-                });
-                if (response.ok) {
-                    refreshAllData();
-                }
-            } catch (e) {
-                console.error("Lỗi khi ghi nhận thẻ RFID quét:", e);
-            }
-        }
-
-        function runStepMoveToCheckout() {
-            setAisleIndicatorActive(null);
-            moveBot(botCoordinates.checkout, 'MOVING', 2000);
-            document.getElementById('bot-status-text').innerText = 'Đang di chuyển đến quầy thanh toán';
-            
-            simTimeoutId = setTimeout(runStepCheckoutPayment, 2000);
-        }
-
-        function runStepCheckoutPayment() {
-            moveBot(botCoordinates.checkout, 'CHECKOUT', 0);
-            document.getElementById('bot-status-text').innerText = 'Đang xử lý thanh toán giỏ hàng...';
-            
-            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
-                dot.classList.add('active');
-            });
-            
-            setTimeout(async () => {
-                try {
-                    const response = await fetch(`${API_BASE}/checkout`, { method: 'POST' });
-                    if (response.ok) {
-                        botMode = 'COMPLETE';
-                        updateBotVisualClass('COMPLETE');
-                        document.getElementById('bot-status-text').innerText = 'Thanh toán hoàn tất! Hóa đơn đã ghi nhận.';
-                        
-                        if (currentTab === 'cart') {
-                            document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
-                            document.getElementById('cart-payment-status').className = 'badge paid';
-                        }
-                        
-                        setTimeout(() => {
-                            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
-                                dot.classList.remove('active');
-                            });
-                            
-                            sessionCount++;
-                            moveBot(botCoordinates.entrance, 'MOVING', 1500);
-                            document.getElementById('bot-status-text').innerText = 'Đang quay lại cổng vào';
-                            
-                            simTimeoutId = setTimeout(() => {
-                                refreshAllData(false);
-                                runStepEntrance();
-                            }, 1500);
-                            
-                        }, 2000);
-                    }
-                } catch (e) {
-                    console.error("Thanh toán thất bại:", e);
-                    runStepEntrance();
-                }
-            }, 2000);
-        }
-
         // Reset system database and simulation
         async function resetSystem() {
-            if (simTimeoutId) clearTimeout(simTimeoutId);
-            clearBeams();
             document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
                 dot.classList.remove('active');
             });
-            setAisleIndicatorActive(null);
+            
+            // Clear security alarms
+            document.getElementById('gate-light-left').classList.remove('gate-alarm-active');
+            document.getElementById('gate-light-right').classList.remove('gate-alarm-active');
+            document.getElementById('security-alert').classList.add('hidden');
+            hasAlertedSecurity = false;
             
             sessionCount = 0;
-            botMode = 'IDLE';
-            moveBot(botCoordinates.entrance, 'IDLE', 0);
+            isProcessingCheckout = false;
+            
+            botX = 400;
+            botY = 510;
+            updateBotPositionVisual(botX, botY);
+            setBotMode('IDLE');
+            hideProductPopover();
+            
             document.getElementById('bot-status-text').innerText = 'Đang đặt lại cơ sở dữ liệu hệ thống...';
             
             try {
                 const response = await fetch(`${API_BASE}/reset`, { method: 'POST' });
                 if (response.ok) {
                     await refreshAllData(false);
-                    document.getElementById('bot-status-text').innerText = 'Đặt lại dữ liệu hệ thống thành công.';
-                    
-                    setTimeout(() => {
-                        startSimulation();
-                    }, 1000);
+                    document.getElementById('bot-status-text').innerText = 'Đặt lại dữ liệu hệ thống thành công. Sẵn sàng di chuyển!';
                 }
             } catch (e) {
                 console.error("Đặt lại dữ liệu thất bại:", e);
-                startSimulation();
+                document.getElementById('bot-status-text').innerText = 'Đặt lại dữ liệu thất bại. Sẵn sàng di chuyển!';
             }
         }
     </script>
