@@ -1596,10 +1596,10 @@
                             <div class="popover-size-section">
                                 <label style="font-size: 10px; color: var(--text-secondary); display:block; margin-bottom:4px; font-weight:600;">Chọn Kích Thước (Size):</label>
                                 <div class="size-selector-group">
-                                    <button class="size-btn" id="size-btn-S" onclick="setPopoverSelectedSize('S')">S (<span id="stock-S">0</span>)</button>
-                                    <button class="size-btn" id="size-btn-M" onclick="setPopoverSelectedSize('M')">M (<span id="stock-M">0</span>)</button>
-                                    <button class="size-btn" id="size-btn-L" onclick="setPopoverSelectedSize('L')">L (<span id="stock-L">0</span>)</button>
-                                    <button class="size-btn" id="size-btn-XL" onclick="setPopoverSelectedSize('XL')">XL (<span id="stock-XL">0</span>)</button>
+                                    <button class="size-btn" id="size-btn-S" onclick="setPopoverSelectedSize('S')">S<span id="stock-S" style="display: none;">0</span></button>
+                                    <button class="size-btn" id="size-btn-M" onclick="setPopoverSelectedSize('M')">M<span id="stock-M" style="display: none;">0</span></button>
+                                    <button class="size-btn" id="size-btn-L" onclick="setPopoverSelectedSize('L')">L<span id="stock-L" style="display: none;">0</span></button>
+                                    <button class="size-btn" id="size-btn-XL" onclick="setPopoverSelectedSize('XL')">XL<span id="stock-XL" style="display: none;">0</span></button>
                                 </div>
                             </div>
                         </div>
@@ -1772,7 +1772,7 @@
                                     <span id="rfid-det-sizes" class="font-mono" style="color:#ffffff;">-</span>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-                                    <span style="color:var(--text-secondary);">Thời gian quét:</span>
+                                    <span style="color:var(--text-secondary);">Thời gian:</span>
                                     <span id="rfid-det-time" class="font-mono" style="color:var(--text-secondary);">-</span>
                                 </div>
                                 <div style="margin-top:8px;">
@@ -2324,10 +2324,10 @@
             const sizeStockText = `S: ${sizes['S'] || 0} | M: ${sizes['M'] || 0} | L: ${sizes['L'] || 0} | XL: ${sizes['XL'] || 0}`;
             document.getElementById('rfid-det-sizes').innerText = sizeStockText;
             
-            // Time
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN') + ' ' + now.toLocaleDateString('vi-VN');
-            document.getElementById('rfid-det-time').innerText = timeStr;
+            // Time from the products table (created_at)
+            const prodTime = product.created_at || product.createdAt || '';
+            const formattedTime = formatTimestamp(prodTime);
+            document.getElementById('rfid-det-time').innerText = formattedTime || 'Chưa cập nhật';
             
             modal.classList.remove('hidden');
             setTimeout(() => {
@@ -2455,44 +2455,36 @@
             
             hasOpenedScannerThisProximity = false;
 
-            // Checkout Counter: X = 400, Y = 90
-            if (Math.abs(botX - 400) < 65 && Math.abs(botY - 90) < 45) {
-                if (cart.count > 0 && !isProcessingCheckout) {
-                    triggerManualCheckout();
+            if (selectedBot === 'bot01') {
+                // Checkout Counter: X = 400, Y = 90
+                if (Math.abs(botX - 400) < 65 && Math.abs(botY - 90) < 45) {
+                    if (cart.count > 0 && !isProcessingCheckout) {
+                        triggerManualCheckout();
+                    }
                 }
-            }
-            
-            // RFID Security Gate: Center X = 400, Y = 480 (Directly in front of entrance)
-            const gateDist = Math.sqrt((botX - 400) ** 2 + (botY - 480) ** 2);
-            if (gateDist < 32) {
-                if (cart.count > 0) {
-                    // Trigger Alarm: Flashing beacons and alert overlay
-                    document.getElementById('gate-light-left').classList.add('gate-alarm-active');
-                    document.getElementById('gate-light-right').classList.add('gate-alarm-active');
-                    document.getElementById('security-alert').classList.remove('hidden');
-                    
-                    if (!hasAlertedSecurity) {
+                
+                // RFID Security Gate: Center X = 400, Y = 480 (Directly in front of entrance)
+                const gateDist = Math.sqrt((botX - 400) ** 2 + (botY - 480) ** 2);
+                if (gateDist < 30) {
+                    if (cart.count > 0 && !hasAlertedSecurity && !hasCompletedSession) {
                         hasAlertedSecurity = true;
+                        showAlertNotification();
                         triggerSecurityAlarmLog();
                     }
                 }
-            } else {
-                // Clear Security Alarm when Bot moves away from the security gate
-                document.getElementById('gate-light-left').classList.remove('gate-alarm-active');
-                document.getElementById('gate-light-right').classList.remove('gate-alarm-active');
-                document.getElementById('security-alert').classList.add('hidden');
-                hasAlertedSecurity = false;
             }
             
-
+            // Check if active Bot is close to individual product dots to display details card
+            const currentX = (selectedBot === 'staff') ? staffX : botX;
+            const currentY = (selectedBot === 'staff') ? staffY : botY;
             
-            // Check proximity to individual product dots to display details card
             let nearbyProduct = null;
             products.forEach((prod) => {
                 const { cxLeft, cxRight, cy } = getProductCoordinates(prod);
-                const distLeft = Math.sqrt((botX - cxLeft) ** 2 + (botY - cy) ** 2);
-                const distRight = Math.sqrt((botX - cxRight) ** 2 + (botY - cy) ** 2);
-                if (distLeft < 45 || distRight < 45) { // 45 pixels boundary
+                const distLeft = Math.sqrt((currentX - cxLeft) ** 2 + (currentY - cy) ** 2);
+                const distRight = Math.sqrt((currentX - cxRight) ** 2 + (currentY - cy) ** 2);
+                const limit = (selectedBot === 'staff') ? 52 : 45; // slightly larger for staff bot due to visual alignment
+                if (distLeft < limit || distRight < limit) {
                     nearbyProduct = prod;
                 }
             });
@@ -2545,6 +2537,13 @@
                     btn.style.background = 'var(--color-green)';
                     btn.style.boxShadow = 'var(--shadow-green-glow)';
                     btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Giỏ hàng';
+                }
+                
+                // Hide button if selected bot is staff
+                if (selectedBot === 'staff') {
+                    btn.style.display = 'none';
+                } else {
+                    btn.style.display = 'flex';
                 }
             }
         }
@@ -2633,20 +2632,31 @@
             let imgUrl = product.image_url || 'https://via.placeholder.com/200x100?text=RFID+Product';
             document.getElementById('popover-img').src = imgUrl;
             
+            // Hide button if selected bot is staff
+            const popoverCartBtn = document.getElementById('popover-cart-btn');
+            if (selectedBot === 'staff') {
+                popoverCartBtn.style.display = 'none';
+            } else {
+                popoverCartBtn.style.display = 'flex';
+            }
+            
             const popover = document.getElementById('product-popover');
             
             // Dynamically position next to the bot's current coordinates (using percentages to scale nicely)
+            const activeX = (selectedBot === 'staff') ? staffX : botX;
+            const activeY = (selectedBot === 'staff') ? staffY : botY;
+            
             let leftPct;
-            if (botX < 400) {
+            if (activeX < 400) {
                 // If bot is on the left side of the store, place popover on the right
-                leftPct = ((botX + 30) / 800) * 100;
+                leftPct = ((activeX + 30) / 800) * 100;
             } else {
                 // If bot is on the right side of the store, place popover on the left
-                leftPct = ((botX - 230) / 800) * 100;
+                leftPct = ((activeX - 230) / 800) * 100;
             }
             
             // Center the popover vertically relative to the bot, bounded within [10px, 350px]
-            let topVal = botY - 110;
+            let topVal = activeY - 110;
             topVal = Math.max(10, Math.min(350, topVal));
             let topPct = (topVal / 600) * 100;
             
