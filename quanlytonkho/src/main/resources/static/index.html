@@ -1530,6 +1530,19 @@
                             <circle cx="580" cy="80" r="16" id="staff-glow" class="staff-glow-idle"/>
                             <circle cx="580" cy="80" r="12" id="staff-body" class="staff-body-idle"/>
                             <text x="580" y="56" id="staff-label" class="bot-text-label" text-anchor="middle">NHÂN VIÊN</text>
+                            
+                            <!-- Small floating scanner accessory (only visible during active search) -->
+                            <g id="staff-scanner-accessory" style="display: none;">
+                                <!-- Slanted head -->
+                                <path d="M 590 60 L 602 60 C 604 60, 605 61, 605 63 C 605 65, 604 66, 602 66 L 591 66 Z" fill="#ffaa00"/>
+                                <path d="M 586 60 L 589 60 L 591 65 L 588 65 Z" fill="#ffaa00"/>
+                                <!-- Handle -->
+                                <rect x="597" y="66" width="4" height="10" rx="0.5" fill="#ffaa00"/>
+                                <!-- Trigger guard -->
+                                <path d="M 597 68 L 594 68 C 593 68, 593 69, 593 69 L 593 72 L 597 72" stroke="#ffaa00" stroke-width="0.8" fill="none"/>
+                                <!-- Bottom connector -->
+                                <rect x="598.5" y="76" width="1" height="2" fill="#ffaa00"/>
+                            </g>
                         </g>
 
                         <!-- LỐI VÀO KHO SAU (CỬA SAU) -->
@@ -1541,27 +1554,21 @@
 
                         <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - GÓC PHẢI TRÊN CÙNG) -->
                         <g id="rfid-scanner-station" class="sim-component">
-                            <!-- Nền tròn mờ của trạm quét -->
-                            <circle cx="640" cy="50" r="28" fill="#0c1b30" stroke="#1f416c" stroke-width="1.5" stroke-dasharray="3 3"/>
+                            <rect x="605" y="20" width="70" height="60" class="backroom-door" rx="5"/>
+                            <text x="640" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
                             
-                            <!-- Bán súng / Handle -->
-                            <path d="M 643 45 C 643 55, 638 65, 640 72 C 641 74, 644 74, 646 72 C 644 65, 647 55, 647 45 Z" fill="#1a1a1a" stroke="#587eab" stroke-width="1"/>
-                            
-                            <!-- Nút bấm / Trigger -->
-                            <path d="M 637 47 L 641 47 L 641 53 L 637 50 Z" fill="#ff3b30"/>
-                            
-                            <!-- Đầu quét rãnh / Ribbed Scan Head (nhìn giống ảnh) -->
-                            <rect x="626" y="44" width="12" height="20" rx="2" fill="#2a2a2a" stroke="#587eab" stroke-width="1"/>
-                            <line x1="629" y1="49" x2="635" y2="49" stroke="#587eab" stroke-width="0.8"/>
-                            <line x1="629" y1="54" x2="635" y2="54" stroke="#587eab" stroke-width="0.8"/>
-                            <line x1="629" y1="59" x2="635" y2="59" stroke="#587eab" stroke-width="0.8"/>
-                            
-                            <!-- Màn hình nghiêng nằm trên / Tilted Screen on Top -->
-                            <path d="M 622 30 L 662 38 L 658 45 L 618 37 Z" fill="#122742" stroke="#587eab" stroke-width="1.5" stroke-linejoin="round"/>
-                            <path d="M 624 32 L 660 39 L 657 43 L 621 36 Z" fill="#00c8ff" opacity="0.6"/>
-                            
-                            <!-- Nhãn text phụ bên dưới -->
-                            <text x="640" y="88" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
+                            <!-- Scanner Gun Silhouette Icon inside box -->
+                            <g transform="translate(10, 0)">
+                                <!-- Slanted head -->
+                                <path d="M 622 30 L 647 30 C 650 30, 652 31.5, 652 33 C 652 34.5, 650 36, 647 36 L 626 36 Z" fill="#587eab"/>
+                                <path d="M 618 30 L 621 30 L 623 35 L 620 35 Z" fill="#587eab"/>
+                                <!-- Handle -->
+                                <rect x="639" y="36" width="6" height="18" rx="0.5" fill="#587eab"/>
+                                <!-- Trigger guard -->
+                                <path d="M 639 39 L 634 39 L 634 47 L 639 47" stroke="#587eab" stroke-width="1.2" fill="none"/>
+                                <!-- Bottom connector -->
+                                <rect x="641" y="54" width="2" height="3" fill="#587eab"/>
+                            </g>
                         </g>
 
                         <!-- SONAR WAVE CIRCLE -->
@@ -1800,6 +1807,9 @@
         let currentMap = 'store'; // 'store' or 'backroom'
         let hasOpenedScannerThisProximity = false;
         let selectedRfidSku = null;
+        let scanningActive = false;
+        let targetSearchSku = null;
+        let sonarRadius = 0;
 
         // Initial stocks mapping to track if items have been scanned/picked in the current run
         const initialStocks = {};
@@ -2108,6 +2118,11 @@
                     updateStaffPositionVisual(staffX, staffY);
                     
                     document.getElementById('bot-status-text').innerText = 'Nhân viên đã trở lại Cửa hàng';
+                    
+                    // Reset RFID search
+                    scanningActive = false;
+                    const accessory = document.getElementById('staff-scanner-accessory');
+                    if (accessory) accessory.style.display = 'none';
                 }
             }
         }
@@ -2169,38 +2184,50 @@
         }
 
         function triggerSonarScan(targetSku) {
-            const wave = document.getElementById('sonar-wave');
-            if (!wave) return;
+            targetSearchSku = targetSku;
+            scanningActive = true;
+            sonarRadius = 0;
             
-            wave.setAttribute('cx', staffX);
-            wave.setAttribute('cy', staffY);
-            wave.setAttribute('style', 'display: block; opacity: 1; fill: rgba(255, 170, 0, 0.08); stroke: var(--color-amber); stroke-width: 1.5;');
+            // Show accessory on staff bot
+            const accessory = document.getElementById('staff-scanner-accessory');
+            if (accessory) accessory.style.display = 'block';
             
-            let startTime = null;
-            const duration = 1200; // 1.2s
-            const maxRadius = 80; // 2 cells
-            
-            function animate(timestamp) {
-                if (!startTime) startTime = timestamp;
-                const progress = (timestamp - startTime) / duration;
-                
-                if (progress < 1) {
-                    const r = progress * maxRadius;
-                    wave.setAttribute('r', r);
-                    wave.setAttribute('opacity', 1 - progress);
-                    requestAnimationFrame(animate);
-                } else {
-                    wave.setAttribute('style', 'display: none;');
-                    wave.setAttribute('r', 0);
-                }
-            }
-            requestAnimationFrame(animate);
-            
-            checkAndHighlightProduct(targetSku);
+            runSonarAnimationLoop();
         }
 
-        function checkAndHighlightProduct(targetSku) {
-            const product = products.find(p => p.sku === targetSku);
+        function runSonarAnimationLoop() {
+            if (!scanningActive) {
+                const wave = document.getElementById('sonar-wave');
+                if (wave) wave.setAttribute('style', 'display: none;');
+                return;
+            }
+            
+            const wave = document.getElementById('sonar-wave');
+            if (wave) {
+                wave.setAttribute('cx', staffX);
+                wave.setAttribute('cy', staffY);
+                wave.setAttribute('style', 'display: block; fill: rgba(255, 170, 0, 0.08); stroke: var(--color-amber); stroke-width: 1.5;');
+                
+                // Expand radius
+                sonarRadius += 1.8;
+                if (sonarRadius > 80) {
+                    sonarRadius = 0;
+                }
+                wave.setAttribute('r', sonarRadius);
+                wave.setAttribute('opacity', 1 - (sonarRadius / 80));
+            }
+            
+            checkSearchProximity();
+            
+            if (scanningActive) {
+                requestAnimationFrame(runSonarAnimationLoop);
+            }
+        }
+
+        function checkSearchProximity() {
+            if (!scanningActive || !targetSearchSku) return;
+            
+            const product = products.find(p => p.sku === targetSearchSku);
             if (!product) return;
             
             const { cxLeft, cxRight, cy } = getProductCoordinates(product);
@@ -2208,13 +2235,13 @@
             const distRight = Math.sqrt((staffX - cxRight) ** 2 + (staffY - cy) ** 2);
             
             const radiusLimit = 80; // 2 cells
-            let highlighted = false;
+            let found = false;
             
             if (distLeft <= radiusLimit) {
                 const leftDot = document.getElementById(`prod-${product.sku}-left`);
                 if (leftDot) {
                     leftDot.classList.add('scanned-highlight');
-                    highlighted = true;
+                    found = true;
                     setTimeout(() => leftDot.classList.remove('scanned-highlight'), 5000);
                 }
             }
@@ -2222,15 +2249,23 @@
                 const rightDot = document.getElementById(`prod-${product.sku}-right`);
                 if (rightDot) {
                     rightDot.classList.add('scanned-highlight');
-                    highlighted = true;
+                    found = true;
                     setTimeout(() => rightDot.classList.remove('scanned-highlight'), 5000);
                 }
             }
             
-            if (highlighted) {
+            if (found) {
+                scanningActive = false;
+                
+                const accessory = document.getElementById('staff-scanner-accessory');
+                if (accessory) accessory.style.display = 'none';
+                
+                const wave = document.getElementById('sonar-wave');
+                if (wave) wave.setAttribute('style', 'display: none;');
+                
                 document.getElementById('bot-status-text').innerText = `Đã tìm thấy sản phẩm ${product.name} trong Kho sau!`;
             } else {
-                document.getElementById('bot-status-text').innerText = `Không tìm thấy sản phẩm ${product.name} trong bán kính 2 ô của Nhân viên.`;
+                document.getElementById('bot-status-text').innerText = `Đang dò tìm ${product.name}... Hãy di chuyển lại gần các kệ hàng!`;
             }
         }
 
@@ -3138,6 +3173,11 @@
             hideProductPopover();
             hideBotCartPopover();
             closeRfidScanner();
+            
+            // Reset RFID search
+            scanningActive = false;
+            const accessory = document.getElementById('staff-scanner-accessory');
+            if (accessory) accessory.style.display = 'none';
             
             document.getElementById('bot-status-text').innerText = 'Đang đặt lại cơ sở dữ liệu hệ thống...';
             
