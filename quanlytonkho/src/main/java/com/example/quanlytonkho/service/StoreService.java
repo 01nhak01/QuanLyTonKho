@@ -48,18 +48,8 @@ public class StoreService {
     @Transactional
     public void resetStoreState(String sessionCode) {
         String sess = (sessionCode == null || sessionCode.isEmpty()) ? DEFAULT_SESSION : sessionCode;
-        cartItemRepository.deleteBySessionCode(sess);
-        
-        List<RfidEvent> sessionEvents = rfidEventRepository.findBySessionCodeOrSessionCodeIsNullOrderByTimestampDesc(sess);
-        for (RfidEvent e : sessionEvents) {
-            if (e.getSessionCode() != null && e.getSessionCode().equals(sess)) {
-                rfidEventRepository.delete(e);
-            }
-        }
-
-        // Log default start events for this session
-        logEvent("SYS-CTRL", "Phòng Máy Chủ", "Hệ thống RFID Trực tuyến (Bộ điều khiển chính)", sess);
-        logEvent("READER-A..D", "Khu Vực Bán Hàng", "4 cổng đọc RFID đang hoạt động (Tất cả lối đi trực tuyến)", sess);
+        // Log reset event but keep data intact
+        logEvent("RESET", "Hệ Thống", "Yêu cầu đặt lại trạng thái mô phỏng (Giữ nguyên dữ liệu)", sess);
     }
 
     public List<Product> getAllProducts() {

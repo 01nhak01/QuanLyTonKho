@@ -1873,7 +1873,11 @@
     <script>
         // Config and State
         const API_BASE = '/api';
-        const sessionCode = 'SESSION-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+        let sessionCode = localStorage.getItem('store_session_code');
+        if (!sessionCode) {
+            sessionCode = 'SESSION-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+            localStorage.setItem('store_session_code', sessionCode);
+        }
         let currentTab = 'feed';
         let products = [];
         let productSizes = [];
