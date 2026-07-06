@@ -591,6 +591,16 @@
         .bot-body-checkout { fill: #0e3d06; stroke: var(--color-green); stroke-width: 2.5; }
         .bot-glow-checkout { fill: var(--color-green); fill-opacity: 0.15; }
 
+        /* Staff Bot (Nhân viên) */
+        #staff-container {
+            transition: transform 0.1s linear;
+        }
+        .staff-body-idle { fill: #1a1608; stroke: var(--color-amber); stroke-width: 2; }
+        .staff-glow-idle { fill: none; }
+        .staff-body-moving { fill: #2d2305; stroke: var(--color-amber); stroke-width: 2.5; }
+        .staff-glow-moving { fill: var(--color-amber); fill-opacity: 0.15; }
+        .staff-legend-dot { background-color: var(--color-amber); box-shadow: 0 0 6px var(--color-amber); }
+
         .bot-text-label {
             fill: var(--text-primary);
             font-family: var(--font-mono);
@@ -1226,7 +1236,8 @@
                         </g>
 
                         <!-- ROBOT BOT-01 -->
-                        <g id="bot-container">
+                        <g id="bot-container" onclick="selectBot('bot01')" style="cursor: pointer;">
+                            <circle cx="400" cy="510" r="22" id="bot-select-ring" stroke="#00c8ff" stroke-width="1.5" stroke-dasharray="3 3" fill="none" style="display: block; pointer-events: none;"/>
                             <circle cx="400" cy="510" r="16" id="bot-glow" class="bot-glow-idle"/>
                             <circle cx="400" cy="510" r="12" id="bot-body" class="bot-body-idle"/>
                             <text x="400" y="486" id="bot-label" class="bot-text-label" text-anchor="middle">BOT-01</text>
@@ -1242,6 +1253,14 @@
                                 <circle id="bot-cart-badge-bg" cx="425" cy="491" r="5.5" fill="#ff3b30" style="display: none;"/>
                                 <text id="bot-cart-badge-text" x="425" y="494" font-size="7.5px" fill="#ffffff" text-anchor="middle" font-weight="bold" style="display: none; pointer-events: none;">0</text>
                             </g>
+                        </g>
+
+                        <!-- STAFF BOT (NHÂN VIÊN) -->
+                        <g id="staff-container" onclick="selectBot('staff')" style="cursor: pointer;">
+                            <circle cx="580" cy="80" r="22" id="staff-select-ring" stroke="#ffaa00" stroke-width="1.5" stroke-dasharray="3 3" fill="none" style="display: none; pointer-events: none;"/>
+                            <circle cx="580" cy="80" r="16" id="staff-glow" class="staff-glow-idle"/>
+                            <circle cx="580" cy="80" r="12" id="staff-body" class="staff-body-idle"/>
+                            <text x="580" y="56" id="staff-label" class="bot-text-label" text-anchor="middle">NHÂN VIÊN</text>
                         </g>
                     </svg>
 
@@ -1309,6 +1328,7 @@
                 <span class="legend-dot snack-color"></span> HÀNH LANG C (ÁO KHOÁC)
                 <span class="legend-dot pantry-color"></span> HÀNH LANG D (PHỤ KIỆN)
                 <div class="sim-footer-right">
+                    <span class="legend-dot staff-legend-dot"></span> NHÂN VIÊN
                     <span class="legend-dot bot-glow-idle"></span> ROBOT
                     <span class="legend-dot payment-complete-dot"></span> THANH TOÁN
                 </div>
@@ -1339,6 +1359,10 @@
         let botMode = 'IDLE'; // IDLE, MOVING, CHECKOUT, COMPLETE
         let botX = 400;
         let botY = 510;
+        let selectedBot = 'bot01'; // 'bot01' or 'staff'
+        let staffX = 580;
+        let staffY = 80;
+        let staffMode = 'IDLE';
 
         // Initial stocks mapping to track if items have been scanned/picked in the current run
         const initialStocks = {};
@@ -1453,7 +1477,7 @@
         const MOVE_COOLDOWN_MS = 150; // Delay between steps when key is held down
 
         document.addEventListener('keydown', (e) => {
-            if (isProcessingCheckout) return;
+            if (isProcessingCheckout && selectedBot === 'bot01') return;
             
             const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'];
             if (keys.includes(e.code)) {
@@ -1472,10 +1496,70 @@
                 else if (e.code === 'ArrowLeft' || e.code === 'KeyA') dx = -step;
                 else if (e.code === 'ArrowRight' || e.code === 'KeyD') dx = step;
                 
-                let nextX = botX + dx;
-                let nextY = botY + dy;
+                if (selectedBot === 'bot01') {
+                    let nextX = botX + dx;
+                    let nextY = botY + dy;
+                    
+                    // Keep bot within outer layout boundaries (20px margins on all sides)
+                    nextX = Math.max(38, Math.min(762, nextX));
+                    nextY = Math.max(38, Math.min(562, nextY));
+                    
+                    if (!checkCollision(nextX, nextY)) {
+                        hideBotCartPopover();
+                        botX = nextX;
+                        botY = nextY;
+                        
+                        updateBotPositionVisual(botX, botY);
+                        setBotMode('MOVING');
+                        
+                        checkProximityTriggers();
+                        
+                        // Revert to IDLE after a short delay
+                        setTimeout(() => {
+                            if (!isProcessingCheckout) {
+                                setBotMode('IDLE');
+                            }
+                        }, 150);
+                    }
+                } else if (selectedBot === 'staff') {
+                    let nextX = staffX + dx;
+                    let nextY = staffY + dy;
+                    
+                    // Keep bot within outer layout boundaries (20px margins on all sides)
+                    nextX = Math.max(38, Math.min(762, nextX));
+                    nextY = Math.max(38, Math.min(562, nextY));
+                    
+                    if (!checkCollision(nextX, nextY)) {
+                        staffX = nextX;
+                        staffY = nextY;
+                        
+                        updateStaffPositionVisual(staffX, staffY);
+                        setStaffMode('MOVING');
+                        
+                        // Revert to IDLE after a short delay
+                        setTimeout(() => {
+                            setStaffMode('IDLE');
+                        }, 150);
+                    }
+                }
+            }
+        });
+
+        // On-screen D-Pad click handlers
+        function moveManual(direction) {
+            if (isProcessingCheckout && selectedBot === 'bot01') return;
+            
+            const step = 20; // Exactly half a grid cell (20px)
+            
+            if (selectedBot === 'bot01') {
+                let nextX = botX;
+                let nextY = botY;
                 
-                // Keep bot within outer layout boundaries (20px margins on all sides)
+                if (direction === 'UP') nextY -= step;
+                if (direction === 'DOWN') nextY += step;
+                if (direction === 'LEFT') nextX -= step;
+                if (direction === 'RIGHT') nextX += step;
+                
                 nextX = Math.max(38, Math.min(762, nextX));
                 nextY = Math.max(38, Math.min(562, nextY));
                 
@@ -1489,47 +1573,35 @@
                     
                     checkProximityTriggers();
                     
-                    // Revert to IDLE after a short delay
                     setTimeout(() => {
                         if (!isProcessingCheckout) {
                             setBotMode('IDLE');
                         }
                     }, 150);
                 }
-            }
-        });
-
-        // On-screen D-Pad click handlers
-        function moveManual(direction) {
-            if (isProcessingCheckout) return;
-            
-            const step = 20; // Exactly half a grid cell (20px)
-            let nextX = botX;
-            let nextY = botY;
-            
-            if (direction === 'UP') nextY -= step;
-            if (direction === 'DOWN') nextY += step;
-            if (direction === 'LEFT') nextX -= step;
-            if (direction === 'RIGHT') nextX += step;
-            
-            nextX = Math.max(38, Math.min(762, nextX));
-            nextY = Math.max(38, Math.min(562, nextY));
-            
-            if (!checkCollision(nextX, nextY)) {
-                hideBotCartPopover();
-                botX = nextX;
-                botY = nextY;
+            } else if (selectedBot === 'staff') {
+                let nextX = staffX;
+                let nextY = staffY;
                 
-                updateBotPositionVisual(botX, botY);
-                setBotMode('MOVING');
+                if (direction === 'UP') nextY -= step;
+                if (direction === 'DOWN') nextY += step;
+                if (direction === 'LEFT') nextX -= step;
+                if (direction === 'RIGHT') nextX += step;
                 
-                checkProximityTriggers();
+                nextX = Math.max(38, Math.min(762, nextX));
+                nextY = Math.max(38, Math.min(562, nextY));
                 
-                setTimeout(() => {
-                    if (!isProcessingCheckout) {
-                        setBotMode('IDLE');
-                    }
-                }, 150);
+                if (!checkCollision(nextX, nextY)) {
+                    staffX = nextX;
+                    staffY = nextY;
+                    
+                    updateStaffPositionVisual(staffX, staffY);
+                    setStaffMode('MOVING');
+                    
+                    setTimeout(() => {
+                        setStaffMode('IDLE');
+                    }, 150);
+                }
             }
         }
 
@@ -1539,6 +1611,74 @@
             const dy = y - 510;
             botContainer.style.transform = `translate(${dx}px, ${dy}px)`;
             updateBotVisualClass(botMode);
+        }
+
+        function updateStaffPositionVisual(x, y) {
+            const staffContainer = document.getElementById('staff-container');
+            if (staffContainer) {
+                const dx = x - 580;
+                const dy = y - 80;
+                staffContainer.style.transform = `translate(${dx}px, ${dy}px)`;
+            }
+            updateStaffVisualClass(staffMode);
+        }
+
+        function setStaffMode(mode) {
+            staffMode = mode;
+            updateStaffVisualClass(mode);
+        }
+
+        function updateStaffVisualClass(mode) {
+            const body = document.getElementById('staff-body');
+            const glow = document.getElementById('staff-glow');
+            if (!body || !glow) return;
+            
+            body.className = '';
+            glow.className = '';
+            
+            if (mode === 'IDLE') {
+                body.classList.add('staff-body-idle');
+                glow.classList.add('staff-glow-idle');
+            } else if (mode === 'MOVING') {
+                body.classList.add('staff-body-moving');
+                glow.classList.add('staff-glow-moving');
+            }
+        }
+
+        function selectBot(botId) {
+            selectedBot = botId;
+            const botRing = document.getElementById('bot-select-ring');
+            const staffRing = document.getElementById('staff-select-ring');
+            
+            if (botId === 'bot01') {
+                if (botRing) botRing.style.display = 'block';
+                if (staffRing) staffRing.style.display = 'none';
+                
+                const atEntrance = (botX === 400 && botY === 510);
+                document.getElementById('bot-status-text').innerText = atEntrance ? 'Đang chờ tại cổng vào' : 'Sẵn sàng di chuyển';
+                const badge = document.querySelector('.bot-status .bot-badge');
+                if (badge) {
+                    badge.innerHTML = '<i class="fa-solid fa-robot"></i> BOT-01';
+                    badge.style.backgroundColor = 'rgba(0, 200, 255, 0.15)';
+                    badge.style.color = 'var(--color-cyan)';
+                    badge.style.borderColor = 'rgba(0, 200, 255, 0.3)';
+                }
+            } else if (botId === 'staff') {
+                if (botRing) botRing.style.display = 'none';
+                if (staffRing) staffRing.style.display = 'block';
+                
+                hideProductPopover();
+                hideBotCartPopover();
+                
+                document.getElementById('bot-status-text').innerText = 'Nhân viên đang trực tuyến';
+                const badge = document.querySelector('.bot-status .bot-badge');
+                if (badge) {
+                    badge.innerHTML = '<i class="fa-solid fa-user-tie"></i> NHÂN VIÊN';
+                    badge.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
+                    badge.style.color = 'var(--color-amber)';
+                    badge.style.borderColor = 'rgba(255, 170, 0, 0.3)';
+                }
+            }
         }
 
         // Check if Bot is close to checkout (to pay) or individual product dots (to show info)
@@ -1893,6 +2033,11 @@
                     botX = 400;
                     botY = 510;
                     updateBotPositionVisual(botX, botY);
+                    
+                    staffX = 580;
+                    staffY = 80;
+                    updateStaffPositionVisual(staffX, staffY);
+                    selectBot('bot01');
                 }
             } catch (error) {
                 console.error("Error refreshing dashboard data:", error);
@@ -2127,6 +2272,13 @@
             botY = 510;
             updateBotPositionVisual(botX, botY);
             setBotMode('IDLE');
+            
+            staffX = 580;
+            staffY = 80;
+            updateStaffPositionVisual(staffX, staffY);
+            setStaffMode('IDLE');
+            selectBot('bot01');
+            
             hideProductPopover();
             hideBotCartPopover();
             
