@@ -2424,7 +2424,7 @@
                         const distLeft = Math.sqrt((staffX - cxLeft) ** 2 + (staffY - cy) ** 2);
                         const distRight = Math.sqrt((staffX - cxRight) ** 2 + (staffY - cy) ** 2);
                         
-                        const closeLimit = 30; // Proximity threshold
+                        const closeLimit = 52; // Proximity threshold (must be > 40px due to shelf collisions)
                         if (distLeft <= closeLimit || distRight <= closeLimit) {
                             // Arrived at product!
                             const leftDot = document.getElementById(`prod-${product.sku}-left`);
