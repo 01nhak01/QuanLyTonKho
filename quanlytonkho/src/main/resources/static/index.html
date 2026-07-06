@@ -1710,8 +1710,8 @@
                             <circle cx="580" cy="80" r="22" id="staff-select-ring" stroke="#ffaa00" stroke-width="1.5" stroke-dasharray="3 3" fill="none" style="display: none; pointer-events: none;"/>
                             <circle cx="580" cy="80" r="16" id="staff-glow" class="staff-glow-idle"/>
                             <circle cx="580" cy="80" r="12" id="staff-body" class="staff-body-idle"/>
-                            <!-- Image staff grocery icon -->
-                            <image href="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" x="568" y="68" width="24" height="24" style="pointer-events: none;" />
+                            <!-- Image staff avatar icon -->
+                            <image href="/images/staff_worker_avatar.png" x="568" y="68" width="24" height="24" style="pointer-events: none;" />
                             <text x="580" y="56" id="staff-label" class="bot-text-label" text-anchor="middle">NHÂN VIÊN</text>
                             
                             <!-- Small floating scanner accessory (only visible during active search) -->
@@ -1740,20 +1740,20 @@
 
                         <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - XA CỬA HÀNG) -->
                         <g id="rfid-scanner-station" class="sim-component">
-                            <rect x="260" y="20" width="110" height="60" class="backroom-door" rx="5"/>
-                            <text x="315" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
+                            <rect x="240" y="20" width="110" height="60" class="backroom-door" rx="5"/>
+                            <text x="295" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
                             
                             <!-- Scanner Gun Silhouette Icon inside box -->
                             <g>
                                 <!-- Slanted head -->
-                                <path d="M 302 30 L 327 30 C 330 30, 332 31.5, 332 33 C 332 34.5, 330 36, 327 36 L 306 36 Z" fill="#587eab"/>
-                                <path d="M 298 30 L 301 30 L 303 35 L 300 35 Z" fill="#587eab"/>
+                                <path d="M 282 30 L 307 30 C 310 30, 312 31.5, 312 33 C 312 34.5, 310 36, 307 36 L 286 36 Z" fill="#587eab"/>
+                                <path d="M 278 30 L 281 30 L 283 35 L 280 35 Z" fill="#587eab"/>
                                 <!-- Handle -->
-                                <rect x="319" y="36" width="6" height="18" rx="0.5" fill="#587eab"/>
+                                <rect x="299" y="36" width="6" height="18" rx="0.5" fill="#587eab"/>
                                 <!-- Trigger guard -->
-                                <path d="M 319 39 L 314 39 L 314 47 L 319 47" stroke="#587eab" stroke-width="1.2" fill="none"/>
+                                <path d="M 299 39 L 294 39 L 294 47 L 299 47" stroke="#587eab" stroke-width="1.2" fill="none"/>
                                 <!-- Bottom connector -->
-                                <rect x="321" y="54" width="2" height="3" fill="#587eab"/>
+                                <rect x="301" y="54" width="2" height="3" fill="#587eab"/>
                             </g>
                         </g>
 
@@ -2262,7 +2262,7 @@
             
             // Cả hai bot đều coi trạm quét RFID là vật cản khi ở sơ đồ Kho sau.
             if (currentMap === 'backroom') {
-                obstacles.push({ xMin: 260, xMax: 370, yMin: 20, yMax: 80 });
+                obstacles.push({ xMin: 240, xMax: 350, yMin: 20, yMax: 80 });
             }
             
             for (const obs of obstacles) {
@@ -2484,25 +2484,25 @@
                     
                     // Move the return door to the top-left in the backroom map.
                     if (doorRect) {
-                        doorRect.setAttribute('x', '40');
+                        doorRect.setAttribute('x', '20');
                         doorRect.setAttribute('y', '20');
                         doorRect.setAttribute('width', '60');
                         doorRect.setAttribute('height', '70');
                     }
                     if (doorText) {
-                        doorText.setAttribute('x', '70');
+                        doorText.setAttribute('x', '50');
                         doorText.setAttribute('y', '47');
                         doorText.setAttribute('font-size', '6.5px');
                         doorText.textContent = 'CỬA HÀNG';
                     }
-                    if (doorPath) doorPath.setAttribute('d', 'M 78 62 L 62 62 M 70 55 L 62 62 L 70 69');
+                    if (doorPath) doorPath.setAttribute('d', 'M 58 62 L 42 62 M 50 55 L 42 62 L 50 69');
                     
                     if (headerText) {
                         headerText.innerHTML = '<i class="fa-solid fa-warehouse text-warning"></i> SƠ ĐỒ KHO SAU · ĐIỀU KHIỂN THỦ CÔNG';
                     }
                     
                     // Teleport to just outside the door in backroom map (top-left).
-                    staffX = 130;
+                    staffX = 110;
                     staffY = 80;
                     updateStaffPositionVisual(staffX, staffY);
                     
@@ -2511,7 +2511,7 @@
                 }
             } else if (currentMap === 'backroom') {
                 // Door zone in backroom is top-left.
-                const inDoorZone = (staffX <= 110 && staffY <= 100);
+                const inDoorZone = (staffX <= 90 && staffY <= 100);
                 if (inDoorZone) {
                     const svg = document.querySelector('.store-svg');
                     const doorRect = document.getElementById('backroom-door-rect');
@@ -2805,7 +2805,7 @@
                 document.getElementById('bot-status-text').innerText = 'Nhân viên đang trực tuyến';
                 const badge = document.querySelector('.bot-status .bot-badge');
                 if (badge) {
-                    badge.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" style="width: 14px; height: 14px; border-radius: 50%; margin-right: 5px; vertical-align: middle;" /> NHÂN VIÊN';
+                    badge.innerHTML = '<img src="/images/staff_worker_avatar.png" style="width: 14px; height: 14px; border-radius: 50%; margin-right: 5px; vertical-align: middle;" /> NHÂN VIÊN';
                     badge.style.backgroundColor = '#EFE0BB';
                     badge.style.color = '#2A2418';
                     badge.style.borderColor = 'var(--border-color)';
@@ -2816,8 +2816,8 @@
         // Check if Bot is close to checkout (to pay) or individual product dots (to show info)
         function checkProximityTriggers() {
             if (currentMap === 'backroom' && selectedBot === 'staff') {
-                // 1. Proximity to RFID Scanner Station (4 grid cells from the store door, centered at x=315, y=50)
-                const distStation = Math.sqrt((staffX - 315) ** 2 + (staffY - 50) ** 2);
+                // 1. Proximity to RFID Scanner Station (4 grid cells from the store door, centered at x=295, y=50)
+                const distStation = Math.sqrt((staffX - 295) ** 2 + (staffY - 50) ** 2);
                 if (distStation < 55) {
                     if (!hasOpenedScannerThisProximity) {
                         hasOpenedScannerThisProximity = true;
