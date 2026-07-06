@@ -572,7 +572,7 @@
 
         /* Robot Mô phỏng */
         #bot-container {
-            transition: transform 0.1s linear; /* Mượt mà khi di chuyển tay */
+            transition: transform 0.08s linear; /* Mượt mà khi di chuyển tay */
         }
         #bot-glow {
             transition: fill 0.3s ease, stroke 0.3s ease;
@@ -593,7 +593,7 @@
 
         /* Staff Bot (Nhân viên) */
         #staff-container {
-            transition: transform 0.1s linear;
+            transition: transform 0.08s linear;
         }
         .staff-body-idle { fill: #1a1608; stroke: var(--color-amber); stroke-width: 2; }
         .staff-glow-idle { fill: none; }
@@ -1592,7 +1592,7 @@
                             <div class="popover-title" id="popover-title">Tên sản phẩm</div>
                             <div class="popover-sku" id="popover-sku">SKU-XXXX</div>
                             <div class="popover-price" id="popover-price">0 đ</div>
-                            <div class="popover-stock" id="popover-stock">Còn lại: 0</div>
+                            <div class="popover-stock" id="popover-stock" style="display: none;">Còn lại: 0</div>
                             <div class="popover-size-section">
                                 <label style="font-size: 10px; color: var(--text-secondary); display:block; margin-bottom:4px; font-weight:600;">Chọn Kích Thước (Size):</label>
                                 <div class="size-selector-group">
@@ -1966,7 +1966,7 @@
 
         // Key Listeners for grid-aligned movement (exactly half a grid cell = 20px)
         let lastMoveTime = 0;
-        const MOVE_COOLDOWN_MS = 150; // Delay between steps when key is held down
+        const MOVE_COOLDOWN_MS = 80; // Delay between steps when key is held down
 
         document.addEventListener('keydown', (e) => {
             if (isProcessingCheckout && selectedBot === 'bot01') return;
@@ -2011,7 +2011,7 @@
                             if (!isProcessingCheckout) {
                                 setBotMode('IDLE');
                             }
-                        }, 150);
+                        }, 80);
                     }
                 } else if (selectedBot === 'staff') {
                     let nextX = staffX + dx;
@@ -2033,7 +2033,7 @@
                         // Revert to IDLE after a short delay
                         setTimeout(() => {
                             setStaffMode('IDLE');
-                        }, 150);
+                        }, 80);
                     }
                 }
             }
@@ -2071,7 +2071,7 @@
                         if (!isProcessingCheckout) {
                             setBotMode('IDLE');
                         }
-                    }, 150);
+                    }, 80);
                 }
             } else if (selectedBot === 'staff') {
                 let nextX = staffX;
@@ -2096,7 +2096,7 @@
                     
                     setTimeout(() => {
                         setStaffMode('IDLE');
-                    }, 150);
+                    }, 80);
                 }
             }
         }
