@@ -1604,9 +1604,9 @@
 
                         <!-- LỐI VÀO KHO SAU (CỬA SAU) -->
                         <g id="backroom-door-group" class="sim-component">
-                            <rect x="720" y="20" width="60" height="70" class="backroom-door" rx="5"/>
+                            <rect id="backroom-door-rect" x="720" y="20" width="60" height="70" class="backroom-door" rx="5"/>
                             <text x="750" y="47" id="backroom-door-text" class="backroom-door-label" text-anchor="middle">KHO SAU</text>
-                            <path d="M 742 62 L 758 62 M 750 55 L 758 62 L 750 69" stroke="#587eab" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path id="backroom-door-path" d="M 742 62 L 758 62 M 750 55 L 758 62 L 750 69" stroke="#587eab" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         </g>
 
                         <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - GÓC PHẢI TRÊN CÙNG) -->
@@ -2212,37 +2212,64 @@
         function checkMapTransition() {
             if (selectedBot !== 'staff') return;
             
-            // Door zone: x >= 710, y <= 90
-            const inDoorZone = (staffX >= 710 && staffY <= 90);
-            
-            if (inDoorZone) {
-                const svg = document.querySelector('.store-svg');
-                const doorText = document.getElementById('backroom-door-text');
-                const headerText = document.querySelector('.sim-header h2');
-                
-                if (currentMap === 'store') {
+            if (currentMap === 'store') {
+                // Door zone in store: x >= 710, y <= 90 (Top-right)
+                const inDoorZone = (staffX >= 710 && staffY <= 90);
+                if (inDoorZone) {
+                    const svg = document.querySelector('.store-svg');
+                    const doorRect = document.getElementById('backroom-door-rect');
+                    const doorText = document.getElementById('backroom-door-text');
+                    const doorPath = document.getElementById('backroom-door-path');
+                    const headerText = document.querySelector('.sim-header h2');
+                    
                     currentMap = 'backroom';
                     if (svg) svg.classList.add('view-backroom');
-                    if (doorText) doorText.textContent = 'CỬA HÀNG';
+                    
+                    // Move door to top-left (x = 20) and update label/arrow pointing left
+                    if (doorRect) doorRect.setAttribute('x', '20');
+                    if (doorText) {
+                        doorText.setAttribute('x', '50');
+                        doorText.textContent = 'CỬA HÀNG';
+                    }
+                    if (doorPath) doorPath.setAttribute('d', 'M 58 62 L 42 62 M 50 55 L 42 62 L 50 69');
+                    
                     if (headerText) {
                         headerText.innerHTML = '<i class="fa-solid fa-warehouse text-warning"></i> SƠ ĐỒ KHO SAU · ĐIỀU KHIỂN THỦ CÔNG';
                     }
                     
-                    // Teleport to just outside the door in backroom map
-                    staffX = 700;
+                    // Teleport to just outside the door in backroom map (top-left)
+                    staffX = 100;
                     staffY = 80;
                     updateStaffPositionVisual(staffX, staffY);
                     
                     document.getElementById('bot-status-text').innerText = 'Nhân viên đã vào Kho sau';
-                } else if (currentMap === 'backroom') {
+                }
+            } else if (currentMap === 'backroom') {
+                // Door zone in backroom: x <= 90, y <= 90 (Top-left)
+                const inDoorZone = (staffX <= 90 && staffY <= 90);
+                if (inDoorZone) {
+                    const svg = document.querySelector('.store-svg');
+                    const doorRect = document.getElementById('backroom-door-rect');
+                    const doorText = document.getElementById('backroom-door-text');
+                    const doorPath = document.getElementById('backroom-door-path');
+                    const headerText = document.querySelector('.sim-header h2');
+                    
                     currentMap = 'store';
                     if (svg) svg.classList.remove('view-backroom');
-                    if (doorText) doorText.textContent = 'KHO SAU';
+                    
+                    // Move door back to top-right (x = 720) and update label/arrow pointing right
+                    if (doorRect) doorRect.setAttribute('x', '720');
+                    if (doorText) {
+                        doorText.setAttribute('x', '750');
+                        doorText.textContent = 'KHO SAU';
+                    }
+                    if (doorPath) doorPath.setAttribute('d', 'M 742 62 L 758 62 M 750 55 L 758 62 L 750 69');
+                    
                     if (headerText) {
                         headerText.innerHTML = '<i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · ĐIỀU KHIỂN THỦ CÔNG';
                     }
                     
-                    // Teleport to just outside the door in store map
+                    // Teleport to just outside the door in store map (top-right)
                     staffX = 700;
                     staffY = 80;
                     updateStaffPositionVisual(staffX, staffY);
@@ -3380,8 +3407,15 @@
             hasOpenedScannerThisProximity = false;
             const svg = document.querySelector('.store-svg');
             if (svg) svg.classList.remove('view-backroom');
+            const doorRect = document.getElementById('backroom-door-rect');
+            if (doorRect) doorRect.setAttribute('x', '720');
             const doorText = document.getElementById('backroom-door-text');
-            if (doorText) doorText.textContent = 'KHO SAU';
+            if (doorText) {
+                doorText.setAttribute('x', '750');
+                doorText.textContent = 'KHO SAU';
+            }
+            const doorPath = document.getElementById('backroom-door-path');
+            if (doorPath) doorPath.setAttribute('d', 'M 742 62 L 758 62 M 750 55 L 758 62 L 750 69');
             const headerText = document.querySelector('.sim-header h2');
             if (headerText) {
                 headerText.innerHTML = '<i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · ĐIỀU KHIỂN THỦ CÔNG';
