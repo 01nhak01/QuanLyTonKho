@@ -1002,6 +1002,222 @@
             background: #071220;
             color: var(--text-dim);
         }
+
+        /* Hộp thoại Thanh toán & Quét mã QR */
+        .checkout-modal, .qr-scan-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 18, 32, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .checkout-modal.visible, .qr-scan-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .checkout-modal-card, .qr-scan-card {
+            width: 90%;
+            max-width: 380px;
+            background: rgba(12, 27, 48, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(0, 200, 255, 0.15);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .checkout-modal.visible .checkout-modal-card,
+        .qr-scan-modal.visible .qr-scan-card {
+            transform: scale(1);
+        }
+        .checkout-modal-header, .qr-scan-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        .checkout-modal-header h3, .qr-scan-header h3 {
+            margin: 0;
+            font-size: 15px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .close-modal-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .close-modal-btn:hover {
+            color: #ff3b30;
+        }
+        .checkout-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        .checkout-table th, .checkout-table td {
+            text-align: left;
+            padding: 6px 4px;
+            border-bottom: 1px solid rgba(30, 61, 100, 0.4);
+        }
+        .checkout-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .checkout-table td {
+            color: var(--text-primary);
+        }
+        .checkout-summary {
+            background: rgba(7, 18, 32, 0.5);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(30, 61, 100, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .summary-row.total {
+            border-top: 1px dashed rgba(30, 61, 100, 0.5);
+            padding-top: 6px;
+            margin-top: 4px;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        .btn-pay-method {
+            width: 100%;
+            padding: 10px;
+            background: var(--color-cyan);
+            color: #071220;
+            font-weight: 700;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.3);
+            transition: all 0.2s;
+        }
+        .btn-pay-method:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+        }
+        .payment-methods-choices {
+            display: flex;
+            gap: 8px;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        .btn-payment-option {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            background: rgba(7, 18, 32, 0.6);
+            color: var(--text-primary);
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .btn-payment-option i {
+            font-size: 16px;
+        }
+        .btn-payment-option.transfer:hover {
+            border-color: var(--color-cyan);
+            color: var(--color-cyan);
+            background: rgba(0, 200, 255, 0.05);
+            box-shadow: 0 0 8px rgba(0, 200, 255, 0.2);
+        }
+        .btn-payment-option.cash:hover {
+            border-color: var(--color-green);
+            color: var(--color-green);
+            background: rgba(57, 255, 20, 0.05);
+            box-shadow: 0 0 8px rgba(57, 255, 20, 0.2);
+        }
+        .qr-scan-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+        }
+        .qr-code-wrapper {
+            position: relative;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            overflow: hidden;
+            width: 130px;
+            height: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qr-svg {
+            width: 100%;
+            height: 100%;
+        }
+        .qr-laser {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--color-cyan);
+            box-shadow: 0 0 8px var(--color-cyan);
+            animation: qr-scan-anim 2.5s linear infinite;
+        }
+        @keyframes qr-scan-anim {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+        .qr-status-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        .flying-cash {
+            transition: transform 1.2s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 1.2s ease;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -1306,6 +1522,112 @@
                         </div>
                         <div id="bot-cart-list" class="bot-cart-list">
                             <!-- Items populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Checkout Modal Dialog -->
+                    <div id="checkout-modal" class="checkout-modal hidden">
+                        <div class="checkout-modal-card">
+                            <div class="checkout-modal-header">
+                                <h3><i class="fa-solid fa-receipt text-primary"></i> Hóa Đơn Thanh Toán</h3>
+                                <button class="close-modal-btn" onclick="cancelCheckout()">&times;</button>
+                            </div>
+                            <div class="checkout-modal-body">
+                                <table class="checkout-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Sản phẩm</th>
+                                            <th>SL</th>
+                                            <th>Giá</th>
+                                            <th>Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="checkout-items-list">
+                                        <!-- populated dynamically -->
+                                    </tbody>
+                                </table>
+                                <div class="checkout-summary">
+                                    <div class="summary-row">
+                                        <span>Tạm tính:</span>
+                                        <span id="checkout-subtotal">0 đ</span>
+                                    </div>
+                                    <div class="summary-row total">
+                                        <span>Tổng cộng:</span>
+                                        <span id="checkout-total" class="cyan-text">0 đ</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Payment Method Selector Button -->
+                                <div id="payment-method-selector-section" style="margin-top: 12px;">
+                                    <button class="btn-pay-method" onclick="showPaymentMethods()">
+                                        <i class="fa-solid fa-wallet"></i> Chọn Phương Thức Thanh Toán
+                                    </button>
+                                </div>
+                                
+                                <!-- Payment Choices (initially hidden) -->
+                                <div id="payment-methods-choices" class="payment-methods-choices hidden" style="margin-top: 12px;">
+                                    <button class="btn-payment-option transfer" onclick="selectPaymentMethod('TRANSFER')">
+                                        <i class="fa-solid fa-qrcode"></i> Chuyển Khoản
+                                    </button>
+                                    <button class="btn-payment-option cash" onclick="selectPaymentMethod('CASH')">
+                                        <i class="fa-solid fa-money-bill-wave"></i> Tiền Mặt
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Scan Dialog -->
+                    <div id="qr-scan-modal" class="qr-scan-modal hidden">
+                        <div class="qr-scan-card">
+                            <div class="qr-scan-header">
+                                <h3>Quét Mã Chuyển Khoản</h3>
+                                <button class="close-modal-btn" onclick="cancelQrScan()">&times;</button>
+                            </div>
+                            <div class="qr-scan-body">
+                                <div class="qr-code-wrapper">
+                                    <svg viewBox="0 0 100 100" class="qr-svg">
+                                        <rect width="100" height="100" fill="#ffffff" rx="4"/>
+                                        <!-- Corners -->
+                                        <rect x="5" y="5" width="20" height="20" fill="#000000"/>
+                                        <rect x="8" y="8" width="14" height="14" fill="#ffffff"/>
+                                        <rect x="11" y="11" width="8" height="8" fill="#000000"/>
+                                        
+                                        <rect x="75" y="5" width="20" height="20" fill="#000000"/>
+                                        <rect x="78" y="8" width="14" height="14" fill="#ffffff"/>
+                                        <rect x="81" y="11" width="8" height="8" fill="#000000"/>
+                                        
+                                        <rect x="5" y="75" width="20" height="20" fill="#000000"/>
+                                        <rect x="8" y="78" width="14" height="14" fill="#ffffff"/>
+                                        <rect x="11" y="81" width="8" height="8" fill="#000000"/>
+                                        
+                                        <!-- Random QR dot patterns -->
+                                        <rect x="35" y="5" width="5" height="10" fill="#000000"/>
+                                        <rect x="45" y="15" width="10" height="5" fill="#000000"/>
+                                        <rect x="60" y="5" width="5" height="5" fill="#000000"/>
+                                        <rect x="30" y="25" width="15" height="5" fill="#000000"/>
+                                        <rect x="50" y="30" width="5" height="10" fill="#000000"/>
+                                        <rect x="65" y="25" width="10" height="15" fill="#000000"/>
+                                        <rect x="15" y="35" width="5" height="15" fill="#000000"/>
+                                        <rect x="25" y="45" width="10" height="5" fill="#000000"/>
+                                        <rect x="5" y="55" width="15" height="5" fill="#000000"/>
+                                        <rect x="40" y="45" width="5" height="15" fill="#000000"/>
+                                        <rect x="55" y="50" width="15" height="5" fill="#000000"/>
+                                        <rect x="75" y="55" width="10" height="10" fill="#000000"/>
+                                        <rect x="30" y="65" width="5" height="5" fill="#000000"/>
+                                        <rect x="45" y="60" width="10" height="10" fill="#000000"/>
+                                        <rect x="60" y="70" width="15" height="5" fill="#000000"/>
+                                        <rect x="80" y="75" width="15" height="5" fill="#000000"/>
+                                        <rect x="30" y="80" width="10" height="15" fill="#000000"/>
+                                        <rect x="50" y="80" width="15" height="5" fill="#000000"/>
+                                        <rect x="70" y="85" width="5" height="10" fill="#000000"/>
+                                    </svg>
+                                    <div class="qr-laser"></div>
+                                </div>
+                                <div class="qr-status-text">
+                                    <i class="fa-solid fa-spinner fa-spin text-primary"></i> Đang quét mã chuyển khoản...
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1936,35 +2258,218 @@
                 dot.classList.add('active');
             });
             
-            setTimeout(async () => {
-                try {
-                    const response = await fetch(`${API_BASE}/checkout`, { method: 'POST' });
-                    if (response.ok) {
-                        setBotMode('COMPLETE');
-                        document.getElementById('bot-status-text').innerText = 'Thanh toán hoàn tất! Hóa đơn đã ghi nhận.';
-                        
-                        if (currentTab === 'cart') {
-                            document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
-                            document.getElementById('cart-payment-status').className = 'badge paid';
-                        }
-                        
-                        setTimeout(() => {
-                            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
-                                dot.classList.remove('active');
-                            });
-                            
-                            sessionCount++;
-                            isProcessingCheckout = false;
-                            setBotMode('IDLE');
-                            refreshAllData(false);
-                        }, 2000);
-                    }
-                } catch (e) {
-                    console.error("Thanh toán thất bại:", e);
-                    isProcessingCheckout = false;
-                    setBotMode('IDLE');
+            showCheckoutModal();
+        }
+
+        function showCheckoutModal() {
+            const modal = document.getElementById('checkout-modal');
+            if (!modal) return;
+            
+            // Populating cart items in table
+            const listContainer = document.getElementById('checkout-items-list');
+            if (listContainer) {
+                if (cart.items.length === 0) {
+                    listContainer.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 12px;">Giỏ hàng trống</td></tr>';
+                } else {
+                    listContainer.innerHTML = cart.items.map(item => `
+                        <tr>
+                            <td>${item.productName}</td>
+                            <td>${item.quantity}</td>
+                            <td class="font-mono">${item.price.toLocaleString('vi-VN')} đ</td>
+                            <td class="font-mono" style="font-weight:600; color:var(--color-cyan);">${(item.price * item.quantity).toLocaleString('vi-VN')} đ</td>
+                        </tr>
+                    `).join('');
                 }
-            }, 2000);
+            }
+            
+            const subtotalEl = document.getElementById('checkout-subtotal');
+            const totalEl = document.getElementById('checkout-total');
+            if (subtotalEl) subtotalEl.innerText = `${cart.total.toLocaleString('vi-VN')} đ`;
+            if (totalEl) totalEl.innerText = `${cart.total.toLocaleString('vi-VN')} đ`;
+            
+            // Reset modal parts
+            document.getElementById('payment-method-selector-section').classList.remove('hidden');
+            document.getElementById('payment-methods-choices').classList.add('hidden');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.add('visible');
+            }, 10);
+        }
+
+        function cancelCheckout() {
+            const modal = document.getElementById('checkout-modal');
+            if (modal) {
+                modal.classList.remove('visible');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+            
+            document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
+                dot.classList.remove('active');
+            });
+            isProcessingCheckout = false;
+            setBotMode('IDLE');
+            document.getElementById('bot-status-text').innerText = 'Đã hủy thanh toán. Sẵn sàng di chuyển!';
+        }
+
+        function showPaymentMethods() {
+            document.getElementById('payment-method-selector-section').classList.add('hidden');
+            document.getElementById('payment-methods-choices').classList.remove('hidden');
+        }
+
+        function selectPaymentMethod(method) {
+            const modal = document.getElementById('checkout-modal');
+            if (modal) {
+                modal.classList.remove('visible');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+            
+            if (method === 'TRANSFER') {
+                showQrScanModal();
+            } else if (method === 'CASH') {
+                document.getElementById('bot-status-text').innerText = 'Thanh toán tiền mặt: Tiền từ quầy đang bay tới Nhân viên...';
+                animateCashFlying();
+                
+                setTimeout(() => {
+                    completeCheckoutSequence('Tiền mặt');
+                }, 2000);
+            }
+        }
+
+        function showQrScanModal() {
+            const qrModal = document.getElementById('qr-scan-modal');
+            if (!qrModal) return;
+            
+            qrModal.classList.remove('hidden');
+            setTimeout(() => {
+                qrModal.classList.add('visible');
+            }, 10);
+            
+            // Complete scan after 3.5 seconds
+            setTimeout(() => {
+                if (qrModal.classList.contains('visible')) {
+                    qrModal.classList.remove('visible');
+                    setTimeout(() => {
+                        qrModal.classList.add('hidden');
+                    }, 300);
+                    completeCheckoutSequence('Chuyển khoản (QR)');
+                }
+            }, 3500);
+        }
+
+        function cancelQrScan() {
+            const qrModal = document.getElementById('qr-scan-modal');
+            if (qrModal) {
+                qrModal.classList.remove('visible');
+                setTimeout(() => {
+                    qrModal.classList.add('hidden');
+                }, 300);
+            }
+            cancelCheckout();
+        }
+
+        function animateCashFlying() {
+            const svg = document.querySelector('.store-svg');
+            if (!svg) return;
+            
+            // Checkout counter coordinates are approx x=400, y=80
+            const startX = 400;
+            const startY = 80;
+            const endX = staffX;
+            const endY = staffY;
+            
+            const numBills = 8;
+            for (let i = 0; i < numBills; i++) {
+                setTimeout(() => {
+                    const bill = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    bill.setAttribute('class', 'flying-cash');
+                    bill.style.transition = 'transform 1.2s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 1.2s ease';
+                    bill.style.opacity = '1';
+                    bill.style.transform = `translate(${startX}px, ${startY}px)`;
+                    
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('width', '24');
+                    rect.setAttribute('height', '12');
+                    rect.setAttribute('rx', '1.5');
+                    rect.setAttribute('fill', '#39ff14'); // matching green
+                    rect.setAttribute('stroke', '#ffffff');
+                    rect.setAttribute('stroke-width', '0.5');
+                    
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', '12');
+                    circle.setAttribute('cy', '6');
+                    circle.setAttribute('r', '3');
+                    circle.setAttribute('fill', 'none');
+                    circle.setAttribute('stroke', '#ffffff');
+                    circle.setAttribute('stroke-width', '0.5');
+                    
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', '12');
+                    text.setAttribute('y', '8.5');
+                    text.setAttribute('font-size', '6.5px');
+                    text.setAttribute('fill', '#ffffff');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-family', 'monospace');
+                    text.setAttribute('font-weight', 'bold');
+                    text.textContent = '$';
+                    
+                    bill.appendChild(rect);
+                    bill.appendChild(circle);
+                    bill.appendChild(text);
+                    svg.appendChild(bill);
+                    
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            const targetX = endX + (Math.random() * 30 - 15);
+                            const targetY = endY + (Math.random() * 30 - 15);
+                            const rot = Math.random() * 360;
+                            
+                            bill.style.transform = `translate(${targetX}px, ${targetY}px) rotate(${rot}deg) scale(0.8)`;
+                            bill.style.opacity = '0';
+                        });
+                    });
+                    
+                    setTimeout(() => {
+                        bill.remove();
+                    }, 1300);
+                    
+                }, i * 150);
+            }
+        }
+
+        async function completeCheckoutSequence(paymentMethod) {
+            try {
+                const response = await fetch(`${API_BASE}/checkout`, { method: 'POST' });
+                if (response.ok) {
+                    setBotMode('COMPLETE');
+                    document.getElementById('bot-status-text').innerText = `Thanh toán thành công bằng ${paymentMethod}! Hóa đơn đã ghi nhận.`;
+                    
+                    if (currentTab === 'cart') {
+                        document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
+                        document.getElementById('cart-payment-status').className = 'badge paid';
+                    }
+                    
+                    setTimeout(() => {
+                        document.querySelectorAll('.checkout-reg-dot').forEach(dot => {
+                            dot.classList.remove('active');
+                        });
+                        
+                        sessionCount++;
+                        isProcessingCheckout = false;
+                        setBotMode('IDLE');
+                        refreshAllData(false);
+                    }, 2000);
+                }
+            } catch (e) {
+                console.error("Thanh toán thất bại:", e);
+                isProcessingCheckout = false;
+                setBotMode('IDLE');
+                document.getElementById('bot-status-text').innerText = 'Giao dịch thất bại. Vui lòng thử lại!';
+            }
         }
 
         // Switch Dashboard Tabs
