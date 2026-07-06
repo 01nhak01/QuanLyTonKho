@@ -1218,6 +1218,27 @@
             transition: transform 1.2s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 1.2s ease;
             pointer-events: none;
         }
+
+        /* Cửa Kho Sau & Sơ đồ Kho Sau */
+        .backroom-door {
+            fill: #0c1b30;
+            stroke: var(--color-amber);
+            stroke-dasharray: 4 4;
+            stroke-width: 1.5;
+        }
+        .backroom-door-label {
+            fill: var(--color-amber);
+            font-family: var(--font-mono);
+            font-size: 8px;
+            font-weight: 700;
+            pointer-events: none;
+        }
+        .view-backroom #checkout-counter,
+        .view-backroom #store-entrance,
+        .view-backroom #security-gate,
+        .view-backroom #bot-container {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -1478,6 +1499,13 @@
                             <circle cx="580" cy="80" r="12" id="staff-body" class="staff-body-idle"/>
                             <text x="580" y="56" id="staff-label" class="bot-text-label" text-anchor="middle">NHÂN VIÊN</text>
                         </g>
+
+                        <!-- LỐI VÀO KHO SAU (CỬA SAU) -->
+                        <g id="backroom-door-group" class="sim-component">
+                            <rect x="720" y="20" width="60" height="70" class="backroom-door" rx="5"/>
+                            <text x="750" y="47" id="backroom-door-text" class="backroom-door-label" text-anchor="middle">KHO SAU</text>
+                            <path d="M 742 62 L 758 62 M 750 55 L 758 62 L 750 69" stroke="var(--color-amber)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
                     </svg>
 
                     <!-- Security Alert Notification Overlay -->
@@ -1685,6 +1713,7 @@
         let staffX = 580;
         let staffY = 80;
         let staffMode = 'IDLE';
+        let currentMap = 'store'; // 'store' or 'backroom'
 
         // Initial stocks mapping to track if items have been scanned/picked in the current run
         const initialStocks = {};
@@ -1857,6 +1886,7 @@
                         
                         updateStaffPositionVisual(staffX, staffY);
                         setStaffMode('MOVING');
+                        checkMapTransition();
                         
                         // Revert to IDLE after a short delay
                         setTimeout(() => {
@@ -1919,6 +1949,7 @@
                     
                     updateStaffPositionVisual(staffX, staffY);
                     setStaffMode('MOVING');
+                    checkMapTransition();
                     
                     setTimeout(() => {
                         setStaffMode('IDLE');
@@ -1943,6 +1974,48 @@
                 staffContainer.style.transform = `translate(${dx}px, ${dy}px)`;
             }
             updateStaffVisualClass(staffMode);
+        }
+
+        function checkMapTransition() {
+            if (selectedBot !== 'staff') return;
+            
+            // Door zone: x >= 710, y <= 90
+            const inDoorZone = (staffX >= 710 && staffY <= 90);
+            
+            if (inDoorZone) {
+                const svg = document.querySelector('.store-svg');
+                const doorText = document.getElementById('backroom-door-text');
+                const headerText = document.querySelector('.sim-header h2');
+                
+                if (currentMap === 'store') {
+                    currentMap = 'backroom';
+                    if (svg) svg.classList.add('view-backroom');
+                    if (doorText) doorText.textContent = 'CỬA HÀNG';
+                    if (headerText) {
+                        headerText.innerHTML = '<i class="fa-solid fa-warehouse text-warning"></i> SƠ ĐỒ KHO SAU · ĐIỀU KHIỂN THỦ CÔNG';
+                    }
+                    
+                    // Teleport to just outside the door in backroom map
+                    staffX = 700;
+                    staffY = 80;
+                    updateStaffPositionVisual(staffX, staffY);
+                    
+                    document.getElementById('bot-status-text').innerText = 'Nhân viên đã vào Kho sau';
+                } else if (currentMap === 'backroom') {
+                    currentMap = 'store';
+                    if (svg) svg.classList.remove('view-backroom');
+                    if (doorText) doorText.textContent = 'KHO SAU';
+                    if (headerText) {
+                        headerText.innerHTML = '<i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · ĐIỀU KHIỂN THỦ CÔNG';
+                    }
+                    
+                    // Teleport to just outside the door in store map
+                    staffX = 700;
+                    staffY = 80;
+                    updateStaffPositionVisual(staffX, staffY);
+                    
+                }
+            }
         }
 
         function setStaffMode(mode) {
@@ -2818,6 +2891,17 @@
             updateStaffPositionVisual(staffX, staffY);
             setStaffMode('IDLE');
             selectBot('bot01');
+
+            // Reset map transition
+            currentMap = 'store';
+            const svg = document.querySelector('.store-svg');
+            if (svg) svg.classList.remove('view-backroom');
+            const doorText = document.getElementById('backroom-door-text');
+            if (doorText) doorText.textContent = 'KHO SAU';
+            const headerText = document.querySelector('.sim-header h2');
+            if (headerText) {
+                headerText.innerHTML = '<i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · ĐIỀU KHIỂN THỦ CÔNG';
+            }
             
             hideProductPopover();
             hideBotCartPopover();
