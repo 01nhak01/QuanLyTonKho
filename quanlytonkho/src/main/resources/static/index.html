@@ -1555,7 +1555,7 @@
             <footer class="dashboard-footer">
                 <div class="footer-control-bar">
                     <div class="bot-status">
-                        <span class="bot-badge" style="display:inline-flex; align-items:center;"><i class="fa-solid fa-basket-shopping" style="margin-right: 5px;"></i> KHÁCH HÀNG</span>
+                        <span class="bot-badge" style="display:inline-flex; align-items:center;"><img src="/images/staff_avatar.png" style="width: 14px; height: 14px; border-radius: 50%; margin-right: 5px; vertical-align: middle;" /> KHÁCH HÀNG</span>
                         <span id="bot-status-text">Đang chờ tại cổng vào</span>
                     </div>
                     <button class="btn-reset" onclick="resetSystem()">
@@ -1691,8 +1691,8 @@
                             <circle cx="400" cy="510" r="22" id="bot-select-ring" stroke="#00c8ff" stroke-width="1.5" stroke-dasharray="3 3" fill="none" style="display: block; pointer-events: none;"/>
                             <circle cx="400" cy="510" r="16" id="bot-glow" class="bot-glow-idle"/>
                             <circle cx="400" cy="510" r="12" id="bot-body" class="bot-body-idle"/>
-                            <!-- Image customer grocery icon -->
-                            <image href="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" x="388" y="498" width="24" height="24" style="pointer-events: none;" />
+                            <!-- Image customer avatar icon -->
+                            <image href="/images/staff_avatar.png" x="388" y="498" width="24" height="24" style="pointer-events: none;" />
                             <text x="400" y="486" id="bot-label" class="bot-text-label" text-anchor="middle">KHÁCH HÀNG</text>
                             
                             <!-- Bot Cart Icon: Top-Right of Bot, Clickable -->
@@ -1713,8 +1713,8 @@
                             <circle cx="580" cy="80" r="22" id="staff-select-ring" stroke="#ffaa00" stroke-width="1.5" stroke-dasharray="3 3" fill="none" style="display: none; pointer-events: none;"/>
                             <circle cx="580" cy="80" r="16" id="staff-glow" class="staff-glow-idle"/>
                             <circle cx="580" cy="80" r="12" id="staff-body" class="staff-body-idle"/>
-                            <!-- Image staff avatar icon -->
-                            <image href="/images/staff_avatar.png" x="568" y="68" width="24" height="24" style="pointer-events: none;" />
+                            <!-- Image staff grocery icon -->
+                            <image href="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" x="568" y="68" width="24" height="24" style="pointer-events: none;" />
                             <text x="580" y="56" id="staff-label" class="bot-text-label" text-anchor="middle">NHÂN VIÊN</text>
                             
                             <!-- Small floating scanner accessory (only visible during active search) -->
@@ -2775,7 +2775,7 @@
                 document.getElementById('bot-status-text').innerText = atEntrance ? 'Đang chờ tại cổng vào' : 'Sẵn sàng di chuyển';
                 const badge = document.querySelector('.bot-status .bot-badge');
                 if (badge) {
-                    badge.innerHTML = '<i class="fa-solid fa-basket-shopping"></i> KHÁCH HÀNG';
+                    badge.innerHTML = '<img src="/images/staff_avatar.png" style="width: 14px; height: 14px; border-radius: 50%; margin-right: 5px; vertical-align: middle;" /> KHÁCH HÀNG';
                     badge.style.backgroundColor = '#EFE0BB';
                     badge.style.color = '#2A2418';
                     badge.style.borderColor = 'var(--border-color)';
@@ -2790,7 +2790,7 @@
                 document.getElementById('bot-status-text').innerText = 'Nhân viên đang trực tuyến';
                 const badge = document.querySelector('.bot-status .bot-badge');
                 if (badge) {
-                    badge.innerHTML = '<img src="/images/staff_avatar.png" style="width: 14px; height: 14px; border-radius: 50%; margin-right: 5px; vertical-align: middle;" /> NHÂN VIÊN';
+                    badge.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" style="width: 14px; height: 14px; border-radius: 50%; margin-right: 5px; vertical-align: middle;" /> NHÂN VIÊN';
                     badge.style.backgroundColor = '#EFE0BB';
                     badge.style.color = '#2A2418';
                     badge.style.borderColor = 'var(--border-color)';
