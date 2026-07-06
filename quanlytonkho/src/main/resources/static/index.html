@@ -2342,6 +2342,10 @@
                     modal.classList.add('hidden');
                 }, 300);
             }
+            
+            // Remove scanned highlights now that user has viewed details
+            const dots = document.querySelectorAll('.scanned-highlight');
+            dots.forEach(dot => dot.classList.remove('scanned-highlight'));
         }
 
         function setStaffMode(mode) {
@@ -2426,12 +2430,6 @@
                         
                         const closeLimit = 52; // Proximity threshold (must be > 40px due to shelf collisions)
                         if (distLeft <= closeLimit || distRight <= closeLimit) {
-                            // Arrived at product!
-                            const leftDot = document.getElementById(`prod-${product.sku}-left`);
-                            const rightDot = document.getElementById(`prod-${product.sku}-right`);
-                            if (leftDot) leftDot.classList.remove('scanned-highlight');
-                            if (rightDot) rightDot.classList.remove('scanned-highlight');
-                            
                             // Open details dialog
                             showRfidProductDetails(product);
                             
