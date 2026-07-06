@@ -1370,17 +1370,29 @@
         }
 
         /* Scanned Product Highlight */
+        .product-highlight-halo {
+            pointer-events: none;
+            fill: rgba(255, 35, 35, 0.22);
+            stroke: #ff1f1f;
+            stroke-width: 3px;
+            filter: drop-shadow(0 0 10px #ff1f1f) drop-shadow(0 0 24px rgba(255, 31, 31, 0.95));
+            animation: product-halo-pulse 0.75s ease-in-out infinite;
+        }
         .product-dot.scanned-highlight {
             opacity: 1 !important;
-            fill: var(--color-amber) !important;
+            fill: #ff1f1f !important;
             stroke: #ffffff !important;
-            stroke-width: 4px !important;
-            filter: drop-shadow(0 0 8px var(--color-amber)) drop-shadow(0 0 18px #ffffff);
-            animation: scanned-flash 0.45s ease-in-out infinite alternate;
+            stroke-width: 5px !important;
+            filter: drop-shadow(0 0 8px #ff1f1f) drop-shadow(0 0 18px #ff1f1f) drop-shadow(0 0 28px #ffffff);
+            animation: scanned-flash 0.42s ease-in-out infinite alternate;
+        }
+        @keyframes product-halo-pulse {
+            0% { r: 15px; opacity: 0.95; stroke-width: 4px; }
+            100% { r: 26px; opacity: 0.2; stroke-width: 1.5px; }
         }
         @keyframes scanned-flash {
-            from { filter: drop-shadow(0 0 6px var(--color-amber)); fill: var(--color-amber); stroke-width: 3px; }
-            to { filter: drop-shadow(0 0 18px #ffffff); fill: #ffffff; stroke-width: 5px; }
+            from { filter: drop-shadow(0 0 8px #ff1f1f) drop-shadow(0 0 18px #ff1f1f); fill: #ff1f1f; stroke-width: 4px; }
+            to { filter: drop-shadow(0 0 22px #ffffff) drop-shadow(0 0 34px #ff1f1f); fill: #ff6b6b; stroke-width: 6px; }
         }
 
         /* Responsive design for mobile (Stack panels vertically and allow scrolling to keep aspect ratios) */
@@ -2552,13 +2564,8 @@
                     scanningActive = false;
                     const accessory = document.getElementById('staff-scanner-accessory');
                     if (accessory) accessory.style.display = 'none';
-                    if (activeFoundSku) {
-                        const leftDot = document.getElementById(`prod-${activeFoundSku}-left`);
-                        const rightDot = document.getElementById(`prod-${activeFoundSku}-right`);
-                        if (leftDot) { leftDot.classList.remove('scanned-highlight'); leftDot.setAttribute('r', 7); }
-                        if (rightDot) { rightDot.classList.remove('scanned-highlight'); rightDot.setAttribute('r', 7); }
-                        activeFoundSku = null;
-                    }
+                    clearScannedHighlights();
+                    activeFoundSku = null;
                     closeRfidDetails();
                     renderSvgProducts(); // Re-render product dots for the Store map
                 }
@@ -2633,6 +2640,39 @@
             runSonarAnimationLoop();
         }
 
+        function setProductScannedHighlight(dot, isHighlighted) {
+            if (!dot) return;
+
+            const haloId = `${dot.id}-halo`;
+            const existingHalo = document.getElementById(haloId);
+
+            if (isHighlighted) {
+                dot.classList.add('scanned-highlight');
+                dot.setAttribute('r', 12);
+
+                if (!existingHalo && dot.parentNode) {
+                    const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    halo.setAttribute('id', haloId);
+                    halo.setAttribute('class', 'product-highlight-halo');
+                    halo.setAttribute('cx', dot.getAttribute('cx'));
+                    halo.setAttribute('cy', dot.getAttribute('cy'));
+                    halo.setAttribute('r', 18);
+                    dot.parentNode.insertBefore(halo, dot);
+                }
+            } else {
+                dot.classList.remove('scanned-highlight');
+                dot.setAttribute('r', 7);
+                if (existingHalo) existingHalo.remove();
+            }
+        }
+
+        function clearScannedHighlights() {
+            document.querySelectorAll('.scanned-highlight').forEach(dot => {
+                setProductScannedHighlight(dot, false);
+            });
+            document.querySelectorAll('.product-highlight-halo').forEach(halo => halo.remove());
+        }
+
         function runSonarAnimationLoop() {
             if (!scanningActive) {
                 const wave = document.getElementById('sonar-wave');
@@ -2676,19 +2716,19 @@
             // Check left dot
             const leftDot = document.getElementById(`prod-${product.sku}-left`);
             if (distLeft <= radiusLimit) {
-                if (leftDot) { leftDot.classList.add('scanned-highlight'); leftDot.setAttribute('r', 10); }
+                setProductScannedHighlight(leftDot, true);
                 found = true;
             } else {
-                if (leftDot) { leftDot.classList.remove('scanned-highlight'); leftDot.setAttribute('r', 7); }
+                setProductScannedHighlight(leftDot, false);
             }
             
             // Check right dot
             const rightDot = document.getElementById(`prod-${product.sku}-right`);
             if (distRight <= radiusLimit) {
-                if (rightDot) { rightDot.classList.add('scanned-highlight'); rightDot.setAttribute('r', 10); }
+                setProductScannedHighlight(rightDot, true);
                 found = true;
             } else {
-                if (rightDot) { rightDot.classList.remove('scanned-highlight'); rightDot.setAttribute('r', 7); }
+                setProductScannedHighlight(rightDot, false);
             }
             
             if (found && !activeFoundSku) {
@@ -2729,7 +2769,7 @@
             const formattedTime = formatTimestamp(prodTime);
             document.getElementById('rfid-det-time').innerText = formattedTime || 'Chưa cập nhật';
             
-            document.querySelectorAll('.scanned-highlight').forEach(dot => { dot.classList.remove('scanned-highlight'); dot.setAttribute('r', 7); });
+            clearScannedHighlights();
             activeFoundSku = null;
             
             modal.classList.remove('hidden');
@@ -2750,8 +2790,7 @@
             }
             
             // Remove scanned highlights now that user has viewed details
-            const dots = document.querySelectorAll('.scanned-highlight');
-            dots.forEach(dot => { dot.classList.remove('scanned-highlight'); dot.setAttribute('r', 7); });
+            clearScannedHighlights();
             activeFoundSku = null;
         }
 
@@ -3610,11 +3649,11 @@
                 if (prod.stockQuantity <= 0) {
                     circleLeft.classList.add('picked');
                 }
+                group.appendChild(circleLeft);
                 if (currentMap === 'backroom' && scanningActive && targetSearchSku === prod.sku) {
                     const distLeft = Math.sqrt((staffX - cxLeft) ** 2 + (staffY - cy) ** 2);
-                    if (distLeft <= 100) { circleLeft.classList.add('scanned-highlight'); circleLeft.setAttribute('r', 10); }
+                    if (distLeft <= 100) setProductScannedHighlight(circleLeft, true);
                 }
-                group.appendChild(circleLeft);
                 
                 // Right Dot
                 const circleRight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -3626,11 +3665,11 @@
                 if (prod.stockQuantity <= 0) {
                     circleRight.classList.add('picked');
                 }
+                group.appendChild(circleRight);
                 if (currentMap === 'backroom' && scanningActive && targetSearchSku === prod.sku) {
                     const distRight = Math.sqrt((staffX - cxRight) ** 2 + (staffY - cy) ** 2);
-                    if (distRight <= 100) { circleRight.classList.add('scanned-highlight'); circleRight.setAttribute('r', 10); }
+                    if (distRight <= 100) setProductScannedHighlight(circleRight, true);
                 }
-                group.appendChild(circleRight);
             });
         }
 
@@ -3774,13 +3813,8 @@
             scanningActive = false;
             const accessory = document.getElementById('staff-scanner-accessory');
             if (accessory) accessory.style.display = 'none';
-            if (activeFoundSku) {
-                const leftDot = document.getElementById(`prod-${activeFoundSku}-left`);
-                const rightDot = document.getElementById(`prod-${activeFoundSku}-right`);
-                if (leftDot) { leftDot.classList.remove('scanned-highlight'); leftDot.setAttribute('r', 7); }
-                if (rightDot) { rightDot.classList.remove('scanned-highlight'); rightDot.setAttribute('r', 7); }
-                activeFoundSku = null;
-            }
+            clearScannedHighlights();
+            activeFoundSku = null;
             
             document.getElementById('bot-status-text').innerText = 'Đang đặt lại cơ sở dữ liệu hệ thống...';
             
