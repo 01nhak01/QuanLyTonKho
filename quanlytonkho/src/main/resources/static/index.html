@@ -1826,11 +1826,11 @@
                                     <span id="rfid-det-sku" class="font-mono" style="font-weight:bold; color:var(--color-amber);">-</span>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-                                    <span style="color:var(--text-secondary);">Số lượng size:</span>
+                                    <span id="rfid-det-sizes-label" style="color:var(--text-secondary);">Số lượng size:</span>
                                     <span id="rfid-det-sizes" class="font-mono" style="color:#ffffff;">-</span>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-                                    <span style="color:var(--text-secondary);">Thời gian:</span>
+                                    <span style="color:var(--text-secondary);">Thời gian nhập kho:</span>
                                     <span id="rfid-det-time" class="font-mono" style="color:var(--text-secondary);">-</span>
                                 </div>
                                 <div style="margin-top:8px;">
@@ -2442,10 +2442,20 @@
             document.getElementById('rfid-det-name').innerText = product.name;
             document.getElementById('rfid-det-sku').innerText = product.sku;
             
-            // Format sizes using getProductSizes
-            const sizes = getProductSizes(product);
-            const sizeStockText = `S: ${sizes['S'] || 0} | M: ${sizes['M'] || 0} | L: ${sizes['L'] || 0} | XL: ${sizes['XL'] || 0}`;
-            document.getElementById('rfid-det-sizes').innerText = sizeStockText;
+            const skuUpper = (product.sku || '').toUpperCase();
+            const isAccessory = skuUpper.startsWith('PK');
+            const sizesLabel = document.getElementById('rfid-det-sizes-label');
+            const sizesVal = document.getElementById('rfid-det-sizes');
+            
+            if (isAccessory) {
+                if (sizesLabel) sizesLabel.innerText = "Số lượng:";
+                if (sizesVal) sizesVal.innerText = product.stockQuantity;
+            } else {
+                if (sizesLabel) sizesLabel.innerText = "Số lượng size:";
+                const sizes = getProductSizes(product);
+                const sizeStockText = `S: ${sizes['S'] || 0} | M: ${sizes['M'] || 0} | L: ${sizes['L'] || 0} | XL: ${sizes['XL'] || 0}`;
+                if (sizesVal) sizesVal.innerText = sizeStockText;
+            }
             
             // Time from the products table (created_at)
             const prodTime = product.created_at || product.createdAt || '';
@@ -3332,12 +3342,35 @@
             });
         }
 
-        // Format LocalDateTime string to HH:MM:SS
+        // Format LocalDateTime string to HH:MM:SS DD/MM/YYYY in Vietnam Time (GMT+7)
         function formatTimestamp(timestampStr) {
             if (!timestampStr) return '';
             try {
                 const date = new Date(timestampStr);
-                return date.toTimeString().split(' ')[0];
+                const options = {
+                    timeZone: 'Asia/Ho_Chi_Minh',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour12: false
+                };
+                const formatter = new Intl.DateTimeFormat('vi-VN', options);
+                const parts = formatter.formatToParts(date);
+                
+                let hour = '00', minute = '00', second = '00', day = '01', month = '01', year = '1970';
+                parts.forEach(p => {
+                    if (p.type === 'hour') hour = p.value;
+                    if (p.type === 'minute') minute = p.value;
+                    if (p.type === 'second') second = p.value;
+                    if (p.type === 'day') day = p.value;
+                    if (p.type === 'month') month = p.value;
+                    if (p.type === 'year') year = p.value;
+                });
+                
+                return `${hour}:${minute}:${second} ${day}/${month}/${year}`;
             } catch (e) {
                 return timestampStr;
             }
