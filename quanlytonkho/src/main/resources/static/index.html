@@ -1873,6 +1873,7 @@
     <script>
         // Config and State
         const API_BASE = '/api';
+        const sessionCode = 'SESSION-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         let currentTab = 'feed';
         let products = [];
         let productSizes = [];
@@ -2635,7 +2636,7 @@
         // Send security alarm events to the live logs
         async function triggerSecurityAlarmLog() {
             try {
-                await fetch(`${API_BASE}/events?tagId=SEC-ALARM&location=Cổng An Ninh&message=CẢNH BÁO: Phát hiện sản phẩm chưa thanh toán đi qua cổng an ninh!`, {
+                await fetch(`${API_BASE}/events?tagId=SEC-ALARM&location=Cổng An Ninh&message=CẢNH BÁO: Phát hiện sản phẩm chưa thanh toán đi qua cổng an ninh!&sessionCode=${sessionCode}`, {
                     method: 'POST'
                 });
                 refreshAllData(false);
@@ -2828,7 +2829,7 @@
             try {
                 // Append selected size suffix to the tagId if standard size clothing
                 const tagIdWithSize = popoverSelectedSize === 'Freesize' ? currentNearbySku : `${currentNearbySku}-${popoverSelectedSize}`;
-                const response = await fetch(`${API_BASE}/cart/add?tagId=${tagIdWithSize}`, {
+                const response = await fetch(`${API_BASE}/cart/add?tagId=${tagIdWithSize}&sessionCode=${sessionCode}`, {
                     method: 'POST'
                 });
                 if (response.ok) {
@@ -3044,7 +3045,7 @@
 
         async function completeCheckoutSequence(paymentMethod) {
             try {
-                const response = await fetch(`${API_BASE}/checkout?paymentMethod=${encodeURIComponent(paymentMethod)}`, { method: 'POST' });
+                const response = await fetch(`${API_BASE}/checkout?paymentMethod=${encodeURIComponent(paymentMethod)}&sessionCode=${sessionCode}`, { method: 'POST' });
                 if (response.ok) {
                     setBotMode('COMPLETE');
                     document.getElementById('bot-status-text').innerText = `Thanh toán thành công bằng ${paymentMethod}! Hóa đơn đã ghi nhận.`;
@@ -3129,8 +3130,8 @@
                 const [productsRes, sizesRes, cartRes, eventsRes] = await Promise.all([
                     fetch(`${API_BASE}/products`),
                     fetch(`${API_BASE}/product-sizes`),
-                    fetch(`${API_BASE}/cart`),
-                    fetch(`${API_BASE}/events`)
+                    fetch(`${API_BASE}/cart?sessionCode=${sessionCode}`),
+                    fetch(`${API_BASE}/events?sessionCode=${sessionCode}`)
                 ]);
 
                 if (productsRes.ok) {
@@ -3486,7 +3487,7 @@
             document.getElementById('bot-status-text').innerText = 'Đang đặt lại cơ sở dữ liệu hệ thống...';
             
             try {
-                const response = await fetch(`${API_BASE}/reset`, { method: 'POST' });
+                const response = await fetch(`${API_BASE}/reset?sessionCode=${sessionCode}`, { method: 'POST' });
                 if (response.ok) {
                     await refreshAllData(false);
                     document.getElementById('bot-status-text').innerText = 'Đặt lại dữ liệu hệ thống thành công. Sẵn sàng di chuyển!';

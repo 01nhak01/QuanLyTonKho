@@ -18,6 +18,7 @@ public class RfidEvent {
     private LocalDateTime timestamp;
     private String location;
     private String message;
+    private String sessionCode;
 
     public RfidEvent() {
     }
@@ -27,6 +28,22 @@ public class RfidEvent {
         this.timestamp = timestamp;
         this.location = location;
         this.message = message;
+    }
+
+    public RfidEvent(String tagId, LocalDateTime timestamp, String location, String message, String sessionCode) {
+        this.tagId = tagId;
+        this.timestamp = timestamp;
+        this.location = location;
+        this.message = message;
+        this.sessionCode = sessionCode;
+    }
+
+    public String getSessionCode() {
+        return sessionCode;
+    }
+
+    public void setSessionCode(String sessionCode) {
+        this.sessionCode = sessionCode;
     }
 
     public Long getId() {

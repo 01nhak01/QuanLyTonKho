@@ -31,8 +31,8 @@ public class StoreRestController {
     }
 
     @GetMapping("/cart")
-    public Map<String, Object> getCartData() {
-        List<CartItem> items = storeService.getCartItems();
+    public Map<String, Object> getCartData(@RequestParam(required = false) String sessionCode) {
+        List<CartItem> items = storeService.getCartItems(sessionCode);
         double total = items.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
         int count = items.stream().mapToInt(CartItem::getQuantity).sum();
 
@@ -44,21 +44,22 @@ public class StoreRestController {
     }
 
     @GetMapping("/events")
-    public List<RfidEvent> getRfidEvents() {
-        return storeService.getRfidEvents();
+    public List<RfidEvent> getRfidEvents(@RequestParam(required = false) String sessionCode) {
+        return storeService.getRfidEvents(sessionCode);
     }
 
     @PostMapping("/events")
     public RfidEvent logEvent(
             @RequestParam String tagId,
             @RequestParam String location,
-            @RequestParam String message) {
-        return storeService.logEvent(tagId, location, message);
+            @RequestParam String message,
+            @RequestParam(required = false) String sessionCode) {
+        return storeService.logEvent(tagId, location, message, sessionCode);
     }
 
     @PostMapping("/cart/add")
-    public CartItem addToCart(@RequestParam String tagId) {
-        return storeService.addCartItemByTag(tagId);
+    public CartItem addToCart(@RequestParam String tagId, @RequestParam(required = false) String sessionCode) {
+        return storeService.addCartItemByTag(tagId, sessionCode);
     }
 
     @DeleteMapping("/cart/remove/{id}")
@@ -71,8 +72,10 @@ public class StoreRestController {
     }
 
     @PostMapping("/checkout")
-    public Map<String, String> checkout(@RequestParam(required = false, defaultValue = "Chuyển khoản") String paymentMethod) {
-        storeService.checkout(paymentMethod);
+    public Map<String, String> checkout(
+            @RequestParam(required = false, defaultValue = "Chuyển khoản") String paymentMethod,
+            @RequestParam(required = false) String sessionCode) {
+        storeService.checkout(paymentMethod, sessionCode);
         Map<String, String> response = new HashMap<>();
         response.put("status", "SUCCESS");
         response.put("message", "Checkout successful");
@@ -80,8 +83,8 @@ public class StoreRestController {
     }
 
     @PostMapping("/reset")
-    public Map<String, String> reset() {
-        storeService.resetStoreState();
+    public Map<String, String> reset(@RequestParam(required = false) String sessionCode) {
+        storeService.resetStoreState(sessionCode);
         Map<String, String> response = new HashMap<>();
         response.put("status", "SUCCESS");
         response.put("message", "System state reset successfully");

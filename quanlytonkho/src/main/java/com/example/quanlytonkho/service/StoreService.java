@@ -46,14 +46,20 @@ public class StoreService {
     }
 
     @Transactional
-    public void resetStoreState() {
-        // Clear local cart and events in H2
-        cartItemRepository.deleteAll();
-        rfidEventRepository.deleteAll();
+    public void resetStoreState(String sessionCode) {
+        String sess = (sessionCode == null || sessionCode.isEmpty()) ? DEFAULT_SESSION : sessionCode;
+        cartItemRepository.deleteBySessionCode(sess);
+        
+        List<RfidEvent> sessionEvents = rfidEventRepository.findBySessionCodeOrSessionCodeIsNullOrderByTimestampDesc(sess);
+        for (RfidEvent e : sessionEvents) {
+            if (e.getSessionCode() != null && e.getSessionCode().equals(sess)) {
+                rfidEventRepository.delete(e);
+            }
+        }
 
-        // Log default start events
-        logEvent("SYS-CTRL", "Phòng Máy Chủ", "Hệ thống RFID Trực tuyến (Bộ điều khiển chính)");
-        logEvent("READER-A..D", "Khu Vực Bán Hàng", "4 cổng đọc RFID đang hoạt động (Tất cả lối đi trực tuyến)");
+        // Log default start events for this session
+        logEvent("SYS-CTRL", "Phòng Máy Chủ", "Hệ thống RFID Trực tuyến (Bộ điều khiển chính)", sess);
+        logEvent("READER-A..D", "Khu Vực Bán Hàng", "4 cổng đọc RFID đang hoạt động (Tất cả lối đi trực tuyến)", sess);
     }
 
     public List<Product> getAllProducts() {
@@ -96,22 +102,31 @@ public class StoreService {
         return Collections.emptyList();
     }
 
-    public List<CartItem> getCartItems() {
-        return cartItemRepository.findBySessionCode(DEFAULT_SESSION);
+    public List<CartItem> getCartItems(String sessionCode) {
+        String sess = (sessionCode == null || sessionCode.isEmpty()) ? DEFAULT_SESSION : sessionCode;
+        return cartItemRepository.findBySessionCode(sess);
     }
 
-    public List<RfidEvent> getRfidEvents() {
-        return rfidEventRepository.findAllByOrderByTimestampDesc();
+    public List<RfidEvent> getRfidEvents(String sessionCode) {
+        String sess = (sessionCode == null || sessionCode.isEmpty()) ? DEFAULT_SESSION : sessionCode;
+        return rfidEventRepository.findBySessionCodeOrSessionCodeIsNullOrderByTimestampDesc(sess);
     }
 
     @Transactional
     public RfidEvent logEvent(String tagId, String location, String message) {
-        RfidEvent event = new RfidEvent(tagId, LocalDateTime.now(), location, message);
+        return logEvent(tagId, location, message, DEFAULT_SESSION);
+    }
+
+    @Transactional
+    public RfidEvent logEvent(String tagId, String location, String message, String sessionCode) {
+        String sess = (sessionCode == null || sessionCode.isEmpty()) ? DEFAULT_SESSION : sessionCode;
+        RfidEvent event = new RfidEvent(tagId, LocalDateTime.now(), location, message, sess);
         return rfidEventRepository.save(event);
     }
 
     @Transactional
-    public synchronized CartItem addCartItemByTag(String sku) {
+    public synchronized CartItem addCartItemByTag(String sku, String sessionCode) {
+        String sess = (sessionCode == null || sessionCode.isEmpty()) ? DEFAULT_SESSION : sessionCode;
         String baseSku = sku;
         String size = "M";
         if (sku.contains("-") && (sku.endsWith("-S") || sku.endsWith("-M") || sku.endsWith("-L") || sku.endsWith("-XL"))) {
@@ -154,7 +169,7 @@ public class StoreService {
             String cartItemName = isFreesize ? product.getName() : (product.getName() + " (Size " + size + ")");
 
             // Fetch the quantity of this item already in the cart
-            List<CartItem> cartItems = cartItemRepository.findBySessionCode(DEFAULT_SESSION);
+            List<CartItem> cartItems = cartItemRepository.findBySessionCode(sess);
             Optional<CartItem> existingItemOpt = cartItems.stream()
                     .filter(item -> item.getProductId().equals(product.getId()) && item.getProductName().equals(cartItemName))
                     .findFirst();
@@ -167,7 +182,7 @@ public class StoreService {
                     cartItem = existingItemOpt.get();
                     cartItem.setQuantity(cartItem.getQuantity() + 1);
                 } else {
-                    cartItem = new CartItem(product.getId(), cartItemName, 1, product.getPrice(), DEFAULT_SESSION);
+                    cartItem = new CartItem(product.getId(), cartItemName, 1, product.getPrice(), sess);
                 }
                 cartItemRepository.save(cartItem);
 
@@ -184,7 +199,7 @@ public class StoreService {
                 }
 
                 // Log event without decrementing database stock yet
-                logEvent(baseSku, location, "Quét sản phẩm: " + cartItemName + " (Thêm vào giỏ hàng)");
+                logEvent(baseSku, location, "Quét sản phẩm: " + cartItemName + " (Thêm vào giỏ hàng)", sess);
                 return cartItem;
             } else {
                 String location = "Khu Vực Quét";
@@ -198,15 +213,16 @@ public class StoreService {
                     location = "Hành lang D (Phụ kiện)";
                 }
                 
-                logEvent(baseSku, location, "Quét thất bại: " + product.getName() + " (Size " + size + ") không đủ tồn kho");
+                logEvent(baseSku, location, "Quét thất bại: " + product.getName() + " (Size " + size + ") không đủ tồn kho", sess);
             }
         }
         return null;
     }
 
     @Transactional
-    public void checkout(String paymentMethod) {
-        List<CartItem> items = cartItemRepository.findBySessionCode(DEFAULT_SESSION);
+    public void checkout(String paymentMethod, String sessionCode) {
+        String sess = (sessionCode == null || sessionCode.isEmpty()) ? DEFAULT_SESSION : sessionCode;
+        List<CartItem> items = cartItemRepository.findBySessionCode(sess);
         if (!items.isEmpty()) {
             double total = items.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
             
@@ -237,10 +253,10 @@ public class StoreService {
             }
 
             // Log event
-            logEvent("CHECKOUT", "Quầy Thanh Toán", "Thanh toán hoàn tất (" + paymentMethod + ") - Đã nhận: " + String.format("%,.0f", total) + " đ");
+            logEvent("CHECKOUT", "Quầy Thanh Toán", "Thanh toán hoàn tất (" + paymentMethod + ") - Đã nhận: " + String.format("%,.0f", total) + " đ", sess);
             
             // Clear cart
-            cartItemRepository.deleteBySessionCode(DEFAULT_SESSION);
+            cartItemRepository.deleteBySessionCode(sess);
         }
     }
 

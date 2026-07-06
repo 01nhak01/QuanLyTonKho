@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface RfidEventRepository extends JpaRepository<RfidEvent, Long> {
     List<RfidEvent> findAllByOrderByTimestampDesc();
+    List<RfidEvent> findBySessionCodeOrSessionCodeIsNullOrderByTimestampDesc(String sessionCode);
 }
