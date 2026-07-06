@@ -1741,22 +1741,22 @@
                             <path id="backroom-door-path" d="M 742 62 L 758 62 M 750 55 L 758 62 L 750 69" stroke="#587eab" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         </g>
 
-                        <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - GÓC TRÁI TRÊN CÙNG) -->
+                        <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - XA CỬA HÀNG) -->
                         <g id="rfid-scanner-station" class="sim-component">
-                            <rect x="60" y="20" width="100" height="60" class="backroom-door" rx="5"/>
-                            <text x="110" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
+                            <rect x="280" y="20" width="110" height="60" class="backroom-door" rx="5"/>
+                            <text x="335" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
                             
                             <!-- Scanner Gun Silhouette Icon inside box -->
-                            <g transform="translate(-525, 0)">
+                            <g>
                                 <!-- Slanted head -->
-                                <path d="M 622 30 L 647 30 C 650 30, 652 31.5, 652 33 C 652 34.5, 650 36, 647 36 L 626 36 Z" fill="#587eab"/>
-                                <path d="M 618 30 L 621 30 L 623 35 L 620 35 Z" fill="#587eab"/>
+                                <path d="M 322 30 L 347 30 C 350 30, 352 31.5, 352 33 C 352 34.5, 350 36, 347 36 L 326 36 Z" fill="#587eab"/>
+                                <path d="M 318 30 L 321 30 L 323 35 L 320 35 Z" fill="#587eab"/>
                                 <!-- Handle -->
-                                <rect x="639" y="36" width="6" height="18" rx="0.5" fill="#587eab"/>
+                                <rect x="339" y="36" width="6" height="18" rx="0.5" fill="#587eab"/>
                                 <!-- Trigger guard -->
-                                <path d="M 639 39 L 634 39 L 634 47 L 639 47" stroke="#587eab" stroke-width="1.2" fill="none"/>
+                                <path d="M 339 39 L 334 39 L 334 47 L 339 47" stroke="#587eab" stroke-width="1.2" fill="none"/>
                                 <!-- Bottom connector -->
-                                <rect x="641" y="54" width="2" height="3" fill="#587eab"/>
+                                <rect x="341" y="54" width="2" height="3" fill="#587eab"/>
                             </g>
                         </g>
 
@@ -2263,9 +2263,9 @@
                 obstacles.push({ xMin: 720, xMax: 780, yMin: 20, yMax: 90 });
             }
             
-            // Cả hai bot đều coi trạm quét RFID là vật cản khi ở sơ đồ Kho sau (trước đây là 500-590, nay ở góc trái 60-160)
+            // Cả hai bot đều coi trạm quét RFID là vật cản khi ở sơ đồ Kho sau.
             if (currentMap === 'backroom') {
-                obstacles.push({ xMin: 60, xMax: 160, yMin: 20, yMax: 80 });
+                obstacles.push({ xMin: 280, xMax: 390, yMin: 20, yMax: 80 });
             }
             
             for (const obs of obstacles) {
@@ -2485,20 +2485,27 @@
                     currentMap = 'backroom';
                     if (svg) svg.classList.add('view-backroom');
                     
-                    // Keep door at top-right (x = 720) and update label to CỬA HÀNG and arrow pointing left
-                    if (doorRect) doorRect.setAttribute('x', '720');
+                    // Move the return door to the top-left in the backroom map.
+                    if (doorRect) {
+                        doorRect.setAttribute('x', '60');
+                        doorRect.setAttribute('y', '20');
+                        doorRect.setAttribute('width', '60');
+                        doorRect.setAttribute('height', '70');
+                    }
                     if (doorText) {
-                        doorText.setAttribute('x', '750');
+                        doorText.setAttribute('x', '90');
+                        doorText.setAttribute('y', '47');
+                        doorText.setAttribute('font-size', '6.5px');
                         doorText.textContent = 'CỬA HÀNG';
                     }
-                    if (doorPath) doorPath.setAttribute('d', 'M 758 62 L 742 62 M 750 55 L 742 62 L 750 69');
+                    if (doorPath) doorPath.setAttribute('d', 'M 98 62 L 82 62 M 90 55 L 82 62 L 90 69');
                     
                     if (headerText) {
                         headerText.innerHTML = '<i class="fa-solid fa-warehouse text-warning"></i> SƠ ĐỒ KHO SAU · ĐIỀU KHIỂN THỦ CÔNG';
                     }
                     
-                    // Teleport to just outside the door in backroom map (top-right, x=680)
-                    staffX = 680;
+                    // Teleport to just outside the door in backroom map (top-left).
+                    staffX = 150;
                     staffY = 80;
                     updateStaffPositionVisual(staffX, staffY);
                     
@@ -2506,8 +2513,8 @@
                     renderSvgProducts(); // Re-render product dots for the Backroom map
                 }
             } else if (currentMap === 'backroom') {
-                // Door zone in backroom is also top-right: x >= 710, y <= 90
-                const inDoorZone = (staffX >= 710 && staffY <= 90);
+                // Door zone in backroom is top-left.
+                const inDoorZone = (staffX <= 130 && staffY <= 100);
                 if (inDoorZone) {
                     const svg = document.querySelector('.store-svg');
                     const doorRect = document.getElementById('backroom-door-rect');
@@ -2518,10 +2525,17 @@
                     currentMap = 'store';
                     if (svg) svg.classList.remove('view-backroom');
                     
-                    // Keep door at top-right (x = 720) and update label back to KHO SAU and arrow pointing right
-                    if (doorRect) doorRect.setAttribute('x', '720');
+                    // Restore the store-map door at top-right.
+                    if (doorRect) {
+                        doorRect.setAttribute('x', '720');
+                        doorRect.setAttribute('y', '20');
+                        doorRect.setAttribute('width', '60');
+                        doorRect.setAttribute('height', '70');
+                    }
                     if (doorText) {
                         doorText.setAttribute('x', '750');
+                        doorText.setAttribute('y', '47');
+                        doorText.removeAttribute('font-size');
                         doorText.textContent = 'KHO SAU';
                     }
                     if (doorPath) doorPath.setAttribute('d', 'M 742 62 L 758 62 M 750 55 L 758 62 L 750 69');
@@ -2718,6 +2732,9 @@
             const formattedTime = formatTimestamp(prodTime);
             document.getElementById('rfid-det-time').innerText = formattedTime || 'Chưa cập nhật';
             
+            document.querySelectorAll('.scanned-highlight').forEach(dot => dot.classList.remove('scanned-highlight'));
+            activeFoundSku = null;
+            
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.add('visible');
@@ -2738,6 +2755,7 @@
             // Remove scanned highlights now that user has viewed details
             const dots = document.querySelectorAll('.scanned-highlight');
             dots.forEach(dot => dot.classList.remove('scanned-highlight'));
+            activeFoundSku = null;
         }
 
         function setStaffMode(mode) {
@@ -2801,8 +2819,8 @@
         // Check if Bot is close to checkout (to pay) or individual product dots (to show info)
         function checkProximityTriggers() {
             if (currentMap === 'backroom' && selectedBot === 'staff') {
-                // 1. Proximity to RFID Scanner Station (top-left, centered at x=110, y=50)
-                const distStation = Math.sqrt((staffX - 110) ** 2 + (staffY - 50) ** 2);
+                // 1. Proximity to RFID Scanner Station (4 grid cells from the store door, centered at x=335, y=50)
+                const distStation = Math.sqrt((staffX - 335) ** 2 + (staffY - 50) ** 2);
                 if (distStation < 55) {
                     if (!hasOpenedScannerThisProximity) {
                         hasOpenedScannerThisProximity = true;
@@ -3589,8 +3607,9 @@
                 if (prod.stockQuantity <= 0) {
                     circleLeft.classList.add('picked');
                 }
-                if (activeFoundSku === prod.sku) {
-                    circleLeft.classList.add('scanned-highlight');
+                if (currentMap === 'backroom' && scanningActive && targetSearchSku === prod.sku) {
+                    const distLeft = Math.sqrt((staffX - cxLeft) ** 2 + (staffY - cy) ** 2);
+                    if (distLeft <= 100) circleLeft.classList.add('scanned-highlight');
                 }
                 group.appendChild(circleLeft);
                 
@@ -3604,8 +3623,9 @@
                 if (prod.stockQuantity <= 0) {
                     circleRight.classList.add('picked');
                 }
-                if (activeFoundSku === prod.sku) {
-                    circleRight.classList.add('scanned-highlight');
+                if (currentMap === 'backroom' && scanningActive && targetSearchSku === prod.sku) {
+                    const distRight = Math.sqrt((staffX - cxRight) ** 2 + (staffY - cy) ** 2);
+                    if (distRight <= 100) circleRight.classList.add('scanned-highlight');
                 }
                 group.appendChild(circleRight);
             });
@@ -3722,10 +3742,17 @@
             const svg = document.querySelector('.store-svg');
             if (svg) svg.classList.remove('view-backroom');
             const doorRect = document.getElementById('backroom-door-rect');
-            if (doorRect) doorRect.setAttribute('x', '720');
+            if (doorRect) {
+                doorRect.setAttribute('x', '720');
+                doorRect.setAttribute('y', '20');
+                doorRect.setAttribute('width', '60');
+                doorRect.setAttribute('height', '70');
+            }
             const doorText = document.getElementById('backroom-door-text');
             if (doorText) {
                 doorText.setAttribute('x', '750');
+                doorText.setAttribute('y', '47');
+                        doorText.removeAttribute('font-size');
                 doorText.textContent = 'KHO SAU';
             }
             const doorPath = document.getElementById('backroom-door-path');
