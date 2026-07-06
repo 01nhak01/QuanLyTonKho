@@ -1946,8 +1946,10 @@
                 obstacles.push({ xMin: 720, xMax: 780, yMin: 20, yMax: 90 });
             }
             
-            // Cả hai bot đều coi trạm quét RFID là vật cản
-            obstacles.push({ xMin: 500, xMax: 590, yMin: 20, yMax: 80 });
+            // Cả hai bot đều coi trạm quét RFID là vật cản khi ở sơ đồ Kho sau
+            if (currentMap === 'backroom') {
+                obstacles.push({ xMin: 500, xMax: 590, yMin: 20, yMax: 80 });
+            }
             
             for (const obs of obstacles) {
                 const closestX = Math.max(obs.xMin, Math.min(x, obs.xMax));
