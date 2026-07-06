@@ -1271,6 +1271,78 @@
             from { filter: drop-shadow(0 0 4px var(--color-amber)); fill: var(--color-amber); }
             to { filter: drop-shadow(0 0 14px #ffffff); fill: #ffffff; }
         }
+
+        /* Responsive design for mobile landscape (small screens with height <= 500px in landscape) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .left-panel {
+                width: 32%;
+                min-width: 260px;
+                max-width: 320px;
+            }
+            .dashboard-header {
+                padding: 8px 12px;
+            }
+            .dashboard-header h1 {
+                font-size: 0.85rem;
+            }
+            .status-badge {
+                font-size: 0.6rem;
+            }
+            .stats-bar {
+                display: flex;
+            }
+            .stat-box {
+                padding: 6px 10px;
+            }
+            .stat-label {
+                font-size: 0.55rem;
+                margin-bottom: 2px;
+            }
+            .stat-value {
+                font-size: 0.95rem;
+            }
+            .tabs-nav button {
+                padding: 8px 6px;
+                font-size: 10px !important;
+            }
+            .sim-header {
+                padding: 8px 12px;
+            }
+            .sim-header h2 {
+                font-size: 0.8rem;
+            }
+            .legend-item {
+                font-size: 0.55rem;
+                gap: 4px;
+            }
+            .sim-canvas-container {
+                padding: 8px;
+            }
+            .svg-wrapper {
+                max-height: 85vh;
+            }
+            .control-pad {
+                bottom: 10px;
+                right: 10px;
+                transform: scale(0.8);
+                transform-origin: bottom right;
+            }
+            /* Make popover text slightly smaller to fit */
+            .product-popover {
+                width: 180px;
+                padding: 10px;
+            }
+            .popover-title {
+                font-size: 11px;
+            }
+            .popover-price {
+                font-size: 11px;
+            }
+            .size-btn {
+                padding: 4px 6px;
+                font-size: 9px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1786,11 +1858,11 @@
 
                     <!-- Control Pad D-Pad (Thủ công) -->
                     <div class="control-pad">
-                        <button class="ctrl-btn ctrl-up" onclick="moveManual('UP')"><i class="fa-solid fa-chevron-up"></i></button>
+                        <button class="ctrl-btn ctrl-up" onmousedown="startMoveLoop('UP')" onmouseup="stopMoveLoop()" onmouseleave="stopMoveLoop()" ontouchstart="startMoveLoop('UP', event)" ontouchend="stopMoveLoop()"><i class="fa-solid fa-chevron-up"></i></button>
                         <div class="ctrl-row">
-                            <button class="ctrl-btn ctrl-left" onclick="moveManual('LEFT')"><i class="fa-solid fa-chevron-left"></i></button>
-                            <button class="ctrl-btn ctrl-down" onclick="moveManual('DOWN')"><i class="fa-solid fa-chevron-down"></i></button>
-                            <button class="ctrl-btn ctrl-right" onclick="moveManual('RIGHT')"><i class="fa-solid fa-chevron-right"></i></button>
+                            <button class="ctrl-btn ctrl-left" onmousedown="startMoveLoop('LEFT')" onmouseup="stopMoveLoop()" onmouseleave="stopMoveLoop()" ontouchstart="startMoveLoop('LEFT', event)" ontouchend="stopMoveLoop()"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="ctrl-btn ctrl-down" onmousedown="startMoveLoop('DOWN')" onmouseup="stopMoveLoop()" onmouseleave="stopMoveLoop()" ontouchstart="startMoveLoop('DOWN', event)" ontouchend="stopMoveLoop()"><i class="fa-solid fa-chevron-down"></i></button>
+                            <button class="ctrl-btn ctrl-right" onmousedown="startMoveLoop('RIGHT')" onmouseup="stopMoveLoop()" onmouseleave="stopMoveLoop()" ontouchstart="startMoveLoop('RIGHT', event)" ontouchend="stopMoveLoop()"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>
@@ -2038,6 +2110,30 @@
                 }
             }
         });
+
+        // Continuous movement loop for holding down D-Pad buttons
+        let moveLoopInterval = null;
+        
+        function startMoveLoop(direction, event) {
+            if (event && event.cancelable) {
+                event.preventDefault();
+            }
+            stopMoveLoop();
+            moveManual(direction);
+            moveLoopInterval = setInterval(() => {
+                moveManual(direction);
+            }, 80); // matches MOVE_COOLDOWN_MS
+        }
+        
+        function stopMoveLoop() {
+            if (moveLoopInterval) {
+                clearInterval(moveLoopInterval);
+                moveLoopInterval = null;
+            }
+        }
+        
+        window.addEventListener('mouseup', stopMoveLoop);
+        window.addEventListener('touchend', stopMoveLoop);
 
         // On-screen D-Pad click handlers
         function moveManual(direction) {
