@@ -12,24 +12,25 @@
     <style>
         /* CSS Design System - Swiss/Tech stance với nền màu Navy đậm */
         :root {
-            --bg-dark: #050b14;
-            --bg-panel: #081220;
-            --bg-card: #0d1e33;
-            --border-color: #13263f;
-            --border-hover: #1e3a5f;
+            --bg-dark: #EFE9D8;
+            --bg-panel: #FDFBF2;
+            --bg-card: #FDFBF2;
+            --bg-sub-box: #F7F1DF;
+            --border-color: #DED4B7;
+            --border-hover: #C9BC96;
             
-            --text-primary: #e2efff;
-            --text-secondary: #6782a5;
-            --text-dim: #445973;
+            --text-primary: #2A2418;
+            --text-secondary: #8A7F63;
+            --text-dim: #B0A585;
 
             /* Màu sắc nổi bật (Accents) */
-            --color-cyan: #00c8ff;
-            --color-green: #39ff14;
-            --color-amber: #ffaa00;
-            --color-purple: #b026ff;
+            --color-cyan: #2E4A6E;
+            --color-green: #4F6A3C;
+            --color-amber: #8C6A2E;
+            --color-purple: #6D2E2E;
             
-            --shadow-glow: 0 0 12px rgba(0, 200, 255, 0.25);
-            --shadow-green-glow: 0 0 12px rgba(57, 255, 20, 0.3);
+            --shadow-glow: 0 4px 12px rgba(42, 36, 24, 0.08);
+            --shadow-green-glow: 0 4px 12px rgba(79, 106, 60, 0.08);
             
             --font-sans: 'Inter', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
@@ -90,25 +91,47 @@
             padding: 20px 24px;
             border-bottom: 1px solid var(--border-color);
         }
+        .sim-header {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sim-header h2 {
+            font-size: 1.02rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0;
+        }
+        .sim-header h2 i {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--bg-sub-box);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 16px;
+            color: var(--color-cyan);
+        }
         .header-main {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .dashboard-header h1 {
-            font-family: var(--font-mono);
-            font-size: 1.05rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
         .status-badge {
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            color: var(--color-green);
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            color: #4F6A3C;
+            background-color: #E1E9D2;
+            padding: 4px 10px;
+            border-radius: 12px;
             letter-spacing: 1px;
             display: flex;
             align-items: center;
@@ -118,11 +141,9 @@
         .pulse-dot {
             width: 6px;
             height: 6px;
-            background-color: var(--color-green);
+            background-color: #4F6A3C;
             border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 8px var(--color-green);
-            animation: blink-pulse 2s infinite;
         }
         .header-sub {
             font-family: var(--font-mono);
@@ -136,14 +157,15 @@
         .stats-bar {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 16px 24px;
             border-bottom: 1px solid var(--border-color);
         }
         .stat-box {
-            padding: 16px 20px;
-            border-right: 1px solid var(--border-color);
-        }
-        .stat-box:last-child {
-            border-right: none;
+            background-color: var(--bg-sub-box);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
         }
         .stat-label {
             font-size: 0.65rem;
@@ -159,24 +181,23 @@
             font-family: var(--font-mono);
             font-size: 1.2rem;
             font-weight: 700;
-            color: var(--color-cyan);
+            color: var(--text-primary);
         }
         .count-value {
             color: var(--text-secondary);
         }
         .count-value.active {
             color: var(--color-cyan);
-            text-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
         }
         .session-value {
-            color: var(--color-purple);
+            color: var(--text-secondary);
         }
 
         /* Điều hướng Tabs điều khiển */
         .tabs-nav {
             display: flex;
             border-bottom: 1px solid var(--border-color);
-            background-color: rgba(5, 11, 20, 0.2);
+            background-color: var(--bg-panel);
         }
         .tab-btn {
             flex: 1;
@@ -194,19 +215,19 @@
         }
         .tab-btn:hover {
             color: var(--text-primary);
-            background-color: rgba(255, 255, 255, 0.01);
+            background-color: rgba(42, 36, 24, 0.02);
         }
         .tab-btn.active {
-            color: var(--color-cyan);
-            border-bottom-color: var(--color-cyan);
-            background-color: rgba(0, 200, 255, 0.02);
+            color: var(--text-primary);
+            border-bottom-color: var(--text-primary);
+            background-color: rgba(42, 36, 24, 0.04);
         }
 
         /* Khung hiển thị nội dung các Tab */
         .tab-viewport {
             flex: 1;
             overflow-y: auto;
-            background-color: rgba(5, 11, 20, 0.25);
+            background-color: var(--bg-panel);
         }
         .tab-content {
             display: none;
@@ -224,9 +245,9 @@
             gap: 12px;
         }
         .event-card {
-            background-color: var(--bg-card);
+            background-color: var(--bg-sub-box);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 12px;
             padding: 12px 16px;
             display: flex;
             flex-direction: column;
@@ -382,11 +403,23 @@
 
         /* Footer bên trái */
         .dashboard-footer {
-            padding: 16px 20px;
-            border-top: 1px solid var(--border-color);
+            padding: 16px 24px;
+            background-color: var(--bg-panel);
+            border-top: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .footer-control-bar {
+            width: 100%;
+            background-color: var(--bg-sub-box);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
         .bot-status {
             display: flex;
@@ -396,25 +429,29 @@
             color: var(--text-primary);
         }
         .bot-badge {
-            font-family: var(--font-mono);
+            font-family: var(--font-sans);
             font-size: 0.72rem;
             font-weight: 700;
-            background-color: rgba(0, 200, 255, 0.1);
-            color: var(--color-cyan);
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(0, 200, 255, 0.2);
+            background-color: #EFE0BB;
+            color: #2A2418;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         #bot-status-text {
             color: var(--text-secondary);
+            font-weight: 500;
         }
         .btn-reset {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 6px 12px;
+            background-color: #2A2418;
+            border: none;
+            color: #EFE9D8;
+            padding: 8px 16px;
             font-size: 0.78rem;
-            border-radius: 4px;
+            border-radius: 20px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.2s ease;
@@ -509,9 +546,9 @@
             width: 100%;
             max-width: 860px;
             aspect-ratio: 4/3;
-            background-color: #03080f;
+            background-color: var(--bg-panel);
             border-radius: 8px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 32px rgba(42, 36, 24, 0.08);
             position: relative;
             border: 1px solid var(--border-color);
         }
@@ -582,13 +619,13 @@
         }
 
         /* Màu sắc hiển thị tương ứng trạng thái của Bot */
-        .bot-body-idle { fill: #071220; stroke: var(--text-secondary); stroke-width: 2; }
+        .bot-body-idle { fill: var(--bg-sub-box); stroke: var(--text-secondary); stroke-width: 2; }
         .bot-glow-idle { fill: none; }
 
-        .bot-body-moving { fill: #002d3a; stroke: var(--color-cyan); stroke-width: 2.5; }
+        .bot-body-moving { fill: var(--bg-sub-box); stroke: var(--color-cyan); stroke-width: 2.5; }
         .bot-glow-moving { fill: var(--color-cyan); fill-opacity: 0.15; }
 
-        .bot-body-checkout { fill: #0e3d06; stroke: var(--color-green); stroke-width: 2.5; }
+        .bot-body-checkout { fill: var(--bg-sub-box); stroke: var(--color-green); stroke-width: 2.5; }
         .bot-glow-checkout { fill: var(--color-green); fill-opacity: 0.15; }
 
         /* Staff Bot (Nhân viên) */
@@ -618,12 +655,12 @@
             flex-direction: column;
             align-items: center;
             gap: 6px;
-            background: rgba(8, 18, 32, 0.7);
+            background: rgba(253, 251, 242, 0.85);
             backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
             padding: 12px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(42, 36, 24, 0.1);
             z-index: 10;
         }
         .ctrl-row {
@@ -844,7 +881,7 @@
         .popover-cart-btn {
             width: 100%;
             background: var(--color-green);
-            color: #050b14;
+            color: #EFE9D8;
             border: none;
             padding: 8px 12px;
             font-family: var(--font-sans);
@@ -857,7 +894,6 @@
             justify-content: center;
             gap: 6px;
             transition: all 0.2s ease;
-            box-shadow: var(--shadow-green-glow);
         }
         .popover-cart-btn:hover {
             transform: translateY(-1px);
@@ -872,7 +908,6 @@
             background-color: var(--bg-panel);
             border-top: 1px solid var(--border-color);
             padding: 16px 24px;
-            font-family: var(--font-mono);
             font-size: 0.65rem;
             color: var(--text-secondary);
             display: flex;
@@ -974,8 +1009,8 @@
         }
         .size-btn {
             flex: 1;
-            background: #0d1e36;
-            border: 1px solid #204575;
+            background: var(--bg-sub-box);
+            border: 1px solid var(--border-color);
             color: var(--text-primary);
             padding: 5px 3px;
             border-radius: 4px;
@@ -986,20 +1021,19 @@
             text-align: center;
         }
         .size-btn:hover {
-            border-color: var(--color-cyan);
-            background: #132a4a;
+            border-color: var(--border-hover);
+            background: rgba(42, 36, 24, 0.05);
         }
         .size-btn.active {
-            background: var(--color-cyan);
-            border-color: var(--color-cyan);
-            color: #03080f;
-            box-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+            background: #2A2418;
+            border-color: #2A2418;
+            color: #EFE9D8;
         }
         .size-btn:disabled {
             opacity: 0.35;
             cursor: not-allowed;
-            border-color: #162a45;
-            background: #071220;
+            border-color: var(--border-color);
+            background: var(--bg-panel);
             color: var(--text-dim);
         }
 
@@ -1010,7 +1044,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(7, 18, 32, 0.85);
+            background: rgba(42, 36, 24, 0.4);
             backdrop-filter: blur(8px);
             z-index: 200;
             display: flex;
@@ -1027,10 +1061,10 @@
         .checkout-modal-card, .qr-scan-card {
             width: 90%;
             max-width: 380px;
-            background: rgba(12, 27, 48, 0.95);
+            background: #FDFBF2;
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(0, 200, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(42, 36, 24, 0.15);
             padding: 16px;
             display: flex;
             flex-direction: column;
@@ -1079,7 +1113,7 @@
         .checkout-table th, .checkout-table td {
             text-align: left;
             padding: 6px 4px;
-            border-bottom: 1px solid rgba(30, 61, 100, 0.4);
+            border-bottom: 1px solid var(--border-color);
         }
         .checkout-table th {
             color: var(--text-secondary);
@@ -1089,10 +1123,10 @@
             color: var(--text-primary);
         }
         .checkout-summary {
-            background: rgba(7, 18, 32, 0.5);
+            background: var(--bg-sub-box);
             padding: 8px 12px;
             border-radius: 6px;
-            border: 1px solid rgba(30, 61, 100, 0.3);
+            border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             gap: 4px;
@@ -1104,7 +1138,7 @@
             color: var(--text-secondary);
         }
         .summary-row.total {
-            border-top: 1px dashed rgba(30, 61, 100, 0.5);
+            border-top: 1px dashed var(--border-color);
             padding-top: 6px;
             margin-top: 4px;
             font-weight: 700;
@@ -1114,8 +1148,8 @@
         .btn-pay-method {
             width: 100%;
             padding: 10px;
-            background: var(--color-cyan);
-            color: #071220;
+            background: #2A2418;
+            color: #EFE9D8;
             font-weight: 700;
             border: none;
             border-radius: 6px;
@@ -1125,12 +1159,11 @@
             justify-content: center;
             gap: 8px;
             font-size: 12px;
-            box-shadow: 0 0 10px rgba(0, 200, 255, 0.3);
             transition: all 0.2s;
         }
         .btn-pay-method:hover {
+            opacity: 0.9;
             transform: translateY(-1px);
-            box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
         }
         .payment-methods-choices {
             display: flex;
@@ -1141,7 +1174,7 @@
             flex: 1;
             padding: 10px;
             border: 1px solid var(--border-color);
-            background: rgba(7, 18, 32, 0.6);
+            background: var(--bg-sub-box);
             color: var(--text-primary);
             font-weight: 600;
             border-radius: 8px;
@@ -1159,14 +1192,12 @@
         .btn-payment-option.transfer:hover {
             border-color: var(--color-cyan);
             color: var(--color-cyan);
-            background: rgba(0, 200, 255, 0.05);
-            box-shadow: 0 0 8px rgba(0, 200, 255, 0.2);
+            background: rgba(46, 74, 110, 0.08);
         }
         .btn-payment-option.cash:hover {
             border-color: var(--color-green);
             color: var(--color-green);
-            background: rgba(57, 255, 20, 0.05);
-            box-shadow: 0 0 8px rgba(57, 255, 20, 0.2);
+            background: rgba(79, 106, 60, 0.08);
         }
         .qr-scan-body {
             display: flex;
@@ -1221,12 +1252,12 @@
 
         /* Cửa Kho Sau & Sơ đồ Kho Sau */
         .backroom-door {
-            fill: #0c1b30;
-            stroke: #1f416c;
+            fill: var(--bg-panel);
+            stroke: var(--border-color);
             stroke-width: 1.5;
         }
         .backroom-door-label {
-            fill: #587eab;
+            fill: var(--text-primary);
             font-family: var(--font-mono);
             font-size: 8px;
             font-weight: 700;
@@ -1242,6 +1273,13 @@
         
         .view-backroom .aisle-label {
             display: none !important;
+        }
+        
+        .backroom-only-icons {
+            display: none !important;
+        }
+        .view-backroom .backroom-only-icons {
+            display: block !important;
         }
 
         /* RFID Scanner Station in Backroom */
@@ -1278,7 +1316,7 @@
 
         /* Responsive design for mobile (Stack panels vertically and allow scrolling to keep aspect ratios) */
         @media (max-width: 900px) or (max-height: 550px) {
-            body {
+            html, body {
                 height: auto !important;
                 overflow: auto !important;
             }
@@ -1308,7 +1346,7 @@
                 height: auto !important;
             }
             .svg-wrapper {
-                max-width: 100% !important;
+                max-width: 600px !important;
                 max-height: none !important;
                 width: 100% !important;
                 aspect-ratio: 4/3 !important;
@@ -1335,13 +1373,20 @@
     <div class="app-container">
         <!-- LEFT PANEL: Bảng điều khiển quản lý -->
         <div class="left-panel">
-            <header class="dashboard-header">
-                <div class="header-main">
-                    <h1><i class="fa-solid fa-cart-flatbed cyan-text animate-pulse"></i> HỆ THỐNG QUẢN LÝ CỬA HÀNG</h1>
-                    <span class="status-badge"><span class="pulse-dot"></span> TRỰC TUYẾN</span>
-                </div>
-                <div class="header-sub">
-                    FreshMart #042 · v2.4.1 · 192.168.1.101
+            <header class="dashboard-header" style="border-bottom: 1px solid var(--border-color); padding: 20px 24px;">
+                <div class="header-main" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:40px; height:40px; background:var(--bg-sub-box); border:1px solid var(--border-color); border-radius:10px; display:flex; align-items:center; justify-content:center; padding:5px;">
+                            <img src="https://download.logo.wine/logo/Zara_(retailer)/Zara_(retailer)-Logo.wine.png" style="width:100%; height:100%; object-fit:contain;" />
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span style="font-size:1.15rem; font-weight:800; color:var(--text-primary); letter-spacing:1px; line-height:1.2; font-family:var(--font-sans);">ZARA</span>
+                            <span style="font-size:0.7rem; color:var(--text-secondary); font-weight:500;">Hệ thống quản lý cửa hàng</span>
+                        </div>
+                    </div>
+                    <span class="status-badge">
+                        <span class="pulse-dot"></span> ĐANG MỞ CỬA
+                    </span>
                 </div>
             </header>
 
@@ -1436,23 +1481,25 @@
 
             <!-- Left Panel Footer -->
             <footer class="dashboard-footer">
-                <div class="bot-status">
-                    <span class="bot-badge"><i class="fa-solid fa-robot"></i> BOT-01</span>
-                    <span id="bot-status-text">Đang chờ tại cổng vào</span>
+                <div class="footer-control-bar">
+                    <div class="bot-status">
+                        <span class="bot-badge" style="display:inline-flex; align-items:center;"><img src="/images/customer_avatar.png" style="width: 14px; height: 14px; border-radius: 50%; margin-right: 5px; vertical-align: middle;" /> KHÁCH HÀNG</span>
+                        <span id="bot-status-text">Đang chờ tại cổng vào</span>
+                    </div>
+                    <button class="btn-reset" onclick="resetSystem()">
+                        <i class="fa-solid fa-rotate-right"></i> Đặt lại
+                    </button>
                 </div>
-                <button class="btn-reset" onclick="resetSystem()">
-                    <i class="fa-solid fa-rotate-right"></i> Đặt lại
-                </button>
             </footer>
         </div>
 
         <!-- RIGHT PANEL: Sơ đồ cửa hàng trực quan -->
         <div class="right-panel">
             <header class="sim-header">
-                <h2><i class="fa-solid fa-location-crosshairs text-primary"></i> SƠ ĐỒ CỬA HÀNG · ĐIỀU KHIỂN THỦ CÔNG</h2>
+                <h2><i class="fa-solid fa-location-crosshairs"></i> SƠ ĐỒ CỬA HÀNG · ĐIỀU KHIỂN THỦ CÔNG</h2>
                 <div class="sim-legend">
-                    <span class="legend-item" id="leg-moving"><span class="legend-dot status-moving"></span> DI CHUYỂN</span>
-                    <span class="legend-item" id="leg-checkout"><span class="legend-dot status-checkout"></span> THANH TOÁN</span>
+                    <span class="legend-item" id="leg-moving"><span class="legend-dot status-moving"></span> Di chuyển</span>
+                    <span class="legend-item" id="leg-checkout"><span class="legend-dot status-checkout"></span> Thanh toán</span>
                 </div>
             </header>
 
@@ -1463,98 +1510,103 @@
                         <!-- Grid Background -->
                         <defs>
                             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0e1f35" stroke-width="1"/>
+                                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--border-color)" stroke-width="1"/>
                             </pattern>
                         </defs>
+                        <rect width="100%" height="100%" fill="var(--bg-panel)" />
                         <rect width="100%" height="100%" fill="url(#grid)" />
                         
                         <!-- Floor Outer Border -->
-                        <rect x="20" y="20" width="760" height="560" fill="none" stroke="#1c375b" stroke-width="2" rx="10"/>
+                        <rect x="20" y="20" width="760" height="560" fill="none" stroke="var(--border-hover)" stroke-width="2" rx="10"/>
 
                         <!-- QUẦY THANH TOÁN #1 -->
                         <g id="checkout-counter" class="sim-component">
-                            <rect x="250" y="50" width="300" height="60" fill="#0c1b30" stroke="#254d7e" stroke-width="1.5" rx="5"/>
-                            <rect x="250" y="50" width="300" height="15" fill="#0d2547" opacity="0.8"/>
-                            <text x="400" y="90" class="svg-label font-mono green-text" text-anchor="middle" letter-spacing="4">QUẦY THANH TOÁN #1</text>
-                            
-                            <!-- Register Lines (Dots) -->
-                            <circle cx="280" cy="58" r="4" class="checkout-reg-dot" />
-                            <circle cx="360" cy="58" r="4" class="checkout-reg-dot" />
-                            <circle cx="440" cy="58" r="4" class="checkout-reg-dot" />
-                            <circle cx="520" cy="58" r="4" class="checkout-reg-dot" />
+                            <rect x="250" y="50" width="300" height="60" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="5"/>
+                            <rect x="250" y="50" width="300" height="15" fill="var(--bg-sub-box)" opacity="0.8"/>
+                            <text x="400" y="90" class="svg-label font-mono" fill="var(--text-primary)" text-anchor="middle" letter-spacing="4">QUẦY THANH TOÁN #1</text>
                         </g>
-
-                        <!-- SHELF AISLES -->
+                        
                         <!-- AISLE A: DAIRY -->
                         <g id="aisle-dairy" class="sim-component">
-                            <rect x="60" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
-                            <line x1="120" y1="160" x2="120" y2="400" stroke="#122742" stroke-dasharray="4 4" stroke-width="1"/>
+                            <rect x="60" y="160" width="120" height="240" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="8"/>
+                            <rect x="60" y="160" width="120" height="15" fill="#55613C" rx="8" />
+                            <rect x="60" y="167" width="120" height="8" fill="#55613C" />
+                            
+                            <line x1="120" y1="160" x2="120" y2="400" stroke="var(--border-color)" stroke-dasharray="4 4" stroke-width="1"/>
                             <!-- Shelves -->
-                            <line x1="65" y1="220" x2="175" y2="220" stroke="#19375e" stroke-width="1.5"/>
-                            <line x1="65" y1="280" x2="175" y2="280" stroke="#19375e" stroke-width="1.5"/>
-                            <line x1="65" y1="340" x2="175" y2="340" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="65" y1="220" x2="175" y2="220" stroke="var(--border-color)" stroke-width="1.5"/>
+                            <line x1="65" y1="280" x2="175" y2="280" stroke="var(--border-color)" stroke-width="1.5"/>
+                            <line x1="65" y1="340" x2="175" y2="340" stroke="var(--border-color)" stroke-width="1.5"/>
                             <text x="120" y="420" class="svg-label bold aisle-label" text-anchor="middle">HÀNH LANG A</text>
                             <text x="120" y="435" class="svg-label-sub aisle-label" text-anchor="middle">ÁO</text>
                         </g>
  
                         <!-- AISLE B: BEVERAGES -->
                         <g id="aisle-beverages" class="sim-component">
-                            <rect x="240" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
-                            <line x1="300" y1="160" x2="300" y2="400" stroke="#122742" stroke-dasharray="4 4" stroke-width="1"/>
+                            <rect x="240" y="160" width="120" height="240" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="8"/>
+                            <rect x="240" y="160" width="120" height="15" fill="#2E4A6E" rx="8" />
+                            <rect x="240" y="167" width="120" height="8" fill="#2E4A6E" />
+                            
+                            <line x1="300" y1="160" x2="300" y2="400" stroke="var(--border-color)" stroke-dasharray="4 4" stroke-width="1"/>
                             <!-- Shelves -->
-                            <line x1="245" y1="220" x2="355" y2="220" stroke="#19375e" stroke-width="1.5"/>
-                            <line x1="245" y1="280" x2="355" y2="280" stroke="#19375e" stroke-width="1.5"/>
-                            <line x1="245" y1="340" x2="355" y2="340" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="245" y1="220" x2="355" y2="220" stroke="var(--border-color)" stroke-width="1.5"/>
+                            <line x1="245" y1="280" x2="355" y2="280" stroke="var(--border-color)" stroke-width="1.5"/>
+                            <line x1="245" y1="340" x2="355" y2="340" stroke="var(--border-color)" stroke-width="1.5"/>
                             <text x="300" y="420" class="svg-label bold aisle-label" text-anchor="middle">HÀNH LANG B</text>
                             <text x="300" y="435" class="svg-label-sub aisle-label" text-anchor="middle">QUẦN</text>
                         </g>
  
                         <!-- AISLE C: SNACKS -->
                         <g id="aisle-snacks" class="sim-component">
-                            <rect x="420" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
-                            <line x1="480" y1="160" x2="480" y2="400" stroke="#122742" stroke-dasharray="4 4" stroke-width="1"/>
+                            <rect x="420" y="160" width="120" height="240" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="8"/>
+                            <rect x="420" y="160" width="120" height="15" fill="#6D2E2E" rx="8" />
+                            <rect x="420" y="167" width="120" height="8" fill="#6D2E2E" />
+                            
+                            <line x1="480" y1="160" x2="480" y2="400" stroke="var(--border-color)" stroke-dasharray="4 4" stroke-width="1"/>
                             <!-- Shelves -->
-                            <line x1="425" y1="220" x2="535" y2="220" stroke="#19375e" stroke-width="1.5"/>
-                            <line x1="425" y1="280" x2="535" y2="280" stroke="#19375e" stroke-width="1.5"/>
-                            <line x1="425" y1="340" x2="535" y2="340" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="425" y1="220" x2="535" y2="220" stroke="var(--border-color)" stroke-width="1.5"/>
+                            <line x1="425" y1="280" x2="535" y2="280" stroke="var(--border-color)" stroke-width="1.5"/>
+                            <line x1="425" y1="340" x2="535" y2="340" stroke="var(--border-color)" stroke-width="1.5"/>
                             <text x="480" y="420" class="svg-label bold aisle-label" text-anchor="middle">HÀNH LANG C</text>
                             <text x="480" y="435" class="svg-label-sub aisle-label" text-anchor="middle">ÁO KHOÁC</text>
                         </g>
  
                         <!-- AISLE D: PANTRY -->
                         <g id="aisle-pantry" class="sim-component">
-                            <rect x="600" y="160" width="120" height="240" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="8"/>
-                            <line x1="660" y1="160" x2="660" y2="400" stroke="#122742" stroke-dasharray="4 4" stroke-width="1"/>
+                            <rect x="600" y="160" width="120" height="240" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="8"/>
+                            <rect x="600" y="160" width="120" height="15" fill="#8C6A2E" rx="8" />
+                            <rect x="600" y="167" width="120" height="8" fill="#8C6A2E" />
+                            
+                            <line x1="660" y1="160" x2="660" y2="400" stroke="var(--border-color)" stroke-dasharray="4 4" stroke-width="1"/>
                             <!-- Shelves -->
-                            <line x1="605" y1="220" x2="715" y2="220" stroke="#19375e" stroke-width="1.5"/>
-                            <line x1="605" y1="280" x2="715" y2="280" stroke="#19375e" stroke-width="1.5"/>
-                            <line x1="605" y1="340" x2="715" y2="340" stroke="#19375e" stroke-width="1.5"/>
+                            <line x1="605" y1="220" x2="715" y2="220" stroke="var(--border-color)" stroke-width="1.5"/>
+                            <line x1="605" y1="280" x2="715" y2="280" stroke="var(--border-color)" stroke-width="1.5"/>
+                            <line x1="605" y1="340" x2="715" y2="340" stroke="var(--border-color)" stroke-width="1.5"/>
                             <text x="660" y="420" class="svg-label bold aisle-label" text-anchor="middle">HÀNH LANG D</text>
                             <text x="660" y="435" class="svg-label-sub aisle-label" text-anchor="middle">PHỤ KIỆN</text>
                         </g>
-
+ 
                         <!-- ENTRANCE (CỔNG VÀO) -->
                         <g id="store-entrance" class="sim-component">
-                            <rect x="330" y="525" width="140" height="45" fill="#0c1b30" stroke="#1f416c" stroke-width="1.5" rx="5"/>
-                            <text x="400" y="553" class="svg-label font-mono bold" text-anchor="middle" fill="#587eab" letter-spacing="3">CỔNG VÀO</text>
+                            <rect x="330" y="525" width="140" height="45" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="5"/>
+                            <text x="400" y="553" class="svg-label font-mono bold" text-anchor="middle" fill="var(--text-primary)" letter-spacing="3">CỔNG VÀO</text>
                             
                             <!-- Circle base icon inside Entrance -->
-                            <circle cx="400" cy="510" r="12" fill="#071220" stroke="#00c8ff" stroke-width="1.5"/>
-                            <path d="M 395 510 L 405 510 M 400 505 L 400 515" stroke="#00c8ff" stroke-width="1.5"/>
+                            <circle cx="400" cy="510" r="12" fill="var(--bg-panel)" stroke="var(--color-cyan)" stroke-width="1.5"/>
+                            <path d="M 395 510 L 405 510 M 400 505 L 400 515" stroke="var(--color-cyan)" stroke-width="1.5"/>
                         </g>
-
                         <!-- RFID SECURITY GATE (CỔNG AN NINH) TRƯỚC CỔNG VÀO -->
                         <g id="security-gate" class="sim-component">
                             <!-- Left Pillar -->
-                            <rect x="371" y="455" width="8" height="50" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="2"/>
+                            <rect x="371" y="455" width="8" height="50" fill="var(--bg-sub-box)" stroke="var(--border-color)" stroke-width="1.5" rx="2"/>
                             <!-- Right Pillar -->
-                            <rect x="421" y="455" width="8" height="50" fill="#0c1b30" stroke="#1d3e68" stroke-width="1.5" rx="2"/>
+                            <rect x="421" y="455" width="8" height="50" fill="var(--bg-sub-box)" stroke="var(--border-color)" stroke-width="1.5" rx="2"/>
                             <!-- Passage space indicator -->
-                            <path d="M 379 480 L 421 480" stroke="#122742" stroke-dasharray="2 2"/>
+                            <path d="M 379 480 L 421 480" stroke="var(--border-color)" stroke-dasharray="2 2"/>
                             <!-- Alarm beacons on top -->
-                            <circle id="gate-light-left" cx="375" cy="450" r="4" fill="#00c8ff"/>
-                            <circle id="gate-light-right" cx="425" cy="450" r="4" fill="#00c8ff"/>
-                            <text x="400" y="440" class="svg-label-sub font-mono" text-anchor="middle">CỔNG AN NINH</text>
+                            <circle id="gate-light-left" cx="375" cy="450" r="4" fill="var(--text-dim)"/>
+                            <circle id="gate-light-right" cx="425" cy="450" r="4" fill="var(--text-dim)"/>
+                            <text x="400" y="440" class="svg-label-sub font-mono" fill="var(--text-secondary)" text-anchor="middle">CỔNG AN NINH</text>
                         </g>
 
                         <!-- DYNAMIC PRODUCT DOTS CONTAINER -->
@@ -1567,11 +1619,13 @@
                             <circle cx="400" cy="510" r="22" id="bot-select-ring" stroke="#00c8ff" stroke-width="1.5" stroke-dasharray="3 3" fill="none" style="display: block; pointer-events: none;"/>
                             <circle cx="400" cy="510" r="16" id="bot-glow" class="bot-glow-idle"/>
                             <circle cx="400" cy="510" r="12" id="bot-body" class="bot-body-idle"/>
-                            <text x="400" y="486" id="bot-label" class="bot-text-label" text-anchor="middle">BOT-01</text>
+                            <!-- Image customer avatar icon -->
+                            <image href="/images/customer_avatar.png" x="388" y="498" width="24" height="24" style="pointer-events: none;" />
+                            <text x="400" y="486" id="bot-label" class="bot-text-label" text-anchor="middle">KHÁCH HÀNG</text>
                             
                             <!-- Bot Cart Icon: Top-Right of Bot, Clickable -->
                             <g id="bot-cart-btn" class="bot-cart-icon" onclick="toggleBotCartPopover(event)" style="cursor: pointer;">
-                                <circle cx="418" cy="498" r="9" fill="#0c1b30" stroke="#00c8ff" stroke-width="1.5"/>
+                                <circle cx="418" cy="498" r="9" fill="#FDFBF2" stroke="#00c8ff" stroke-width="1.5"/>
                                 <!-- Cart graphic inside the circle -->
                                 <path d="M 414 495 L 416 495 L 418 499 L 422 499 L 423 496 L 416 496" fill="none" stroke="#00c8ff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
                                 <circle cx="418" cy="501" r="1" fill="#00c8ff"/>
@@ -1587,6 +1641,11 @@
                             <circle cx="580" cy="80" r="22" id="staff-select-ring" stroke="#ffaa00" stroke-width="1.5" stroke-dasharray="3 3" fill="none" style="display: none; pointer-events: none;"/>
                             <circle cx="580" cy="80" r="16" id="staff-glow" class="staff-glow-idle"/>
                             <circle cx="580" cy="80" r="12" id="staff-body" class="staff-body-idle"/>
+                            <!-- Vector grocery basket icon inside the circle -->
+                            <g stroke="var(--text-primary)" stroke-width="1.5" fill="none" style="pointer-events: none;">
+                                <path d="M 574 77.5 L 586 77.5 L 584 84.5 L 576 84.5 Z" />
+                                <path d="M 577 77.5 L 580 73.5 L 583 77.5" />
+                            </g>
                             <text x="580" y="56" id="staff-label" class="bot-text-label" text-anchor="middle">NHÂN VIÊN</text>
                             
                             <!-- Small floating scanner accessory (only visible during active search) -->
@@ -1613,13 +1672,13 @@
                             <path id="backroom-door-path" d="M 742 62 L 758 62 M 750 55 L 758 62 L 750 69" stroke="#587eab" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         </g>
 
-                        <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - GÓC PHẢI TRÊN CÙNG) -->
+                        <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - GÓC TRÁI TRÊN CÙNG) -->
                         <g id="rfid-scanner-station" class="sim-component">
-                            <rect x="500" y="20" width="90" height="60" class="backroom-door" rx="5"/>
-                            <text x="545" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
+                            <rect x="60" y="20" width="100" height="60" class="backroom-door" rx="5"/>
+                            <text x="110" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
                             
                             <!-- Scanner Gun Silhouette Icon inside box -->
-                            <g transform="translate(-92, 0)">
+                            <g transform="translate(-525, 0)">
                                 <!-- Slanted head -->
                                 <path d="M 622 30 L 647 30 C 650 30, 652 31.5, 652 33 C 652 34.5, 650 36, 647 36 L 626 36 Z" fill="#587eab"/>
                                 <path d="M 618 30 L 621 30 L 623 35 L 620 35 Z" fill="#587eab"/>
@@ -1632,7 +1691,59 @@
                             </g>
                         </g>
 
+                        <!-- Backroom visual rack icons (Hangers & Accessories) -->
+                        <g class="backroom-only-icons">
+                            <!-- Aisle A (Green / 4 Hangers) -->
+                            <path d="M 78 215 L 90 205 L 102 215 Z M 90 205 C 90 200 94 200 94 203" fill="none" stroke="#55613C" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 138 215 L 150 205 L 162 215 Z M 150 205 C 150 200 154 200 154 203" fill="none" stroke="#55613C" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 78 275 L 90 265 L 102 275 Z M 90 265 C 90 260 94 260 94 263" fill="none" stroke="#55613C" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 138 275 L 150 265 L 162 275 Z M 150 265 C 150 260 154 260 154 263" fill="none" stroke="#55613C" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Aisle B (Navy / 2 Hangers) -->
+                            <path d="M 258 215 L 270 205 L 282 215 Z M 270 205 C 270 200 274 200 274 203" fill="none" stroke="#2E4A6E" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 318 215 L 330 205 L 342 215 Z M 330 205 C 330 200 334 200 334 203" fill="none" stroke="#2E4A6E" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Aisle C (Red / 6 Hangers) -->
+                            <path d="M 438 215 L 450 205 L 462 215 Z M 450 205 C 450 200 454 200 454 203" fill="none" stroke="#6D2E2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 498 215 L 510 205 L 522 215 Z M 510 205 C 510 200 514 200 514 203" fill="none" stroke="#6D2E2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 438 275 L 450 265 L 462 275 Z M 450 265 C 450 260 454 260 454 263" fill="none" stroke="#6D2E2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 498 275 L 510 265 L 522 275 Z M 510 265 C 510 260 514 260 514 263" fill="none" stroke="#6D2E2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 438 335 L 450 325 L 462 335 Z M 450 325 C 450 320 454 320 454 323" fill="none" stroke="#6D2E2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M 498 335 L 510 325 L 522 335 Z M 510 325 C 510 320 514 320 514 323" fill="none" stroke="#6D2E2E" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Aisle D (Gold / 6 Accessory Symbols) -->
+                            <!-- Symbol 1 (630, 210) -->
+                            <circle cx="630" cy="207" r="4.5" fill="none" stroke="#8C6A2E" stroke-width="1.8"/>
+                            <line x1="630" y1="211.5" x2="630" y2="219" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="627" y1="215.5" x2="633" y2="215.5" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Symbol 2 (690, 210) -->
+                            <circle cx="690" cy="207" r="4.5" fill="none" stroke="#8C6A2E" stroke-width="1.8"/>
+                            <line x1="690" y1="211.5" x2="690" y2="219" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="687" y1="215.5" x2="693" y2="215.5" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Symbol 3 (630, 270) -->
+                            <circle cx="630" cy="267" r="4.5" fill="none" stroke="#8C6A2E" stroke-width="1.8"/>
+                            <line x1="630" y1="271.5" x2="630" y2="279" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="627" y1="275.5" x2="633" y2="275.5" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Symbol 4 (690, 270) -->
+                            <circle cx="690" cy="267" r="4.5" fill="none" stroke="#8C6A2E" stroke-width="1.8"/>
+                            <line x1="690" y1="271.5" x2="690" y2="279" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="687" y1="275.5" x2="693" y2="275.5" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Symbol 5 (630, 330) -->
+                            <circle cx="630" cy="327" r="4.5" fill="none" stroke="#8C6A2E" stroke-width="1.8"/>
+                            <line x1="630" y1="331.5" x2="630" y2="339" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="627" y1="335.5" x2="633" y2="335.5" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Symbol 6 (690, 330) -->
+                            <circle cx="690" cy="327" r="4.5" fill="none" stroke="#8C6A2E" stroke-width="1.8"/>
+                            <line x1="690" y1="331.5" x2="690" y2="339" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="687" y1="335.5" x2="693" y2="335.5" stroke="#8C6A2E" stroke-width="1.8" stroke-linecap="round"/>
+                        </g>
                     </svg>
+                    
 
                     <!-- Security Alert Notification Overlay -->
                     <div id="security-alert" class="security-alert hidden">
@@ -1856,14 +1967,25 @@
 
             <!-- Footer bar for Right panel -->
             <footer class="sim-footer">
-                <span class="legend-dot dairy-color"></span> HÀNH LANG A (ÁO)
-                <span class="legend-dot bev-color"></span> HÀNH LANG B (QUẦN)
-                <span class="legend-dot snack-color"></span> HÀNH LANG C (ÁO KHOÁC)
-                <span class="legend-dot pantry-color"></span> HÀNH LANG D (PHỤ KIỆN)
-                <div class="sim-footer-right">
-                    <span class="legend-dot staff-legend-dot"></span> NHÂN VIÊN
-                    <span class="legend-dot bot-glow-idle"></span> ROBOT
-                    <span class="legend-dot payment-complete-dot"></span> THANH TOÁN
+                <div style="display:flex; flex-direction:column; gap:6px; width:100%;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                        <div style="display:flex; gap:16px; align-items:center;">
+                            <span class="legend-dot dairy-color"></span> Hành lang A (áo)
+                            <span class="legend-dot bev-color"></span> Hành lang B (quần)
+                            <span class="legend-dot snack-color"></span> Hành lang C (áo khoác)
+                            <span class="legend-dot pantry-color"></span> Hành lang D (phụ kiện)
+                        </div>
+                        <div class="sim-footer-right" style="display:flex; gap:16px;">
+                            <span class="legend-dot" style="background-color: var(--color-cyan); box-shadow: 0 0 6px var(--color-cyan);"></span> Khách hàng
+                            <span class="legend-dot payment-complete-dot"></span> Thanh toán
+                        </div>
+                    </div>
+                    <div style="font-size: 9px; color: var(--text-dim); text-align: center; border-top: 1px solid var(--border-color); padding-top: 4px; margin-top: 4px; display:flex; justify-content:center; gap:8px;">
+                        <span>Icon:</span>
+                        <a href="https://www.flaticon.com/free-icons/character" title="character icons" target="_blank" style="color: var(--text-secondary); text-decoration:none;">Character icons created by Creartive - Flaticon</a>
+                        <span>·</span>
+                        <a href="https://www.flaticon.com/free-icons/grocery" title="grocery icons" target="_blank" style="color: var(--text-secondary); text-decoration:none;">Grocery icons created by juicy_fish - Flaticon</a>
+                    </div>
                 </div>
             </footer>
         </div>
@@ -2004,14 +2126,14 @@
                 { xMin: 600, xMax: 720, yMin: 160, yMax: 400 }  // Hành lang D
             ];
             
-            // Nếu là BOT-01, coi cửa Kho sau là vật cản
+            // Nếu là KHÁCH HÀNG, coi cửa Kho sau là vật cản
             if (isBot01) {
                 obstacles.push({ xMin: 720, xMax: 780, yMin: 20, yMax: 90 });
             }
             
-            // Cả hai bot đều coi trạm quét RFID là vật cản khi ở sơ đồ Kho sau
+            // Cả hai bot đều coi trạm quét RFID là vật cản khi ở sơ đồ Kho sau (trước đây là 500-590, nay ở góc trái 60-160)
             if (currentMap === 'backroom') {
-                obstacles.push({ xMin: 500, xMax: 590, yMin: 20, yMax: 80 });
+                obstacles.push({ xMin: 60, xMax: 160, yMin: 20, yMax: 80 });
             }
             
             for (const obs of obstacles) {
@@ -2083,20 +2205,17 @@
         }
 
         document.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
             if (isProcessingCheckout && selectedBot === 'bot01') return;
             
             const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'];
             if (keys.includes(e.code)) {
                 e.preventDefault(); // Prevent page scrolling
                 
-                if (activeMovementKeys.size === 0) {
-                    activeMovementKeys.add(e.code);
+                activeMovementKeys.add(e.code);
+                if (!keyboardInterval) {
                     handleKeyboardTick();
-                    if (!keyboardInterval) {
-                        keyboardInterval = setInterval(handleKeyboardTick, 80); // matches D-Pad 80ms loop
-                    }
-                } else {
-                    activeMovementKeys.add(e.code);
+                    keyboardInterval = setInterval(handleKeyboardTick, 80); // matches D-Pad 80ms loop
                 }
             }
         });
@@ -2234,20 +2353,20 @@
                     currentMap = 'backroom';
                     if (svg) svg.classList.add('view-backroom');
                     
-                    // Move door to top-left (x = 20) and update label/arrow pointing left
-                    if (doorRect) doorRect.setAttribute('x', '20');
+                    // Keep door at top-right (x = 720) and update label to CỬA HÀNG and arrow pointing left
+                    if (doorRect) doorRect.setAttribute('x', '720');
                     if (doorText) {
-                        doorText.setAttribute('x', '50');
+                        doorText.setAttribute('x', '750');
                         doorText.textContent = 'CỬA HÀNG';
                     }
-                    if (doorPath) doorPath.setAttribute('d', 'M 58 62 L 42 62 M 50 55 L 42 62 L 50 69');
+                    if (doorPath) doorPath.setAttribute('d', 'M 758 62 L 742 62 M 750 55 L 742 62 L 750 69');
                     
                     if (headerText) {
                         headerText.innerHTML = '<i class="fa-solid fa-warehouse text-warning"></i> SƠ ĐỒ KHO SAU · ĐIỀU KHIỂN THỦ CÔNG';
                     }
                     
-                    // Teleport to just outside the door in backroom map (top-left)
-                    staffX = 100;
+                    // Teleport to just outside the door in backroom map (top-right, x=680)
+                    staffX = 680;
                     staffY = 80;
                     updateStaffPositionVisual(staffX, staffY);
                     
@@ -2255,8 +2374,8 @@
                     renderSvgProducts(); // Re-render product dots for the Backroom map
                 }
             } else if (currentMap === 'backroom') {
-                // Door zone in backroom: x <= 90, y <= 90 (Top-left)
-                const inDoorZone = (staffX <= 90 && staffY <= 90);
+                // Door zone in backroom is also top-right: x >= 710, y <= 90
+                const inDoorZone = (staffX >= 710 && staffY <= 90);
                 if (inDoorZone) {
                     const svg = document.querySelector('.store-svg');
                     const doorRect = document.getElementById('backroom-door-rect');
@@ -2267,7 +2386,7 @@
                     currentMap = 'store';
                     if (svg) svg.classList.remove('view-backroom');
                     
-                    // Move door back to top-right (x = 720) and update label/arrow pointing right
+                    // Keep door at top-right (x = 720) and update label back to KHO SAU and arrow pointing right
                     if (doorRect) doorRect.setAttribute('x', '720');
                     if (doorText) {
                         doorText.setAttribute('x', '750');
@@ -2524,10 +2643,10 @@
                 document.getElementById('bot-status-text').innerText = atEntrance ? 'Đang chờ tại cổng vào' : 'Sẵn sàng di chuyển';
                 const badge = document.querySelector('.bot-status .bot-badge');
                 if (badge) {
-                    badge.innerHTML = '<i class="fa-solid fa-robot"></i> BOT-01';
-                    badge.style.backgroundColor = 'rgba(0, 200, 255, 0.15)';
-                    badge.style.color = 'var(--color-cyan)';
-                    badge.style.borderColor = 'rgba(0, 200, 255, 0.3)';
+                    badge.innerHTML = '<img src="/images/customer_avatar.png" style="width: 14px; height: 14px; border-radius: 50%; margin-right: 5px; vertical-align: middle;" /> KHÁCH HÀNG';
+                    badge.style.backgroundColor = '#EFE0BB';
+                    badge.style.color = '#2A2418';
+                    badge.style.borderColor = 'var(--border-color)';
                 }
             } else if (botId === 'staff') {
                 if (botRing) botRing.style.display = 'none';
@@ -2539,10 +2658,10 @@
                 document.getElementById('bot-status-text').innerText = 'Nhân viên đang trực tuyến';
                 const badge = document.querySelector('.bot-status .bot-badge');
                 if (badge) {
-                    badge.innerHTML = '<i class="fa-solid fa-user-tie"></i> NHÂN VIÊN';
-                    badge.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
-                    badge.style.color = 'var(--color-amber)';
-                    badge.style.borderColor = 'rgba(255, 170, 0, 0.3)';
+                    badge.innerHTML = '<i class="fa-solid fa-basket-shopping"></i> NHÂN VIÊN';
+                    badge.style.backgroundColor = '#EFE0BB';
+                    badge.style.color = '#2A2418';
+                    badge.style.borderColor = 'var(--border-color)';
                 }
             }
         }
@@ -2550,8 +2669,8 @@
         // Check if Bot is close to checkout (to pay) or individual product dots (to show info)
         function checkProximityTriggers() {
             if (currentMap === 'backroom' && selectedBot === 'staff') {
-                // 1. Proximity to RFID Scanner Station
-                const distStation = Math.sqrt((staffX - 545) ** 2 + (staffY - 50) ** 2);
+                // 1. Proximity to RFID Scanner Station (top-left, centered at x=110, y=50)
+                const distStation = Math.sqrt((staffX - 110) ** 2 + (staffY - 50) ** 2);
                 if (distStation < 55) {
                     if (!hasOpenedScannerThisProximity) {
                         hasOpenedScannerThisProximity = true;
@@ -3207,13 +3326,15 @@
                 } else {
                     feedContainer.innerHTML = events.slice(0, 50).map(evt => {
                         const timeStr = formatTimestamp(evt.timestamp);
+                        const tagIdDisplay = evt.tagId === 'BOT-01' ? 'KHÁCH HÀNG' : (evt.tagId === 'staff' ? 'NHÂN VIÊN' : evt.tagId);
+                        const messageDisplay = evt.message.replace(/BOT-01/g, 'KHÁCH HÀNG').replace(/staff/g, 'NHÂN VIÊN');
                         return `
                             <div class="event-card">
                                 <div class="event-header">
-                                    <span class="event-tag"><i class="fa-solid fa-barcode"></i> ${evt.tagId}</span>
+                                    <span class="event-tag"><i class="fa-solid fa-barcode"></i> ${tagIdDisplay}</span>
                                     <span class="event-time">${timeStr}</span>
                                 </div>
-                                <div class="event-msg">${evt.message}</div>
+                                <div class="event-msg">${messageDisplay}</div>
                                 <div class="event-loc"><i class="fa-solid fa-location-dot"></i> ${evt.location}</div>
                             </div>
                         `;
@@ -3411,7 +3532,7 @@
             const atEntrance = (botX === 400 && botY === 510);
             
             if (atEntrance) {
-                // Ở vị trí cổng vào, bắt buộc Robot hiển thị màu xanh dương (cyan)
+                // Ở vị trí cổng vào, bắt buộc Khách hàng hiển thị màu xanh dương (cyan)
                 body.classList.add('bot-body-moving');
                 glow.classList.add('bot-glow-moving');
             } else if (mode === 'IDLE') {
