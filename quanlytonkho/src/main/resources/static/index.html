@@ -2296,18 +2296,10 @@
                 }
             }
             
-            if (found) {
-                scanningActive = false;
+            if (found && !activeFoundSku) {
                 activeFoundSku = product.sku;
-                
-                const accessory = document.getElementById('staff-scanner-accessory');
-                if (accessory) accessory.style.display = 'none';
-                
-                const wave = document.getElementById('sonar-wave');
-                if (wave) wave.setAttribute('style', 'display: none;');
-                
                 document.getElementById('bot-status-text').innerText = `Đã phát hiện sản phẩm ${product.name}! Hãy di chuyển lại gần để kiểm tra thông tin.`;
-            } else {
+            } else if (!activeFoundSku) {
                 document.getElementById('bot-status-text').innerText = `Đang dò tìm ${product.name}... Hãy di chuyển lại gần các kệ hàng!`;
             }
         }
@@ -2433,6 +2425,15 @@
                         
                         const closeLimit = 52; // Proximity threshold (must be > 40px due to shelf collisions)
                         if (distLeft <= closeLimit || distRight <= closeLimit) {
+                            // Arrived at product! Stop scanning now!
+                            scanningActive = false;
+                            
+                            const accessory = document.getElementById('staff-scanner-accessory');
+                            if (accessory) accessory.style.display = 'none';
+                            
+                            const wave = document.getElementById('sonar-wave');
+                            if (wave) wave.setAttribute('style', 'display: none;');
+                            
                             // Open details dialog
                             showRfidProductDetails(product);
                             
