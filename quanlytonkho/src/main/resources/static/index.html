@@ -1272,75 +1272,57 @@
             to { filter: drop-shadow(0 0 14px #ffffff); fill: #ffffff; }
         }
 
-        /* Responsive design for mobile landscape (small screens with height <= 500px in landscape) */
-        @media (max-height: 500px) and (orientation: landscape) {
+        /* Responsive design for mobile (Stack panels vertically and allow scrolling to keep aspect ratios) */
+        @media (max-width: 900px) or (max-height: 550px) {
+            body {
+                height: auto !important;
+                overflow: auto !important;
+            }
+            .app-container {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow: auto !important;
+            }
             .left-panel {
-                width: 32%;
-                min-width: 260px;
-                max-width: 320px;
+                width: 100% !important;
+                max-width: none !important;
+                min-width: 0 !important;
+                height: auto !important;
+                border-right: none !important;
+                border-bottom: 1px solid var(--border-color) !important;
             }
-            .dashboard-header {
-                padding: 8px 12px;
+            .right-panel {
+                width: 100% !important;
+                height: auto !important;
             }
-            .dashboard-header h1 {
-                font-size: 0.85rem;
-            }
-            .status-badge {
-                font-size: 0.6rem;
-            }
-            .stats-bar {
-                display: flex;
-            }
-            .stat-box {
-                padding: 6px 10px;
-            }
-            .stat-label {
-                font-size: 0.55rem;
-                margin-bottom: 2px;
-            }
-            .stat-value {
-                font-size: 0.95rem;
-            }
-            .tabs-nav button {
-                padding: 8px 6px;
-                font-size: 10px !important;
-            }
-            .sim-header {
-                padding: 8px 12px;
-            }
-            .sim-header h2 {
-                font-size: 0.8rem;
-            }
-            .legend-item {
-                font-size: 0.55rem;
-                gap: 4px;
+            .tab-viewport {
+                height: 300px !important;
+                overflow-y: auto !important;
             }
             .sim-canvas-container {
-                padding: 8px;
+                padding: 16px !important;
+                height: auto !important;
             }
             .svg-wrapper {
-                max-height: 85vh;
+                max-width: 100% !important;
+                max-height: none !important;
+                width: 100% !important;
+                aspect-ratio: 4/3 !important;
             }
-            .control-pad {
-                bottom: 10px;
-                right: 10px;
-                transform: scale(0.8);
-                transform-origin: bottom right;
-            }
-            /* Make popover text slightly smaller to fit */
+            /* Popover scale styling for mobile */
             .product-popover {
-                width: 180px;
-                padding: 10px;
+                width: 180px !important;
+                padding: 10px !important;
             }
             .popover-title {
-                font-size: 11px;
+                font-size: 11px !important;
             }
             .popover-price {
-                font-size: 11px;
+                font-size: 11px !important;
             }
             .size-btn {
-                padding: 4px 6px;
-                font-size: 9px;
+                padding: 4px 6px !important;
+                font-size: 9px !important;
             }
         }
     </style>
@@ -2037,8 +2019,59 @@
         }
 
         // Key Listeners for grid-aligned movement (exactly half a grid cell = 20px)
-        let lastMoveTime = 0;
-        const MOVE_COOLDOWN_MS = 80; // Delay between steps when key is held down
+        const activeMovementKeys = new Set();
+        let keyboardInterval = null;
+
+        function handleKeyboardTick() {
+            let dx = 0;
+            let dy = 0;
+            const step = 20; // Exactly half a grid cell
+            
+            if (activeMovementKeys.has('ArrowUp') || activeMovementKeys.has('KeyW')) dy = -step;
+            else if (activeMovementKeys.has('ArrowDown') || activeMovementKeys.has('KeyS')) dy = step;
+            
+            if (activeMovementKeys.has('ArrowLeft') || activeMovementKeys.has('KeyA')) dx = -step;
+            else if (activeMovementKeys.has('ArrowRight') || activeMovementKeys.has('KeyD')) dx = step;
+            
+            if (dx !== 0 || dy !== 0) {
+                if (selectedBot === 'bot01') {
+                    if (isProcessingCheckout) return;
+                    let nextX = botX + dx;
+                    let nextY = botY + dy;
+                    nextX = Math.max(38, Math.min(762, nextX));
+                    nextY = Math.max(38, Math.min(562, nextY));
+                    
+                    if (!checkCollision(nextX, nextY, true)) {
+                        hideBotCartPopover();
+                        botX = nextX;
+                        botY = nextY;
+                        updateBotPositionVisual(botX, botY);
+                        setBotMode('MOVING');
+                        checkProximityTriggers();
+                        setTimeout(() => {
+                            if (!isProcessingCheckout) setBotMode('IDLE');
+                        }, 80);
+                    }
+                } else if (selectedBot === 'staff') {
+                    let nextX = staffX + dx;
+                    let nextY = staffY + dy;
+                    nextX = Math.max(38, Math.min(762, nextX));
+                    nextY = Math.max(38, Math.min(562, nextY));
+                    
+                    if (!checkCollision(nextX, nextY, false)) {
+                        staffX = nextX;
+                        staffY = nextY;
+                        updateStaffPositionVisual(staffX, staffY);
+                        setStaffMode('MOVING');
+                        checkMapTransition();
+                        checkProximityTriggers();
+                        setTimeout(() => {
+                            setStaffMode('IDLE');
+                        }, 80);
+                    }
+                }
+            }
+        }
 
         document.addEventListener('keydown', (e) => {
             if (isProcessingCheckout && selectedBot === 'bot01') return;
@@ -2047,65 +2080,26 @@
             if (keys.includes(e.code)) {
                 e.preventDefault(); // Prevent page scrolling
                 
-                const now = Date.now();
-                if (now - lastMoveTime < MOVE_COOLDOWN_MS) return;
-                lastMoveTime = now;
-                
-                let dx = 0;
-                let dy = 0;
-                const step = 20; // Exactly half a grid cell (grid size = 40)
-                
-                if (e.code === 'ArrowUp' || e.code === 'KeyW') dy = -step;
-                else if (e.code === 'ArrowDown' || e.code === 'KeyS') dy = step;
-                else if (e.code === 'ArrowLeft' || e.code === 'KeyA') dx = -step;
-                else if (e.code === 'ArrowRight' || e.code === 'KeyD') dx = step;
-                
-                if (selectedBot === 'bot01') {
-                    let nextX = botX + dx;
-                    let nextY = botY + dy;
-                    
-                    // Keep bot within outer layout boundaries (20px margins on all sides)
-                    nextX = Math.max(38, Math.min(762, nextX));
-                    nextY = Math.max(38, Math.min(562, nextY));
-                    
-                    if (!checkCollision(nextX, nextY, true)) {
-                        hideBotCartPopover();
-                        botX = nextX;
-                        botY = nextY;
-                        
-                        updateBotPositionVisual(botX, botY);
-                        setBotMode('MOVING');
-                        
-                        checkProximityTriggers();
-                        
-                        // Revert to IDLE after a short delay
-                        setTimeout(() => {
-                            if (!isProcessingCheckout) {
-                                setBotMode('IDLE');
-                            }
-                        }, 80);
+                if (activeMovementKeys.size === 0) {
+                    activeMovementKeys.add(e.code);
+                    handleKeyboardTick();
+                    if (!keyboardInterval) {
+                        keyboardInterval = setInterval(handleKeyboardTick, 80); // matches D-Pad 80ms loop
                     }
-                } else if (selectedBot === 'staff') {
-                    let nextX = staffX + dx;
-                    let nextY = staffY + dy;
-                    
-                    // Keep bot within outer layout boundaries (20px margins on all sides)
-                    nextX = Math.max(38, Math.min(762, nextX));
-                    nextY = Math.max(38, Math.min(562, nextY));
-                    
-                    if (!checkCollision(nextX, nextY, false)) {
-                        staffX = nextX;
-                        staffY = nextY;
-                        
-                        updateStaffPositionVisual(staffX, staffY);
-                        setStaffMode('MOVING');
-                        checkMapTransition();
-                        checkProximityTriggers();
-                        
-                        // Revert to IDLE after a short delay
-                        setTimeout(() => {
-                            setStaffMode('IDLE');
-                        }, 80);
+                } else {
+                    activeMovementKeys.add(e.code);
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'];
+            if (keys.includes(e.code)) {
+                activeMovementKeys.delete(e.code);
+                if (activeMovementKeys.size === 0) {
+                    if (keyboardInterval) {
+                        clearInterval(keyboardInterval);
+                        keyboardInterval = null;
                     }
                 }
             }
