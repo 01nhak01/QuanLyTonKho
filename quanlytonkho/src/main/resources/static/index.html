@@ -1836,7 +1836,7 @@
         let botY = 510;
         let selectedBot = 'bot01'; // 'bot01' or 'staff'
         let staffX = 580;
-        let staffY = 80;
+        let staffY = 110;
         let staffMode = 'IDLE';
         let currentMap = 'store'; // 'store' or 'backroom'
         let hasOpenedScannerThisProximity = false;
@@ -2281,24 +2281,30 @@
             const radiusLimit = 100; // 2.5 cells (1 cell = 40px)
             let found = false;
             
+            // Check left dot
+            const leftDot = document.getElementById(`prod-${product.sku}-left`);
             if (distLeft <= radiusLimit) {
-                const leftDot = document.getElementById(`prod-${product.sku}-left`);
-                if (leftDot) {
-                    leftDot.classList.add('scanned-highlight');
-                    found = true;
-                }
+                if (leftDot) leftDot.classList.add('scanned-highlight');
+                found = true;
+            } else {
+                if (leftDot) leftDot.classList.remove('scanned-highlight');
             }
+            
+            // Check right dot
+            const rightDot = document.getElementById(`prod-${product.sku}-right`);
             if (distRight <= radiusLimit) {
-                const rightDot = document.getElementById(`prod-${product.sku}-right`);
-                if (rightDot) {
-                    rightDot.classList.add('scanned-highlight');
-                    found = true;
-                }
+                if (rightDot) rightDot.classList.add('scanned-highlight');
+                found = true;
+            } else {
+                if (rightDot) rightDot.classList.remove('scanned-highlight');
             }
             
             if (found && !activeFoundSku) {
                 activeFoundSku = product.sku;
                 document.getElementById('bot-status-text').innerText = `Đã phát hiện sản phẩm ${product.name}! Hãy di chuyển lại gần để kiểm tra thông tin.`;
+            } else if (!found && activeFoundSku) {
+                activeFoundSku = null;
+                document.getElementById('bot-status-text').innerText = `Đang dò tìm ${product.name}... Hãy di chuyển lại gần các kệ hàng!`;
             } else if (!activeFoundSku) {
                 document.getElementById('bot-status-text').innerText = `Đang dò tìm ${product.name}... Hãy di chuyển lại gần các kệ hàng!`;
             }
@@ -3017,7 +3023,7 @@
                     updateBotPositionVisual(botX, botY);
                     
                     staffX = 580;
-                    staffY = 80;
+                    staffY = 110;
                     updateStaffPositionVisual(staffX, staffY);
                     selectBot('bot01');
                 }
@@ -3262,7 +3268,7 @@
             setBotMode('IDLE');
             
             staffX = 580;
-            staffY = 80;
+            staffY = 110;
             updateStaffPositionVisual(staffX, staffY);
             setStaffMode('IDLE');
             selectBot('bot01');
