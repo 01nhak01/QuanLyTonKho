@@ -71,8 +71,8 @@ public class StoreRestController {
     }
 
     @PostMapping("/checkout")
-    public Map<String, String> checkout() {
-        storeService.checkout();
+    public Map<String, String> checkout(@RequestParam(required = false, defaultValue = "Chuyển khoản") String paymentMethod) {
+        storeService.checkout(paymentMethod);
         Map<String, String> response = new HashMap<>();
         response.put("status", "SUCCESS");
         response.put("message", "Checkout successful");

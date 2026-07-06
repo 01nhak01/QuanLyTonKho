@@ -205,7 +205,7 @@ public class StoreService {
     }
 
     @Transactional
-    public void checkout() {
+    public void checkout(String paymentMethod) {
         List<CartItem> items = cartItemRepository.findBySessionCode(DEFAULT_SESSION);
         if (!items.isEmpty()) {
             double total = items.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
@@ -237,7 +237,7 @@ public class StoreService {
             }
 
             // Log event
-            logEvent("CHECKOUT", "Quầy Thanh Toán", "Thanh toán hoàn tất - Đã nhận: " + String.format("%,.0f", total) + " đ");
+            logEvent("CHECKOUT", "Quầy Thanh Toán", "Thanh toán hoàn tất (" + paymentMethod + ") - Đã nhận: " + String.format("%,.0f", total) + " đ");
             
             // Clear cart
             cartItemRepository.deleteBySessionCode(DEFAULT_SESSION);

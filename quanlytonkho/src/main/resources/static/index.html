@@ -2334,6 +2334,11 @@
                 document.getElementById('bot-status-text').innerText = 'Thanh toán tiền mặt: Tiền từ quầy đang bay tới Nhân viên...';
                 animateCashFlying();
                 
+                // Show floating text "+ amount" above staff's head
+                setTimeout(() => {
+                    showStaffMoneyIncrement();
+                }, 1200);
+                
                 setTimeout(() => {
                     completeCheckoutSequence('Tiền mặt');
                 }, 2000);
@@ -2443,7 +2448,7 @@
 
         async function completeCheckoutSequence(paymentMethod) {
             try {
-                const response = await fetch(`${API_BASE}/checkout`, { method: 'POST' });
+                const response = await fetch(`${API_BASE}/checkout?paymentMethod=${encodeURIComponent(paymentMethod)}`, { method: 'POST' });
                 if (response.ok) {
                     setBotMode('COMPLETE');
                     document.getElementById('bot-status-text').innerText = `Thanh toán thành công bằng ${paymentMethod}! Hóa đơn đã ghi nhận.`;
@@ -2470,6 +2475,36 @@
                 setBotMode('IDLE');
                 document.getElementById('bot-status-text').innerText = 'Giao dịch thất bại. Vui lòng thử lại!';
             }
+        }
+
+        function showStaffMoneyIncrement() {
+            const svg = document.querySelector('.store-svg');
+            if (!svg) return;
+            
+            const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textEl.setAttribute('x', staffX);
+            textEl.setAttribute('y', staffY - 25);
+            textEl.setAttribute('fill', '#39ff14'); // neon green
+            textEl.setAttribute('font-size', '13px');
+            textEl.setAttribute('font-weight', 'bold');
+            textEl.setAttribute('text-anchor', 'middle');
+            textEl.setAttribute('font-family', 'monospace');
+            textEl.style.transition = 'transform 1.8s ease-out, opacity 1.8s ease-out';
+            textEl.style.opacity = '1';
+            textEl.style.filter = 'drop-shadow(0 0 5px rgba(57, 255, 20, 0.6))';
+            textEl.textContent = `+${cart.total.toLocaleString('vi-VN')} đ`;
+            svg.appendChild(textEl);
+            
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    textEl.style.transform = 'translate(0px, -45px)';
+                    textEl.style.opacity = '0';
+                });
+            });
+            
+            setTimeout(() => {
+                textEl.remove();
+            }, 2000);
         }
 
         // Switch Dashboard Tabs
