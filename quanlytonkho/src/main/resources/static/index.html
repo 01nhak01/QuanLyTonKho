@@ -588,8 +588,11 @@
         .product-dot {
             display: none;
         }
+        .has-product-data .product-dot {
+            display: block;
+        }
         .product-dot.picked {
-            display: none;
+            display: none !important;
         }
         .dairy-color { fill: var(--color-cyan); background-color: var(--color-cyan); }
         .bev-color { fill: var(--color-green); background-color: var(--color-green); }
@@ -780,11 +783,11 @@
         .bot-cart-popover {
             position: absolute;
             width: 260px;
-            background: rgba(8, 18, 32, 0.95);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--color-cyan);
-            border-radius: 12px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), var(--shadow-glow);
+            background: rgba(253, 251, 242, 0.96);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-hover);
+            border-radius: 8px;
+            box-shadow: 0 12px 32px rgba(42, 36, 24, 0.16), var(--shadow-glow);
             display: flex;
             flex-direction: column;
             padding: 14px;
@@ -808,15 +811,18 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
+            padding: 0 24px 8px 0;
         }
         .bot-cart-title {
             font-size: 0.88rem;
             font-weight: 700;
-            color: var(--color-cyan);
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+        .bot-cart-title i {
+            color: var(--color-cyan);
         }
         .bot-cart-list {
             max-height: 180px;
@@ -830,8 +836,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(239, 224, 187, 0.28);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 6px 8px;
         }
@@ -854,9 +860,9 @@
             color: var(--text-secondary);
         }
         .bot-cart-item-remove {
-            background: none;
-            border: none;
-            color: #ff453a;
+            background: rgba(255, 59, 48, 0.08);
+            border: 1px solid rgba(255, 59, 48, 0.18);
+            color: #b8322b;
             font-size: 0.8rem;
             cursor: pointer;
             padding: 4px;
@@ -876,6 +882,12 @@
             color: var(--text-secondary);
             font-size: 0.8rem;
             font-style: italic;
+        }
+        .bot-cart-popover .close-popover-btn {
+            color: var(--text-secondary);
+        }
+        .bot-cart-popover .close-popover-btn:hover {
+            color: var(--color-cyan);
         }
         .close-popover-btn {
             position: absolute;
@@ -1349,6 +1361,13 @@
         }
         .has-product-data.view-backroom .backroom-only-icons {
             display: block !important;
+        }
+        .view-backroom #aisle-dairy,
+        .view-backroom #aisle-beverages,
+        .view-backroom #aisle-snacks,
+        .view-backroom #aisle-pantry,
+        .view-backroom .backroom-only-icons {
+            transform: translateY(60px);
         }
 
         /* RFID Scanner Station in Backroom */
@@ -1922,7 +1941,7 @@
                     <div id="bot-cart-popover" class="bot-cart-popover hidden">
                         <div class="bot-cart-header">
                             <div class="bot-cart-title">
-                                <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng của Bot
+                                <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
                             </div>
                             <button class="close-popover-btn" onclick="toggleBotCartPopover()" style="position:static; padding:4px;">&times;</button>
                         </div>
@@ -2170,7 +2189,9 @@
         let scanningActive = false;
         let targetSearchSku = null;
         let sonarRadius = 0;
+        let sonarAnimationFrame = null;
         let activeFoundSku = null;
+        let rfidSearchInProgress = false;
 
         // Initial stocks mapping to track if items have been scanned/picked in the current run
         const initialStocks = {};
@@ -2226,12 +2247,15 @@
             });
             
             const shelfIndex = sameAisleProducts.findIndex(p => p.sku === prod.sku);
+            const slotIndex = Math.max(0, shelfIndex);
             const xCenter = 120 + 180 * aisleIndex;
-            const cxLeft = xCenter - 40;
-            const cxRight = xCenter + 40;
-            const cy = 190 + 60 * shelfIndex;
+            const slotColumn = slotIndex % 2;
+            const slotRow = Math.floor(slotIndex / 2);
+            const cx = xCenter + (slotColumn === 0 ? -30 : 30);
+            const backroomOffsetY = currentMap === 'backroom' ? 60 : 0;
+            const cy = 210 + 60 * slotRow + backroomOffsetY;
             
-            return { xCenter, cxLeft, cxRight, cy, aisleIndex, shelfIndex };
+            return { xCenter, cx, cy, aisleIndex, shelfIndex, slotColumn, slotRow };
         }
 
         // On Page Load
@@ -2566,6 +2590,8 @@
                     if (accessory) accessory.style.display = 'none';
                     clearScannedHighlights();
                     activeFoundSku = null;
+                    targetSearchSku = null;
+                    rfidSearchInProgress = false;
                     closeRfidDetails();
                     renderSvgProducts(); // Re-render product dots for the Store map
                 }
@@ -2573,7 +2599,18 @@
         }
 
         // RFID Scanner Handlers
+        function isRfidSearchLocked() {
+            return rfidSearchInProgress || scanningActive || !!activeFoundSku;
+        }
+
         function showRfidScannerModal() {
+            if (isRfidSearchLocked()) {
+                const product = products.find(p => p.sku === targetSearchSku);
+                const productName = product ? product.name : 'sáº£n pháº©m Ä‘ang tÃ¬m';
+                document.getElementById('bot-status-text').innerText = `Äang tÃ¬m ${productName}. HÃ£y hoÃ n táº¥t sáº£n pháº©m nÃ y trÆ°á»›c khi tÃ¬m sáº£n pháº©m khÃ¡c.`;
+                return;
+            }
+
             const modal = document.getElementById('rfid-scanner-modal');
             if (!modal) return;
             
@@ -2623,21 +2660,28 @@
         }
 
         function startRfidSearch() {
+            if (isRfidSearchLocked()) return;
             if (!selectedRfidSku) return;
             closeRfidScanner();
             triggerSonarScan(selectedRfidSku);
         }
 
         function triggerSonarScan(targetSku) {
+            if (isRfidSearchLocked()) return;
             targetSearchSku = targetSku;
             scanningActive = true;
+            rfidSearchInProgress = true;
             sonarRadius = 0;
+            activeFoundSku = null;
+            clearScannedHighlights();
             
             // Show accessory on staff bot
             const accessory = document.getElementById('staff-scanner-accessory');
             if (accessory) accessory.style.display = 'block';
             
-            runSonarAnimationLoop();
+            if (!sonarAnimationFrame) {
+                sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
+            }
         }
 
         function setProductScannedHighlight(dot, isHighlighted) {
@@ -2677,6 +2721,7 @@
             if (!scanningActive) {
                 const wave = document.getElementById('sonar-wave');
                 if (wave) wave.setAttribute('style', 'display: none;');
+                sonarAnimationFrame = null;
                 return;
             }
             
@@ -2696,7 +2741,9 @@
             checkSearchProximity();
             
             if (scanningActive) {
-                requestAnimationFrame(runSonarAnimationLoop);
+                sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
+            } else {
+                sonarAnimationFrame = null;
             }
         }
 
@@ -2706,30 +2753,13 @@
             const product = products.find(p => p.sku === targetSearchSku);
             if (!product) return;
             
-            const { cxLeft, cxRight, cy } = getProductCoordinates(product);
-            const distLeft = Math.sqrt((staffX - cxLeft) ** 2 + (staffY - cy) ** 2);
-            const distRight = Math.sqrt((staffX - cxRight) ** 2 + (staffY - cy) ** 2);
+            const { cx, cy } = getProductCoordinates(product);
+            const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
             
             const radiusLimit = 100; // 2.5 cells (1 cell = 40px)
-            let found = false;
-            
-            // Check left dot
-            const leftDot = document.getElementById(`prod-${product.sku}-left`);
-            if (distLeft <= radiusLimit) {
-                setProductScannedHighlight(leftDot, true);
-                found = true;
-            } else {
-                setProductScannedHighlight(leftDot, false);
-            }
-            
-            // Check right dot
-            const rightDot = document.getElementById(`prod-${product.sku}-right`);
-            if (distRight <= radiusLimit) {
-                setProductScannedHighlight(rightDot, true);
-                found = true;
-            } else {
-                setProductScannedHighlight(rightDot, false);
-            }
+            const found = distance <= radiusLimit;
+            const productDot = document.getElementById(`prod-${product.sku}`);
+            setProductScannedHighlight(productDot, found);
             
             if (found && !activeFoundSku) {
                 activeFoundSku = product.sku;
@@ -2792,6 +2822,8 @@
             // Remove scanned highlights now that user has viewed details
             clearScannedHighlights();
             activeFoundSku = null;
+            targetSearchSku = null;
+            rfidSearchInProgress = false;
         }
 
         function setStaffMode(mode) {
@@ -2858,7 +2890,10 @@
                 // 1. Proximity to RFID Scanner Station (4 grid cells from the store door, centered at x=295, y=50)
                 const distStation = Math.sqrt((staffX - 295) ** 2 + (staffY - 50) ** 2);
                 if (distStation < 55) {
-                    if (!hasOpenedScannerThisProximity) {
+                    if (isRfidSearchLocked()) {
+                        hasOpenedScannerThisProximity = false;
+                        showRfidScannerModal();
+                    } else if (!hasOpenedScannerThisProximity) {
                         hasOpenedScannerThisProximity = true;
                         showRfidScannerModal();
                     }
@@ -2870,12 +2905,11 @@
                 if (activeFoundSku) {
                     const product = products.find(p => p.sku === activeFoundSku);
                     if (product) {
-                        const { cxLeft, cxRight, cy } = getProductCoordinates(product);
-                        const distLeft = Math.sqrt((staffX - cxLeft) ** 2 + (staffY - cy) ** 2);
-                        const distRight = Math.sqrt((staffX - cxRight) ** 2 + (staffY - cy) ** 2);
+                        const { cx, cy } = getProductCoordinates(product);
+                        const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
                         
                         const closeLimit = 52; // Proximity threshold (must be > 40px due to shelf collisions)
-                        if (distLeft <= closeLimit || distRight <= closeLimit) {
+                        if (distance <= closeLimit) {
                             // Arrived at product! Stop scanning now!
                             scanningActive = false;
                             
@@ -2926,11 +2960,10 @@
                 if (currentMap === 'store' && prod.stockQuantity <= 1) {
                     return; // Ignore products that have stockQuantity <= 1 when checking store map proximity!
                 }
-                const { cxLeft, cxRight, cy } = getProductCoordinates(prod);
-                const distLeft = Math.sqrt((currentX - cxLeft) ** 2 + (currentY - cy) ** 2);
-                const distRight = Math.sqrt((currentX - cxRight) ** 2 + (currentY - cy) ** 2);
+                const { cx, cy } = getProductCoordinates(prod);
+                const distance = Math.sqrt((currentX - cx) ** 2 + (currentY - cy) ** 2);
                 const limit = (selectedBot === 'staff') ? 52 : 45; // slightly larger for staff bot due to visual alignment
-                if (distLeft < limit || distRight < limit) {
+                if (distance < limit) {
                     nearbyProduct = prod;
                 }
             });
@@ -3631,7 +3664,7 @@
                 if (currentMap === 'store' && prod.stockQuantity <= 1) {
                     return; // Hide products with stock <= 1 on store shelves
                 }
-                const { cxLeft, cxRight, cy, aisleIndex } = getProductCoordinates(prod);
+                const { cx, cy, aisleIndex } = getProductCoordinates(prod);
                 
                 // Color based on Aisle
                 let colorClass = 'dairy-color';
@@ -3639,36 +3672,19 @@
                 if (aisleIndex === 2) colorClass = 'snack-color';
                 if (aisleIndex === 3) colorClass = 'pantry-color';
                 
-                // Left Dot
-                const circleLeft = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circleLeft.setAttribute('cx', cxLeft);
-                circleLeft.setAttribute('cy', cy);
-                circleLeft.setAttribute('r', 7);
-                circleLeft.setAttribute('class', `product-dot ${colorClass}`);
-                circleLeft.setAttribute('id', `prod-${prod.sku}-left`);
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', 7);
+                circle.setAttribute('class', `product-dot ${colorClass}`);
+                circle.setAttribute('id', `prod-${prod.sku}`);
                 if (prod.stockQuantity <= 0) {
-                    circleLeft.classList.add('picked');
+                    circle.classList.add('picked');
                 }
-                group.appendChild(circleLeft);
+                group.appendChild(circle);
                 if (currentMap === 'backroom' && scanningActive && targetSearchSku === prod.sku) {
-                    const distLeft = Math.sqrt((staffX - cxLeft) ** 2 + (staffY - cy) ** 2);
-                    if (distLeft <= 100) setProductScannedHighlight(circleLeft, true);
-                }
-                
-                // Right Dot
-                const circleRight = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circleRight.setAttribute('cx', cxRight);
-                circleRight.setAttribute('cy', cy);
-                circleRight.setAttribute('r', 7);
-                circleRight.setAttribute('class', `product-dot ${colorClass}`);
-                circleRight.setAttribute('id', `prod-${prod.sku}-right`);
-                if (prod.stockQuantity <= 0) {
-                    circleRight.classList.add('picked');
-                }
-                group.appendChild(circleRight);
-                if (currentMap === 'backroom' && scanningActive && targetSearchSku === prod.sku) {
-                    const distRight = Math.sqrt((staffX - cxRight) ** 2 + (staffY - cy) ** 2);
-                    if (distRight <= 100) setProductScannedHighlight(circleRight, true);
+                    const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                    if (distance <= 100) setProductScannedHighlight(circle, true);
                 }
             });
         }
