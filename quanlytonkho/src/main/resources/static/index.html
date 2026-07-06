@@ -1239,6 +1239,10 @@
         .view-backroom #bot-container {
             display: none !important;
         }
+        
+        .view-backroom .aisle-label {
+            display: none !important;
+        }
 
         /* RFID Scanner Station in Backroom */
         #rfid-scanner-station {
@@ -1489,8 +1493,8 @@
                             <line x1="65" y1="220" x2="175" y2="220" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="65" y1="280" x2="175" y2="280" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="65" y1="340" x2="175" y2="340" stroke="#19375e" stroke-width="1.5"/>
-                            <text x="120" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG A</text>
-                            <text x="120" y="435" class="svg-label-sub" text-anchor="middle">ÁO</text>
+                            <text x="120" y="420" class="svg-label bold aisle-label" text-anchor="middle">HÀNH LANG A</text>
+                            <text x="120" y="435" class="svg-label-sub aisle-label" text-anchor="middle">ÁO</text>
                         </g>
  
                         <!-- AISLE B: BEVERAGES -->
@@ -1501,8 +1505,8 @@
                             <line x1="245" y1="220" x2="355" y2="220" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="245" y1="280" x2="355" y2="280" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="245" y1="340" x2="355" y2="340" stroke="#19375e" stroke-width="1.5"/>
-                            <text x="300" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG B</text>
-                            <text x="300" y="435" class="svg-label-sub" text-anchor="middle">QUẦN</text>
+                            <text x="300" y="420" class="svg-label bold aisle-label" text-anchor="middle">HÀNH LANG B</text>
+                            <text x="300" y="435" class="svg-label-sub aisle-label" text-anchor="middle">QUẦN</text>
                         </g>
  
                         <!-- AISLE C: SNACKS -->
@@ -1513,8 +1517,8 @@
                             <line x1="425" y1="220" x2="535" y2="220" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="425" y1="280" x2="535" y2="280" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="425" y1="340" x2="535" y2="340" stroke="#19375e" stroke-width="1.5"/>
-                            <text x="480" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG C</text>
-                            <text x="480" y="435" class="svg-label-sub" text-anchor="middle">ÁO KHOÁC</text>
+                            <text x="480" y="420" class="svg-label bold aisle-label" text-anchor="middle">HÀNH LANG C</text>
+                            <text x="480" y="435" class="svg-label-sub aisle-label" text-anchor="middle">ÁO KHOÁC</text>
                         </g>
  
                         <!-- AISLE D: PANTRY -->
@@ -1525,8 +1529,8 @@
                             <line x1="605" y1="220" x2="715" y2="220" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="605" y1="280" x2="715" y2="280" stroke="#19375e" stroke-width="1.5"/>
                             <line x1="605" y1="340" x2="715" y2="340" stroke="#19375e" stroke-width="1.5"/>
-                            <text x="660" y="420" class="svg-label bold" text-anchor="middle">HÀNH LANG D</text>
-                            <text x="660" y="435" class="svg-label-sub" text-anchor="middle">PHỤ KIỆN</text>
+                            <text x="660" y="420" class="svg-label bold aisle-label" text-anchor="middle">HÀNH LANG D</text>
+                            <text x="660" y="435" class="svg-label-sub aisle-label" text-anchor="middle">PHỤ KIỆN</text>
                         </g>
 
                         <!-- ENTRANCE (CỔNG VÀO) -->
@@ -2243,6 +2247,7 @@
                     updateStaffPositionVisual(staffX, staffY);
                     
                     document.getElementById('bot-status-text').innerText = 'Nhân viên đã vào Kho sau';
+                    renderSvgProducts(); // Re-render product dots for the Backroom map
                 }
             } else if (currentMap === 'backroom') {
                 // Door zone in backroom: x <= 90, y <= 90 (Top-left)
@@ -2288,6 +2293,7 @@
                         activeFoundSku = null;
                     }
                     closeRfidDetails();
+                    renderSvgProducts(); // Re-render product dots for the Store map
                 }
             }
         }
@@ -2597,6 +2603,9 @@
             
             let nearbyProduct = null;
             products.forEach((prod) => {
+                if (currentMap === 'store' && prod.stockQuantity <= 1) {
+                    return; // Ignore products that have stockQuantity <= 1 when checking store map proximity!
+                }
                 const { cxLeft, cxRight, cy } = getProductCoordinates(prod);
                 const distLeft = Math.sqrt((currentX - cxLeft) ** 2 + (currentY - cy) ** 2);
                 const distRight = Math.sqrt((currentX - cxRight) ** 2 + (currentY - cy) ** 2);
@@ -3280,6 +3289,9 @@
             group.innerHTML = '';
             
             products.forEach((prod) => {
+                if (currentMap === 'store' && prod.stockQuantity <= 1) {
+                    return; // Hide products with stock <= 1 on store shelves
+                }
                 const { cxLeft, cxRight, cy, aisleIndex } = getProductCoordinates(prod);
                 
                 // Color based on Aisle
