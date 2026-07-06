@@ -1554,11 +1554,11 @@
 
                         <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - GÓC PHẢI TRÊN CÙNG) -->
                         <g id="rfid-scanner-station" class="sim-component">
-                            <rect x="595" y="20" width="90" height="60" class="backroom-door" rx="5"/>
-                            <text x="640" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
+                            <rect x="500" y="20" width="90" height="60" class="backroom-door" rx="5"/>
+                            <text x="545" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
                             
                             <!-- Scanner Gun Silhouette Icon inside box -->
-                            <g transform="translate(3, 0)">
+                            <g transform="translate(-92, 0)">
                                 <!-- Slanted head -->
                                 <path d="M 622 30 L 647 30 C 650 30, 652 31.5, 652 33 C 652 34.5, 650 36, 647 36 L 626 36 Z" fill="#587eab"/>
                                 <path d="M 618 30 L 621 30 L 623 35 L 620 35 Z" fill="#587eab"/>
@@ -1944,6 +1944,9 @@
             if (isBot01) {
                 obstacles.push({ xMin: 720, xMax: 780, yMin: 20, yMax: 90 });
             }
+            
+            // Cả hai bot đều coi trạm quét RFID là vật cản
+            obstacles.push({ xMin: 500, xMax: 590, yMin: 20, yMax: 80 });
             
             for (const obs of obstacles) {
                 const closestX = Math.max(obs.xMin, Math.min(x, obs.xMax));
@@ -2410,8 +2413,8 @@
         function checkProximityTriggers() {
             if (currentMap === 'backroom' && selectedBot === 'staff') {
                 // 1. Proximity to RFID Scanner Station
-                const distStation = Math.sqrt((staffX - 640) ** 2 + (staffY - 50) ** 2);
-                if (distStation < 40) {
+                const distStation = Math.sqrt((staffX - 545) ** 2 + (staffY - 50) ** 2);
+                if (distStation < 55) {
                     if (!hasOpenedScannerThisProximity) {
                         hasOpenedScannerThisProximity = true;
                         showRfidScannerModal();
@@ -3159,6 +3162,9 @@
                 if (prod.stockQuantity <= 0) {
                     circleLeft.classList.add('picked');
                 }
+                if (activeFoundSku === prod.sku) {
+                    circleLeft.classList.add('scanned-highlight');
+                }
                 group.appendChild(circleLeft);
                 
                 // Right Dot
@@ -3170,6 +3176,9 @@
                 circleRight.setAttribute('id', `prod-${prod.sku}-right`);
                 if (prod.stockQuantity <= 0) {
                     circleRight.classList.add('picked');
+                }
+                if (activeFoundSku === prod.sku) {
+                    circleRight.classList.add('scanned-highlight');
                 }
                 group.appendChild(circleRight);
             });
