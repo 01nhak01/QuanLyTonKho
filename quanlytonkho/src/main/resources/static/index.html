@@ -1222,16 +1222,16 @@
         /* Cửa Kho Sau & Sơ đồ Kho Sau */
         .backroom-door {
             fill: #0c1b30;
-            stroke: var(--color-amber);
-            stroke-dasharray: 4 4;
+            stroke: #1f416c;
             stroke-width: 1.5;
         }
         .backroom-door-label {
-            fill: var(--color-amber);
+            fill: #587eab;
             font-family: var(--font-mono);
             font-size: 8px;
             font-weight: 700;
             pointer-events: none;
+            letter-spacing: 1px;
         }
         .view-backroom #checkout-counter,
         .view-backroom #store-entrance,
@@ -1504,7 +1504,7 @@
                         <g id="backroom-door-group" class="sim-component">
                             <rect x="720" y="20" width="60" height="70" class="backroom-door" rx="5"/>
                             <text x="750" y="47" id="backroom-door-text" class="backroom-door-label" text-anchor="middle">KHO SAU</text>
-                            <path d="M 742 62 L 758 62 M 750 55 L 758 62 L 750 69" stroke="var(--color-amber)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M 742 62 L 758 62 M 750 55 L 758 62 L 750 69" stroke="#587eab" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         </g>
                     </svg>
 
@@ -1801,7 +1801,7 @@
         });
 
         // Kiểm tra xem tọa độ (x, y) có va chạm với các hành lang (kệ hàng) hay không
-        function checkCollision(x, y) {
+        function checkCollision(x, y, isBot01 = false) {
             const r = 12; // Bán kính Bot
             const obstacles = [
                 { xMin: 60, xMax: 180, yMin: 160, yMax: 400 }, // Hành lang A
@@ -1810,6 +1810,11 @@
                 { xMin: 600, xMax: 720, yMin: 160, yMax: 400 }  // Hành lang D
             ];
             
+            // Nếu là BOT-01, coi cửa Kho sau là vật cản
+            if (isBot01) {
+                obstacles.push({ xMin: 720, xMax: 780, yMin: 20, yMax: 90 });
+            }
+            
             for (const obs of obstacles) {
                 const closestX = Math.max(obs.xMin, Math.min(x, obs.xMax));
                 const closestY = Math.max(obs.yMin, Math.min(y, obs.yMax));
@@ -1817,7 +1822,7 @@
                 const distanceY = y - closestY;
                 const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
                 if (distanceSquared < (r * r)) {
-                    return true; // Va chạm với hành lang!
+                    return true; // Va chạm với hành lang/vật cản!
                 }
             }
             return false;
@@ -1855,7 +1860,7 @@
                     nextX = Math.max(38, Math.min(762, nextX));
                     nextY = Math.max(38, Math.min(562, nextY));
                     
-                    if (!checkCollision(nextX, nextY)) {
+                    if (!checkCollision(nextX, nextY, true)) {
                         hideBotCartPopover();
                         botX = nextX;
                         botY = nextY;
@@ -1880,7 +1885,7 @@
                     nextX = Math.max(38, Math.min(762, nextX));
                     nextY = Math.max(38, Math.min(562, nextY));
                     
-                    if (!checkCollision(nextX, nextY)) {
+                    if (!checkCollision(nextX, nextY, false)) {
                         staffX = nextX;
                         staffY = nextY;
                         
@@ -1915,7 +1920,7 @@
                 nextX = Math.max(38, Math.min(762, nextX));
                 nextY = Math.max(38, Math.min(562, nextY));
                 
-                if (!checkCollision(nextX, nextY)) {
+                if (!checkCollision(nextX, nextY, true)) {
                     hideBotCartPopover();
                     botX = nextX;
                     botY = nextY;
@@ -1943,7 +1948,7 @@
                 nextX = Math.max(38, Math.min(762, nextX));
                 nextY = Math.max(38, Math.min(562, nextY));
                 
-                if (!checkCollision(nextX, nextY)) {
+                if (!checkCollision(nextX, nextY, false)) {
                     staffX = nextX;
                     staffY = nextY;
                     
