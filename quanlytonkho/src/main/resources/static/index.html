@@ -1543,6 +1543,9 @@
                                 <!-- Bottom connector -->
                                 <rect x="598.5" y="76" width="1" height="2" fill="#ffaa00"/>
                             </g>
+                            
+                            <!-- SONAR WAVE CIRCLE (Child of staff bot for perfect hardware-accelerated sync) -->
+                            <circle id="sonar-wave" cx="580" cy="80" r="0" fill="none" stroke="none" style="display: none; pointer-events: none;"/>
                         </g>
 
                         <!-- LỐI VÀO KHO SAU (CỬA SAU) -->
@@ -1571,8 +1574,6 @@
                             </g>
                         </g>
 
-                        <!-- SONAR WAVE CIRCLE -->
-                        <circle id="sonar-wave" cx="0" cy="0" r="0" fill="none" stroke="none" style="display: none; pointer-events: none;"/>
                     </svg>
 
                     <!-- Security Alert Notification Overlay -->
@@ -2249,8 +2250,6 @@
             
             const wave = document.getElementById('sonar-wave');
             if (wave) {
-                wave.setAttribute('cx', staffX);
-                wave.setAttribute('cy', staffY);
                 wave.setAttribute('style', 'display: block; fill: rgba(255, 59, 48, 0.08); stroke: #ff3b30; stroke-width: 1.5;');
                 
                 // Expand radius
@@ -2320,8 +2319,9 @@
             document.getElementById('rfid-det-name').innerText = product.name;
             document.getElementById('rfid-det-sku').innerText = product.sku;
             
-            // Format sizes
-            const sizeStockText = `S: ${product.stockS || 0} | M: ${product.stockM || 0} | L: ${product.stockL || 0} | XL: ${product.stockXL || 0}`;
+            // Format sizes using getProductSizes
+            const sizes = getProductSizes(product);
+            const sizeStockText = `S: ${sizes['S'] || 0} | M: ${sizes['M'] || 0} | L: ${sizes['L'] || 0} | XL: ${sizes['XL'] || 0}`;
             document.getElementById('rfid-det-sizes').innerText = sizeStockText;
             
             // Time
