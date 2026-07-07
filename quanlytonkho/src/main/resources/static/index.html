@@ -1626,7 +1626,7 @@
                         <!-- Floor Outer Border -->
                         <rect x="20" y="20" width="760" height="560" fill="none" stroke="var(--border-hover)" stroke-width="2" rx="10"/>
 
-                        <!-- QUẦY THANH TOÁN #1 -->
+                        <!-- QUẦY THANH TOÁN -->
                         <g id="checkout-counter" class="sim-component">
                             <rect x="250" y="50" width="300" height="60" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="5"/>
                             <rect x="250" y="50" width="300" height="15" fill="var(--bg-sub-box)" opacity="0.8"/>
@@ -1727,7 +1727,7 @@
                             <circle cx="400" cy="510" r="16" id="bot-glow" class="bot-glow-idle"/>
                             <circle cx="400" cy="510" r="12" id="bot-body" class="bot-body-idle"/>
                             <!-- Image customer avatar icon -->
-                            <image href="/images/staff_avatar.png" x="388" y="498" width="24" height="24" style="pointer-events: none;" />
+                            <image href="/images/staff_avatar.png" x="388" y="498" width="24" height="24" />
                             <text x="400" y="486" id="bot-label" class="bot-text-label" text-anchor="middle">KHÁCH HÀNG</text>
                             
                             <!-- Bot Cart Icon: Top-Right of Bot, Clickable -->
@@ -1749,7 +1749,7 @@
                             <circle cx="580" cy="80" r="16" id="staff-glow" class="staff-glow-idle"/>
                             <circle cx="580" cy="80" r="12" id="staff-body" class="staff-body-idle"/>
                             <!-- Image staff avatar icon -->
-                            <image href="/images/staff_worker_avatar.png" x="568" y="68" width="24" height="24" style="pointer-events: none;" />
+                            <image href="/images/staff_worker_avatar.png" x="568" y="68" width="24" height="24" />
                             <text x="580" y="56" id="staff-label" class="bot-text-label" text-anchor="middle">NHÂN VIÊN</text>
                             
                             <!-- Small floating scanner accessory (only visible during active search) -->
@@ -3201,6 +3201,7 @@
                     method: 'POST'
                 });
                 if (response.ok) {
+                    hasCompletedSession = false;
                     await refreshAllData(false);
                     // Update stock displayed on popover immediately
                     const updatedProd = products.find(p => p.sku === currentNearbySku);
@@ -3417,6 +3418,7 @@
                 if (response.ok) {
                     setBotMode('COMPLETE');
                     document.getElementById('bot-status-text').innerText = `Thanh toán thành công bằng ${paymentMethod}! Hóa đơn đã ghi nhận.`;
+                    hasCompletedSession = true;
                     
                     if (currentTab === 'cart') {
                         document.getElementById('cart-payment-status').innerText = 'ĐÃ THANH TOÁN';
@@ -3854,6 +3856,7 @@
             document.getElementById('gate-light-right').classList.remove('gate-alarm-active');
             document.getElementById('security-alert').classList.add('hidden');
             hasAlertedSecurity = false;
+            hasCompletedSession = false;
             
             sessionCount = 0;
             isProcessingCheckout = false;
