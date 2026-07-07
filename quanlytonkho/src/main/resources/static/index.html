@@ -594,6 +594,15 @@
         .product-dot.picked {
             display: none !important;
         }
+        .product-icon {
+            display: none;
+        }
+        .has-product-data .product-icon {
+            display: block;
+        }
+        .product-icon.picked {
+            display: none !important;
+        }
         .dairy-color { fill: var(--color-cyan); background-color: var(--color-cyan); }
         .bev-color { fill: var(--color-green); background-color: var(--color-green); }
         .snack-color { fill: var(--color-amber); background-color: var(--color-amber); }
@@ -1356,12 +1365,6 @@
         .backroom-only-icons {
             display: none !important;
         }
-        .has-product-data:not(.view-backroom) .store-only-icons {
-            display: block !important;
-        }
-        .has-product-data.view-backroom .backroom-only-icons {
-            display: block !important;
-        }
         .view-backroom #aisle-dairy,
         .view-backroom #aisle-beverages,
         .view-backroom #aisle-snacks,
@@ -1403,6 +1406,13 @@
             stroke: #ffffff !important;
             stroke-width: 5px !important;
             filter: drop-shadow(0 0 8px #ff1f1f) drop-shadow(0 0 18px #ff1f1f) drop-shadow(0 0 28px #ffffff);
+            animation: scanned-flash 0.42s ease-in-out infinite alternate;
+        }
+        .product-icon.scanned-highlight path,
+        .product-icon.scanned-highlight rect {
+            stroke: #ff1f1f !important;
+            stroke-width: 3px !important;
+            filter: drop-shadow(0 0 8px #ff1f1f) drop-shadow(0 0 18px #ff1f1f);
             animation: scanned-flash 0.42s ease-in-out infinite alternate;
         }
         @keyframes product-halo-pulse {
@@ -2284,11 +2294,12 @@
         // Kiểm tra xem tọa độ (x, y) có va chạm với các hành lang (kệ hàng) hay không
         function checkCollision(x, y, isBot01 = false) {
             const r = 12; // Bán kính Bot
+            const backroomOffsetY = (currentMap === 'backroom') ? 60 : 0;
             const obstacles = [
-                { xMin: 60, xMax: 180, yMin: 160, yMax: 400 }, // Hành lang A
-                { xMin: 240, xMax: 360, yMin: 160, yMax: 400 }, // Hành lang B
-                { xMin: 420, xMax: 540, yMin: 160, yMax: 400 }, // Hành lang C
-                { xMin: 600, xMax: 720, yMin: 160, yMax: 400 }  // Hành lang D
+                { xMin: 60, xMax: 180, yMin: 160 + backroomOffsetY, yMax: 400 + backroomOffsetY }, // Hành lang A
+                { xMin: 240, xMax: 360, yMin: 160 + backroomOffsetY, yMax: 400 + backroomOffsetY }, // Hành lang B
+                { xMin: 420, xMax: 540, yMin: 160 + backroomOffsetY, yMax: 400 + backroomOffsetY }, // Hành lang C
+                { xMin: 600, xMax: 720, yMin: 160 + backroomOffsetY, yMax: 400 + backroomOffsetY }  // Hành lang D
             ];
             
             // Nếu là KHÁCH HÀNG, coi cửa Kho sau là vật cản
@@ -2692,20 +2703,26 @@
 
             if (isHighlighted) {
                 dot.classList.add('scanned-highlight');
-                dot.setAttribute('r', 12);
+                if (dot.tagName === 'circle') {
+                    dot.setAttribute('r', 12);
+                }
 
                 if (!existingHalo && dot.parentNode) {
                     const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     halo.setAttribute('id', haloId);
                     halo.setAttribute('class', 'product-highlight-halo');
-                    halo.setAttribute('cx', dot.getAttribute('cx'));
-                    halo.setAttribute('cy', dot.getAttribute('cy'));
+                    const cx = dot.getAttribute('cx') || dot.getAttribute('data-cx');
+                    const cy = dot.getAttribute('cy') || dot.getAttribute('data-cy');
+                    halo.setAttribute('cx', cx);
+                    halo.setAttribute('cy', cy);
                     halo.setAttribute('r', 18);
                     dot.parentNode.insertBefore(halo, dot);
                 }
             } else {
                 dot.classList.remove('scanned-highlight');
-                dot.setAttribute('r', 7);
+                if (dot.tagName === 'circle') {
+                    dot.setAttribute('r', 7);
+                }
                 if (existingHalo) existingHalo.remove();
             }
         }
@@ -2962,7 +2979,8 @@
                 }
                 const { cx, cy } = getProductCoordinates(prod);
                 const distance = Math.sqrt((currentX - cx) ** 2 + (currentY - cy) ** 2);
-                const limit = (selectedBot === 'staff') ? 52 : 45; // slightly larger for staff bot due to visual alignment
+                // Increase proximity threshold to 70px so the info card triggers when walking near the shelf boundary lines
+                const limit = 70;
                 if (distance < limit) {
                     nearbyProduct = prod;
                 }
@@ -3655,7 +3673,7 @@
             if (!svg) return;
             svg.classList.toggle('has-product-data', products.length > 0);
         }
-        // Dynamically render product dots on SVG shelves based on database records
+        // Dynamically render product icons on SVG shelves based on database records
         function renderSvgProducts() {
             const group = document.getElementById('dynamic-product-dots-group');
             group.innerHTML = '';
@@ -3668,23 +3686,83 @@
                 
                 // Color based on Aisle
                 let colorClass = 'dairy-color';
-                if (aisleIndex === 1) colorClass = 'bev-color';
-                if (aisleIndex === 2) colorClass = 'snack-color';
-                if (aisleIndex === 3) colorClass = 'pantry-color';
-                
-                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circle.setAttribute('cx', cx);
-                circle.setAttribute('cy', cy);
-                circle.setAttribute('r', 7);
-                circle.setAttribute('class', `product-dot ${colorClass}`);
-                circle.setAttribute('id', `prod-${prod.sku}`);
-                if (prod.stockQuantity <= 0) {
-                    circle.classList.add('picked');
+                let strokeColor = '#55613C'; // Aisle A (Green)
+                if (aisleIndex === 1) {
+                    colorClass = 'bev-color';
+                    strokeColor = '#2E4A6E'; // Aisle B (Navy)
+                } else if (aisleIndex === 2) {
+                    colorClass = 'snack-color';
+                    strokeColor = '#6D2E2E'; // Aisle C (Red)
+                } else if (aisleIndex === 3) {
+                    colorClass = 'pantry-color';
+                    strokeColor = '#8C6A2E'; // Aisle D (Gold)
                 }
-                group.appendChild(circle);
+                
+                const iconGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                iconGroup.setAttribute('class', `product-icon ${colorClass}`);
+                iconGroup.setAttribute('id', `prod-${prod.sku}`);
+                iconGroup.setAttribute('data-cx', cx);
+                iconGroup.setAttribute('data-cy', cy);
+                if (prod.stockQuantity <= 0) {
+                    iconGroup.classList.add('picked');
+                }
+                
+                if (currentMap === 'store') {
+                    if (aisleIndex === 0 || aisleIndex === 1 || aisleIndex === 2) {
+                        // Clothes Hanger Icon (móc áo)
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('d', `M ${cx - 12} ${cy + 5} L ${cx} ${cy - 5} L ${cx + 12} ${cy + 5} Z M ${cx} ${cy - 5} C ${cx} ${cy - 10} ${cx + 4} ${cy - 10} ${cx + 4} ${cy - 7}`);
+                        path.setAttribute('fill', 'none');
+                        path.setAttribute('stroke', strokeColor);
+                        path.setAttribute('stroke-width', '1.8');
+                        path.setAttribute('stroke-linecap', 'round');
+                        iconGroup.appendChild(path);
+                    } else if (aisleIndex === 3) {
+                        // Handbag Icon (túi xách / phụ kiện)
+                        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        rect.setAttribute('x', cx - 7);
+                        rect.setAttribute('y', cy - 3);
+                        rect.setAttribute('width', 14);
+                        rect.setAttribute('height', 10);
+                        rect.setAttribute('rx', 1.5);
+                        rect.setAttribute('fill', 'none');
+                        rect.setAttribute('stroke', strokeColor);
+                        rect.setAttribute('stroke-width', '1.8');
+                        iconGroup.appendChild(rect);
+
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('d', `M ${cx - 4} ${cy - 3} C ${cx - 4} ${cy - 7}, ${cx + 4} ${cy - 7}, ${cx + 4} ${cy - 3}`);
+                        path.setAttribute('fill', 'none');
+                        path.setAttribute('stroke', strokeColor);
+                        path.setAttribute('stroke-width', '1.8');
+                        iconGroup.appendChild(path);
+                    }
+                } else if (currentMap === 'backroom') {
+                    // Cardboard Storage Box Icon (hộp các-tông)
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', cx - 10);
+                    rect.setAttribute('y', cy - 8);
+                    rect.setAttribute('width', 20);
+                    rect.setAttribute('height', 16);
+                    rect.setAttribute('rx', 2);
+                    rect.setAttribute('fill', 'none');
+                    rect.setAttribute('stroke', strokeColor);
+                    rect.setAttribute('stroke-width', '1.8');
+                    rect.setAttribute('stroke-linejoin', 'round');
+                    iconGroup.appendChild(rect);
+
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', `M ${cx - 10} ${cy - 2} L ${cx + 10} ${cy - 2} M ${cx} ${cy - 8} L ${cx} ${cy - 2}`);
+                    path.setAttribute('stroke', strokeColor);
+                    path.setAttribute('stroke-width', '1.2');
+                    iconGroup.appendChild(path);
+                }
+                
+                group.appendChild(iconGroup);
+                
                 if (currentMap === 'backroom' && scanningActive && targetSearchSku === prod.sku) {
                     const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                    if (distance <= 100) setProductScannedHighlight(circle, true);
+                    if (distance <= 100) setProductScannedHighlight(iconGroup, true);
                 }
             });
         }
