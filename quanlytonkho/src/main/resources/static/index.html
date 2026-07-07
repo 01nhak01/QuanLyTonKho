@@ -1378,6 +1378,17 @@
         .view-backroom #rfid-scanner-station {
             display: block !important;
         }
+        
+        /* Map Decor Elements (Potted Plants/Trees) */
+        .backroom-only-decor {
+            display: none;
+        }
+        .view-backroom .store-only-decor {
+            display: none !important;
+        }
+        .view-backroom .backroom-only-decor {
+            display: block !important;
+        }
         .rfid-product-item:hover {
             border-color: var(--color-amber) !important;
             background: rgba(255, 170, 0, 0.05) !important;
@@ -1484,8 +1495,8 @@
             <header class="dashboard-header" style="border-bottom: 1px solid var(--border-color); padding: 20px 24px;">
                 <div class="header-main" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <div style="width:40px; height:40px; background:var(--bg-sub-box); border:1px solid var(--border-color); border-radius:10px; display:flex; align-items:center; justify-content:center; padding:5px;">
-                            <img src="https://download.logo.wine/logo/Zara_(retailer)/Zara_(retailer)-Logo.wine.png" style="width:100%; height:100%; object-fit:contain;" />
+                        <div style="width:56px; height:56px; background:var(--bg-sub-box); border:1px solid var(--border-color); border-radius:12px; display:flex; align-items:center; justify-content:center; padding:2px; overflow:hidden;">
+                            <img src="https://download.logo.wine/logo/Zara_(retailer)/Zara_(retailer)-Logo.wine.png" style="width:100%; height:100%; object-fit:contain; transform: scale(1.35);" />
                         </div>
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <span style="font-size:1.15rem; font-weight:800; color:var(--text-primary); letter-spacing:1px; line-height:1.2; font-family:var(--font-sans);">ZARA</span>
@@ -1631,7 +1642,7 @@
                         <g id="checkout-counter" class="sim-component">
                             <rect x="250" y="50" width="300" height="60" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="5"/>
                             <rect x="250" y="50" width="300" height="15" fill="var(--bg-sub-box)" opacity="0.8"/>
-                            <text x="400" y="90" class="svg-label font-mono" fill="var(--text-primary)" text-anchor="middle" letter-spacing="4">QUẦY THANH TOÁN #1</text>
+                            <text x="400" y="90" class="svg-label font-mono" fill="var(--text-primary)" text-anchor="middle" letter-spacing="4">QUẦY THANH TOÁN</text>
                         </g>
                         
                         <!-- AISLE A: DAIRY -->
@@ -1715,6 +1726,18 @@
                             <circle id="gate-light-left" cx="375" cy="450" r="4" fill="var(--text-dim)"/>
                             <circle id="gate-light-right" cx="425" cy="450" r="4" fill="var(--text-dim)"/>
                             <text x="400" y="440" class="svg-label-sub font-mono" fill="var(--text-secondary)" text-anchor="middle">CỔNG AN NINH</text>
+                        </g>
+
+                        <!-- DÉCOR TREES (CÂY TRANG TRÍ) -->
+                        <!-- Store Trees: 2 sides of checkout counter, 1 cell away -->
+                        <g class="store-only-decor">
+                            <image href="/images/tree.png" x="175" y="65" width="30" height="30" />
+                            <image href="/images/tree.png" x="595" y="65" width="30" height="30" />
+                        </g>
+
+                        <!-- Backroom Tree: Right side of RFID scanner, 2 cells away -->
+                        <g class="backroom-only-decor">
+                            <image href="/images/tree.png" x="435" y="35" width="30" height="30" />
                         </g>
 
                         <!-- DYNAMIC PRODUCT DOTS CONTAINER -->
@@ -2305,9 +2328,17 @@
                 obstacles.push({ xMin: 720, xMax: 780, yMin: 20, yMax: 90 });
             }
             
+            // Vật cản là cây trong cửa hàng
+            if (currentMap === 'store') {
+                obstacles.push({ xMin: 175, xMax: 205, yMin: 65, yMax: 95 });
+                obstacles.push({ xMin: 595, xMax: 625, yMin: 65, yMax: 95 });
+            }
+            
             // Cả hai bot đều coi trạm quét RFID là vật cản khi ở sơ đồ Kho sau.
             if (currentMap === 'backroom') {
                 obstacles.push({ xMin: 240, xMax: 350, yMin: 20, yMax: 80 });
+                // Cây bên phải máy quét RFID cầm tay (cách 2 ô)
+                obstacles.push({ xMin: 435, xMax: 465, yMin: 35, yMax: 65 });
             }
             
             for (const obs of obstacles) {
