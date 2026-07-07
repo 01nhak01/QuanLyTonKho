@@ -2990,6 +2990,19 @@
             }
         }
 
+        function showAlertNotification() {
+            const alertEl = document.getElementById('security-alert');
+            if (alertEl) alertEl.classList.remove('hidden');
+            
+            const leftLight = document.getElementById('gate-light-left');
+            const rightLight = document.getElementById('gate-light-right');
+            if (leftLight) leftLight.classList.add('gate-alarm-active');
+            if (rightLight) rightLight.classList.add('gate-alarm-active');
+            
+            // Switch dashboard tab to feed so the user sees the alert in the live event log
+            switchTab('feed');
+        }
+
         // Send security alarm events to the live logs
         async function triggerSecurityAlarmLog() {
             try {
