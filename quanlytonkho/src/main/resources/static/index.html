@@ -258,6 +258,14 @@
         .event-card:hover {
             border-color: var(--border-hover);
         }
+        .event-card.gate-alarm-active-card {
+            border: 2px solid #ff0050 !important;
+            animation: gate-card-blink 0.4s infinite alternate !important;
+        }
+        @keyframes gate-card-blink {
+            from { border-color: #ff0050; box-shadow: 0 0 10px rgba(255, 0, 80, 0.4); }
+            to { border-color: var(--border-color); box-shadow: none; }
+        }
         .event-header {
             display: flex;
             justify-content: space-between;
@@ -3117,6 +3125,7 @@
             
             // Switch dashboard tab to feed so the user sees the alert in the live event log
             switchTab('feed');
+            renderData();
         }
 
         function hideAlertNotification() {
@@ -3127,6 +3136,7 @@
             const rightLight = document.getElementById('gate-light-right');
             if (leftLight) leftLight.classList.remove('gate-alarm-active');
             if (rightLight) rightLight.classList.remove('gate-alarm-active');
+            renderData();
         }
 
         // Send security alarm events to the live logs
@@ -3829,8 +3839,10 @@
                         const timeStr = formatTimestamp(evt.timestamp);
                         const tagIdDisplay = evt.tagId === 'BOT-01' ? 'KHÁCH HÀNG' : (evt.tagId === 'staff' ? 'NHÂN VIÊN' : evt.tagId);
                         const messageDisplay = evt.message.replace(/BOT-01/g, 'KHÁCH HÀNG').replace(/staff/g, 'NHÂN VIÊN');
+                        const isAlarm = evt.tagId === 'SEC-ALARM';
+                        const alarmClass = (isAlarm && hasAlertedSecurity) ? ' gate-alarm-active-card' : '';
                         return `
-                            <div class="event-card">
+                            <div class="event-card${alarmClass}">
                                 <div class="event-header">
                                     <span class="event-tag"><i class="fa-solid fa-barcode"></i> ${tagIdDisplay}</span>
                                     <span class="event-time">${timeStr}</span>
