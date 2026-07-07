@@ -180,7 +180,7 @@ public class StoreService {
                 String location = "Khu Vực Quét";
                 if (baseSku.toLowerCase().startsWith("at")) {
                     location = "Hành lang A (Áo)";
-                } else if (baseSku.toLowerCase().startsWith("qj")) {
+                } else if (baseSku.toLowerCase().startsWith("qj") || baseSku.toLowerCase().startsWith("q-")) {
                     location = "Hành lang B (Quần)";
                 } else if (baseSku.toLowerCase().startsWith("ak")) {
                     location = "Hành lang C (Áo khoác)";
@@ -195,7 +195,7 @@ public class StoreService {
                 String location = "Khu Vực Quét";
                 if (baseSku.toLowerCase().startsWith("at")) {
                     location = "Hành lang A (Áo)";
-                } else if (baseSku.toLowerCase().startsWith("qj")) {
+                } else if (baseSku.toLowerCase().startsWith("qj") || baseSku.toLowerCase().startsWith("q-")) {
                     location = "Hành lang B (Quần)";
                 } else if (baseSku.toLowerCase().startsWith("ak")) {
                     location = "Hành lang C (Áo khoác)";

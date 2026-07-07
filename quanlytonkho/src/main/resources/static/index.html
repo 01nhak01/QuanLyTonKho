@@ -708,15 +708,15 @@
         /* Product Popover Card */
         .product-popover {
             position: absolute;
-            width: 200px;
+            width: 260px;
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             box-shadow: 0 12px 32px rgba(42, 36, 24, 0.12);
             display: flex;
             flex-direction: column;
-            padding: 12px;
-            gap: 10px;
+            padding: 14px;
+            gap: 12px;
             z-index: 100;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             transform: scale(0.9) translateY(-10px);
@@ -914,20 +914,92 @@
             color: var(--color-amber);
         }
         .popover-image-wrapper {
+            position: relative;
             width: 100%;
-            height: 100px;
+            height: 160px;
             background: var(--bg-sub-box);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .popover-image-wrapper img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+        .image-carousel-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .image-carousel-container::-webkit-scrollbar {
+            display: none;
+        }
+        .carousel-image {
+            width: 100%;
+            height: 100%;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+            object-fit: cover;
+        }
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.45);
+            color: #ffffff;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 10;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .carousel-arrow:hover {
+            background: rgba(0, 0, 0, 0.75);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .prev-arrow {
+            left: 8px;
+        }
+        .next-arrow {
+            right: 8px;
+        }
+        .carousel-dots {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 4px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3px 6px;
+            border-radius: 10px;
+            backdrop-filter: blur(4px);
+        }
+        .carousel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.45);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .carousel-dot.active {
+            background: #ffffff;
+            transform: scale(1.25);
         }
         .popover-info {
             display: flex;
@@ -935,25 +1007,25 @@
             gap: 4px;
         }
         .popover-title {
-            font-size: 0.82rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.3;
         }
         .popover-sku {
             font-family: var(--font-mono);
-            font-size: 0.68rem;
+            font-size: 0.72rem;
             color: var(--text-secondary);
         }
         .popover-price {
-            font-size: 0.9rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--color-green);
         }
         .popover-stock {
-            font-size: 0.72rem;
+            font-size: 0.76rem;
             color: var(--text-secondary);
         }
         .popover-cart-btn {
@@ -1096,9 +1168,9 @@
             background: var(--bg-sub-box);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            padding: 5px 3px;
+            padding: 6px 4px;
             border-radius: 4px;
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -1946,7 +2018,12 @@
                     <div id="product-popover" class="product-popover hidden">
                         <button class="close-popover-btn" onclick="hideProductPopover()">&times;</button>
                         <div class="popover-image-wrapper">
-                            <img id="popover-img" src="" alt="Product Image">
+                            <div class="image-carousel-container" id="popover-carousel-container">
+                                <img id="popover-img" src="" alt="Product Image">
+                            </div>
+                            <button class="carousel-arrow prev-arrow" id="popover-prev-btn" onclick="prevPopoverImage(event)">&lt;</button>
+                            <button class="carousel-arrow next-arrow" id="popover-next-btn" onclick="nextPopoverImage(event)">&gt;</button>
+                            <div class="carousel-dots" id="popover-carousel-dots"></div>
                         </div>
                         <div class="popover-info">
                             <div class="popover-title" id="popover-title">Tên sản phẩm</div>
@@ -2258,7 +2335,7 @@
             if (skuUpper.startsWith('AT')) {
                 aisleCode = 'AT';
                 aisleIndex = 0;
-            } else if (skuUpper.startsWith('QJ')) {
+            } else if (skuUpper.startsWith('QJ') || skuUpper.startsWith('Q-')) {
                 aisleCode = 'QJ';
                 aisleIndex = 1;
             } else if (skuUpper.startsWith('AK')) {
@@ -2272,7 +2349,7 @@
             const sameAisleProducts = products.filter(p => {
                 const pSku = (p.sku || '').toUpperCase();
                 return (aisleCode === 'AT' && pSku.startsWith('AT')) ||
-                       (aisleCode === 'QJ' && pSku.startsWith('QJ')) ||
+                       (aisleCode === 'QJ' && (pSku.startsWith('QJ') || pSku.startsWith('Q-'))) ||
                        (aisleCode === 'AK' && pSku.startsWith('AK')) ||
                        (aisleCode === 'PK' && pSku.startsWith('PK'));
             });
@@ -2310,6 +2387,12 @@
                     }
                 }
             });
+
+            // Attach scroll listener to carousel container for updates on horizontal scroll
+            const carouselContainer = document.getElementById('popover-carousel-container');
+            if (carouselContainer) {
+                carouselContainer.addEventListener('scroll', handleCarouselScroll);
+            }
         });
 
         // Kiểm tra xem tọa độ (x, y) có va chạm với các hành lang (kệ hàng) hay không
@@ -3105,6 +3188,92 @@
             }
         }
 
+        // Image Carousel State and Methods
+        let currentImageIndex = 0;
+        let popoverImages = [];
+
+        function parseProductImages(imageUrl) {
+            if (!imageUrl) return [];
+            const cleanUrl = imageUrl.trim();
+            // Handle Supabase array format {url1,url2,...}
+            if (cleanUrl.startsWith('{') && cleanUrl.endsWith('}')) {
+                return cleanUrl.slice(1, -1).split(',').map(url => url.trim()).filter(Boolean);
+            }
+            // Standard comma-separated fallback
+            if (cleanUrl.includes(',')) {
+                return cleanUrl.split(',').map(url => url.trim()).filter(Boolean);
+            }
+            return [cleanUrl];
+        }
+
+        function updateCarouselUI() {
+            const container = document.getElementById('popover-carousel-container');
+            const dots = document.querySelectorAll('.carousel-dot');
+            
+            // Update dots active class
+            dots.forEach((dot, index) => {
+                if (index === currentImageIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+
+            // Update arrow button visibility
+            const prevBtn = document.getElementById('popover-prev-btn');
+            const nextBtn = document.getElementById('popover-next-btn');
+            if (prevBtn && nextBtn) {
+                prevBtn.style.display = currentImageIndex > 0 ? 'flex' : 'none';
+                nextBtn.style.display = currentImageIndex < popoverImages.length - 1 ? 'flex' : 'none';
+            }
+        }
+
+        function handleCarouselScroll() {
+            const container = document.getElementById('popover-carousel-container');
+            if (!container) return;
+            const width = container.clientWidth;
+            if (width <= 0) return;
+            const newIndex = Math.round(container.scrollLeft / width);
+            if (newIndex !== currentImageIndex && newIndex >= 0 && newIndex < popoverImages.length) {
+                currentImageIndex = newIndex;
+                updateCarouselUI();
+            }
+        }
+
+        function prevPopoverImage(event) {
+            if (event) event.stopPropagation();
+            if (currentImageIndex > 0) {
+                currentImageIndex--;
+                scrollToImageIndex();
+            }
+        }
+
+        function nextPopoverImage(event) {
+            if (event) event.stopPropagation();
+            if (currentImageIndex < popoverImages.length - 1) {
+                currentImageIndex++;
+                scrollToImageIndex();
+            }
+        }
+
+        function scrollToImageIndex() {
+            const container = document.getElementById('popover-carousel-container');
+            if (container) {
+                const width = container.clientWidth;
+                container.scrollTo({
+                    left: currentImageIndex * width,
+                    behavior: 'smooth'
+                });
+                updateCarouselUI();
+            }
+        }
+
+        function selectDotImage(index, event) {
+            if (event) event.stopPropagation();
+            currentImageIndex = index;
+            scrollToImageIndex();
+        }
+
         // Show popover card with product details (dynamically positioned next to the robot)
         function showProductPopover(product) {
             hideBotCartPopover();
@@ -3196,9 +3365,36 @@
                 }
             }
             
-            // Render images dynamically from database image_url or fallback
-            let imgUrl = product.image_url || 'https://via.placeholder.com/200x100?text=RFID+Product';
-            document.getElementById('popover-img').src = imgUrl;
+            // Render images dynamically in carousel
+            popoverImages = parseProductImages(product.image_url);
+            if (popoverImages.length === 0) {
+                popoverImages = ['https://via.placeholder.com/260x160?text=RFID+Product'];
+            }
+            
+            currentImageIndex = 0;
+            
+            const carouselContainer = document.getElementById('popover-carousel-container');
+            if (carouselContainer) {
+                carouselContainer.innerHTML = popoverImages.map((img, idx) => `
+                    <img class="carousel-image" src="${img}" alt="Product Image ${idx + 1}" onerror="this.src='https://via.placeholder.com/260x160?text=Image+Error'">
+                `).join('');
+                carouselContainer.scrollLeft = 0;
+            }
+            
+            const dotsContainer = document.getElementById('popover-carousel-dots');
+            if (dotsContainer) {
+                if (popoverImages.length > 1) {
+                    dotsContainer.innerHTML = popoverImages.map((_, idx) => `
+                        <span class="carousel-dot ${idx === 0 ? 'active' : ''}" onclick="selectDotImage(${idx}, event)"></span>
+                    `).join('');
+                    dotsContainer.style.display = 'flex';
+                } else {
+                    dotsContainer.innerHTML = '';
+                    dotsContainer.style.display = 'none';
+                }
+            }
+            
+            updateCarouselUI();
             
             // Hide button if selected bot is staff
             const popoverCartBtn = document.getElementById('popover-cart-btn');
@@ -3220,12 +3416,13 @@
                 leftPct = ((activeX + 30) / 800) * 100;
             } else {
                 // If bot is on the right side of the store, place popover on the left
-                leftPct = ((activeX - 230) / 800) * 100;
+                leftPct = ((activeX - 290) / 800) * 100; // Adjusted for wider popover (260px width + 30px offset)
             }
+            leftPct = Math.max(2, Math.min(65.5, leftPct)); // Bounded within map
             
-            // Center the popover vertically relative to the bot, bounded within [10px, 350px]
-            let topVal = activeY - 110;
-            topVal = Math.max(10, Math.min(350, topVal));
+            // Center the popover vertically relative to the bot, bounded within [10px, 320px] (taller popover now)
+            let topVal = activeY - 140;
+            topVal = Math.max(10, Math.min(320, topVal));
             let topPct = (topVal / 600) * 100;
             
             popover.style.left = `${leftPct}%`;
