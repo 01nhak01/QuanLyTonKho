@@ -1055,22 +1055,23 @@
             top: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 0, 50, 0.15);
+            background: rgba(220, 0, 40, 0.95);
             backdrop-filter: blur(8px);
             border: 2px solid #ff0050;
             border-radius: 8px;
             padding: 12px 24px;
-            color: #ffb3c1;
+            color: #ffffff;
             font-family: var(--font-mono);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 700;
             display: flex;
             align-items: center;
             gap: 12px;
-            box-shadow: 0 0 20px rgba(255, 0, 80, 0.4);
+            box-shadow: 0 0 25px rgba(255, 0, 80, 0.6);
             z-index: 1000;
             animation: slide-down 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
         @keyframes slide-down {
             from { top: -60px; opacity: 0; }
@@ -2955,12 +2956,20 @@
                 }
                 
                 // RFID Security Gate: Center X = 400, Y = 480 (Directly in front of entrance)
-                const gateDist = Math.sqrt((botX - 400) ** 2 + (botY - 480) ** 2);
-                if (gateDist < 30) {
+                const inGateX = Math.abs(botX - 400) <= 35;
+                const inGateY = Math.abs(botY - 480) < 25;
+                const is2CellsAway = Math.abs(botX - 400) >= 80 || Math.abs(botY - 480) >= 80;
+
+                if (inGateX && inGateY) {
                     if (cart.count > 0 && !hasAlertedSecurity && !hasCompletedSession) {
                         hasAlertedSecurity = true;
                         showAlertNotification();
                         triggerSecurityAlarmLog();
+                    }
+                } else if (is2CellsAway) {
+                    if (hasAlertedSecurity) {
+                        hasAlertedSecurity = false;
+                        hideAlertNotification();
                     }
                 }
             }
@@ -2988,6 +2997,29 @@
             } else {
                 hideProductPopover();
             }
+        }
+
+        function showAlertNotification() {
+            const alertEl = document.getElementById('security-alert');
+            if (alertEl) alertEl.classList.remove('hidden');
+            
+            const leftLight = document.getElementById('gate-light-left');
+            const rightLight = document.getElementById('gate-light-right');
+            if (leftLight) leftLight.classList.add('gate-alarm-active');
+            if (rightLight) rightLight.classList.add('gate-alarm-active');
+            
+            // Switch dashboard tab to feed so the user sees the alert in the live event log
+            switchTab('feed');
+        }
+
+        function hideAlertNotification() {
+            const alertEl = document.getElementById('security-alert');
+            if (alertEl) alertEl.classList.add('hidden');
+            
+            const leftLight = document.getElementById('gate-light-left');
+            const rightLight = document.getElementById('gate-light-right');
+            if (leftLight) leftLight.classList.remove('gate-alarm-active');
+            if (rightLight) rightLight.classList.remove('gate-alarm-active');
         }
 
         // Send security alarm events to the live logs
