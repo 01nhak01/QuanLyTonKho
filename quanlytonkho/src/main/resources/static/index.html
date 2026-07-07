@@ -333,6 +333,8 @@
             padding: 3px 6px;
             border-radius: 3px;
             border: 1px solid var(--border-color);
+            white-space: nowrap;
+            display: inline-block;
         }
         .status-pill {
             font-size: 0.65rem;
@@ -3883,7 +3885,7 @@
                                 <td>${dynamicShelf}</td>
                                 <td class="font-mono">
                                     <strong style="color:var(--text-primary); font-size:13px;">${prod.stockQuantity}</strong>
-                                    <span style="display:block; font-size:10px; color:var(--text-secondary); margin-top:2px;">${sizeBreakdown}</span>
+                                    <span style="display:block; font-size:10px; color:var(--text-secondary); margin-top:2px; white-space:nowrap;">${sizeBreakdown}</span>
                                 </td>
                                 <td class="font-mono" style="color: var(--color-green); font-weight:600;">${prod.price.toLocaleString('vi-VN')} đ</td>
                                 <td><span class="tag-badge">${prod.sku}</span></td>
@@ -4035,7 +4037,12 @@
         function formatTimestamp(timestampStr) {
             if (!timestampStr) return '';
             try {
-                const date = new Date(timestampStr);
+                let cleanStr = timestampStr.trim();
+                // If there's no timezone offset and it's an ISO format, force parsing it as UTC
+                if (!cleanStr.endsWith('Z') && !cleanStr.includes('+') && cleanStr.includes('T')) {
+                    cleanStr += 'Z';
+                }
+                const date = new Date(cleanStr);
                 const options = {
                     timeZone: 'Asia/Ho_Chi_Minh',
                     hour: '2-digit',
