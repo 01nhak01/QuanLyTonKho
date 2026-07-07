@@ -2925,7 +2925,7 @@
                         const { cx, cy } = getProductCoordinates(product);
                         const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
                         
-                        const closeLimit = 52; // Proximity threshold (must be > 40px due to shelf collisions)
+                        const closeLimit = 70; // Proximity threshold (expanded so it triggers when close to shelf boundary lines)
                         if (distance <= closeLimit) {
                             // Arrived at product! Stop scanning now!
                             scanningActive = false;
