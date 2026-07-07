@@ -1127,23 +1127,23 @@
             top: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(220, 0, 40, 0.95);
+            background: rgba(255, 0, 20, 0.98);
             backdrop-filter: blur(8px);
-            border: 2px solid #ff0050;
+            border: 2px solid #ffffff;
             border-radius: 8px;
-            padding: 12px 24px;
+            padding: 14px 28px;
             color: #ffffff;
             font-family: var(--font-mono);
-            font-size: 0.9rem;
-            font-weight: 700;
+            font-size: 0.95rem;
+            font-weight: 800;
             display: flex;
             align-items: center;
             gap: 12px;
-            box-shadow: 0 0 25px rgba(255, 0, 80, 0.6);
+            box-shadow: 0 0 35px rgba(255, 0, 40, 0.9);
             z-index: 1000;
             animation: slide-down 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
         }
         @keyframes slide-down {
             from { top: -60px; opacity: 0; }
@@ -1779,25 +1779,21 @@
  
                         <!-- ENTRANCE (CỔNG VÀO) -->
                         <g id="store-entrance" class="sim-component">
-                            <rect x="330" y="525" width="140" height="45" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="5"/>
-                            <text x="400" y="553" class="svg-label font-mono bold" text-anchor="middle" fill="var(--text-primary)" letter-spacing="3">CỔNG VÀO</text>
-                            
-                            <!-- Circle base icon inside Entrance -->
-                            <circle cx="400" cy="510" r="12" fill="var(--bg-panel)" stroke="var(--color-cyan)" stroke-width="1.5"/>
-                            <path d="M 395 510 L 405 510 M 400 505 L 400 515" stroke="var(--color-cyan)" stroke-width="1.5"/>
+                            <rect x="360" y="530" width="80" height="45" fill="var(--bg-panel)" stroke="var(--border-color)" stroke-width="1.5" rx="5"/>
+                            <text x="400" y="557" class="svg-label font-mono bold" text-anchor="middle" fill="var(--text-primary)" letter-spacing="1">CỔNG VÀO</text>
                         </g>
                         <!-- RFID SECURITY GATE (CỔNG AN NINH) TRƯỚC CỔNG VÀO -->
                         <g id="security-gate" class="sim-component">
                             <!-- Left Pillar -->
-                            <rect x="371" y="455" width="8" height="50" fill="var(--bg-sub-box)" stroke="var(--border-color)" stroke-width="1.5" rx="2"/>
+                            <rect x="346" y="525" width="8" height="50" fill="var(--bg-sub-box)" stroke="var(--border-color)" stroke-width="1.5" rx="2"/>
                             <!-- Right Pillar -->
-                            <rect x="421" y="455" width="8" height="50" fill="var(--bg-sub-box)" stroke="var(--border-color)" stroke-width="1.5" rx="2"/>
+                            <rect x="446" y="525" width="8" height="50" fill="var(--bg-sub-box)" stroke="var(--border-color)" stroke-width="1.5" rx="2"/>
                             <!-- Passage space indicator -->
-                            <path d="M 379 480 L 421 480" stroke="var(--border-color)" stroke-dasharray="2 2"/>
+                            <path d="M 354 530 L 446 530" stroke="var(--border-color)" stroke-dasharray="2 2"/>
                             <!-- Alarm beacons on top -->
-                            <circle id="gate-light-left" cx="375" cy="450" r="4" fill="var(--text-dim)"/>
-                            <circle id="gate-light-right" cx="425" cy="450" r="4" fill="var(--text-dim)"/>
-                            <text x="400" y="440" class="svg-label-sub font-mono" fill="var(--text-secondary)" text-anchor="middle">CỔNG AN NINH</text>
+                            <circle id="gate-light-left" cx="350" cy="520" r="4" fill="var(--text-dim)"/>
+                            <circle id="gate-light-right" cx="450" cy="520" r="4" fill="var(--text-dim)"/>
+                            <text x="400" y="522" class="svg-label-sub font-mono" fill="var(--text-secondary)" text-anchor="middle">CỔNG AN NINH</text>
                         </g>
 
                         <!-- DÉCOR TREES (CÂY TRANG TRÍ) -->
@@ -1807,10 +1803,7 @@
                             <image href="/images/tree.png" x="595" y="65" width="30" height="30" />
                         </g>
 
-                        <!-- Backroom Tree: Right side of RFID scanner, 2 cells away -->
-                        <g class="backroom-only-decor">
-                            <image href="/images/tree.png" x="435" y="35" width="30" height="30" />
-                        </g>
+
 
                         <!-- DYNAMIC PRODUCT DOTS CONTAINER -->
                         <g id="dynamic-product-dots-group">
@@ -3069,10 +3062,10 @@
                     }
                 }
                 
-                // RFID Security Gate: Center X = 400, Y = 480 (Directly in front of entrance)
-                const inGateX = Math.abs(botX - 400) <= 35;
-                const inGateY = Math.abs(botY - 480) < 25;
-                const is2CellsAway = Math.abs(botX - 400) >= 80 || Math.abs(botY - 480) >= 80;
+                // RFID Security Gate: Center X = 400, Y = 530 (Directly in front of entrance)
+                const inGateX = Math.abs(botX - 400) <= 50;
+                const inGateY = Math.abs(botY - 530) < 25;
+                const is2CellsAway = Math.abs(botX - 400) >= 80 || Math.abs(botY - 530) >= 80;
 
                 if (inGateX && inGateY) {
                     if (cart.count > 0 && !hasAlertedSecurity && !hasCompletedSession) {
