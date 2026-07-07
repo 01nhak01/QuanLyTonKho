@@ -3073,17 +3073,16 @@
                 }
                 
                 // RFID Security Gate: Center X = 400, Y = 530 (Directly in front of entrance)
-                const inGateX = Math.abs(botX - 400) <= 50;
-                const inGateY = Math.abs(botY - 530) < 25;
-                const is2CellsAway = Math.abs(botX - 400) >= 80 || Math.abs(botY - 530) >= 80;
+                const gateDistance = Math.sqrt((botX - 400) ** 2 + (botY - 530) ** 2);
+                const inGateRange = gateDistance <= 100; // 2.5 cells (1 cell = 40px, 2.5 cells = 100px)
 
-                if (inGateX && inGateY) {
+                if (inGateRange) {
                     if (cart.count > 0 && !hasAlertedSecurity && !hasCompletedSession) {
                         hasAlertedSecurity = true;
                         showAlertNotification();
                         triggerSecurityAlarmLog();
                     }
-                } else if (is2CellsAway) {
+                } else {
                     if (hasAlertedSecurity) {
                         hasAlertedSecurity = false;
                         hideAlertNotification();
