@@ -1558,16 +1558,116 @@
             .product-popover {
                 width: 180px !important;
                 padding: 10px !important;
+                gap: 8px !important;
+                border-radius: 8px !important;
+            }
+            .popover-image-wrapper {
+                height: 110px !important;
+            }
+            .carousel-arrow {
+                width: 18px !important;
+                height: 18px !important;
+                font-size: 10px !important;
+            }
+            .popover-info {
+                gap: 2px !important;
             }
             .popover-title {
                 font-size: 11px !important;
+                margin-bottom: 2px !important;
+            }
+            .popover-sku {
+                font-size: 9px !important;
             }
             .popover-price {
                 font-size: 11px !important;
             }
+            .popover-stock {
+                font-size: 9px !important;
+            }
             .size-btn {
                 padding: 4px 6px !important;
                 font-size: 9px !important;
+            }
+            .popover-cart-btn {
+                padding: 6px 10px !important;
+                font-size: 10px !important;
+                gap: 4px !important;
+                border-radius: 4px !important;
+            }
+            .popover-size-section label {
+                font-size: 8px !important;
+                margin-bottom: 2px !important;
+            }
+            .close-popover-btn {
+                font-size: 0.95rem !important;
+                top: 4px !important;
+                right: 6px !important;
+            }
+
+            /* Bot Cart Popover scale styling for mobile */
+            .bot-cart-popover {
+                width: 180px !important;
+                padding: 10px !important;
+                gap: 8px !important;
+                border-radius: 8px !important;
+            }
+            .bot-cart-header {
+                padding: 0 12px 6px 0 !important;
+            }
+            .bot-cart-title {
+                font-size: 11px !important;
+                gap: 4px !important;
+            }
+            .bot-cart-list {
+                max-height: 120px !important;
+                gap: 4px !important;
+            }
+            .bot-cart-item {
+                padding: 4px 6px !important;
+                border-radius: 4px !important;
+            }
+            .bot-cart-item-info {
+                max-width: 120px !important;
+            }
+            .bot-cart-item-name {
+                font-size: 10px !important;
+            }
+            .bot-cart-item-meta {
+                font-size: 9px !important;
+            }
+            .bot-cart-item-remove {
+                font-size: 9px !important;
+                padding: 2px 4px !important;
+            }
+            .bot-cart-empty {
+                padding: 10px 4px !important;
+                font-size: 10px !important;
+            }
+
+            /* Khối phím di chuyển (D-pad) nhỏ lại phù hợp Mobile */
+            .control-pad {
+                bottom: 12px !important;
+                right: 12px !important;
+                padding: 8px !important;
+                gap: 4px !important;
+                border-radius: 12px !important;
+            }
+            .ctrl-row {
+                gap: 4px !important;
+            }
+            .ctrl-btn {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 0.85rem !important;
+                border-radius: 4px !important;
+            }
+
+            /* Hộp thoại thanh toán & các modals khác cho phù hợp Mobile */
+            .checkout-modal-card, .qr-scan-card {
+                max-width: 320px !important;
+                padding: 12px !important;
+                gap: 8px !important;
             }
         }
     </style>
@@ -3416,15 +3516,20 @@
             const activeX = (selectedBot === 'staff') ? staffX : botX;
             const activeY = (selectedBot === 'staff') ? staffY : botY;
             
+            const isMobile = window.matchMedia("(max-width: 900px) or (max-height: 550px)").matches;
+            const popoverWidth = isMobile ? 180 : 260;
+            
             let leftPct;
             if (activeX < 400) {
                 // If bot is on the left side of the store, place popover on the right
                 leftPct = ((activeX + 30) / 800) * 100;
             } else {
                 // If bot is on the right side of the store, place popover on the left
-                leftPct = ((activeX - 290) / 800) * 100; // Adjusted for wider popover (260px width + 30px offset)
+                leftPct = ((activeX - (popoverWidth + 30)) / 800) * 100; // Adjusted dynamically for popover width
             }
-            leftPct = Math.max(2, Math.min(65.5, leftPct)); // Bounded within map
+            // Bounded within map - on mobile, clamp leftPct higher to avoid clipping the right edge since width is smaller
+            const maxLeftPct = isMobile ? 72 : 65.5;
+            leftPct = Math.max(2, Math.min(maxLeftPct, leftPct));
             
             // Center the popover vertically relative to the bot, bounded within [10px, 320px] (taller popover now)
             let topVal = activeY - 140;
@@ -4253,11 +4358,14 @@
                 renderBotCartList();
                 
                 // Tính toán vị trí popover kế cận Bot
+                const isMobile = window.matchMedia("(max-width: 900px) or (max-height: 550px)").matches;
+                const popoverWidth = isMobile ? 180 : 260;
+                
                 let leftPct;
                 if (botX < 400) {
                     leftPct = ((botX + 30) / 800) * 100;
                 } else {
-                    leftPct = ((botX - 290) / 800) * 100;
+                    leftPct = ((botX - (popoverWidth + 30)) / 800) * 100;
                 }
                 
                 let topVal = botY - 110;
