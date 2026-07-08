@@ -2842,6 +2842,11 @@
         }
 
         // RFID Scanner Handlers
+        function getBackroomDisplayStock(prod) {
+            const moved = backroomMovedQty[prod.sku] || 0;
+            return Math.max(0, prod.stockQuantity - moved);
+        }
+
         function isRfidSearchLocked() {
             return rfidSearchInProgress || scanningActive || !!activeFoundSku;
         }
@@ -2849,8 +2854,8 @@
         function showRfidScannerModal() {
             if (isRfidSearchLocked()) {
                 const product = products.find(p => p.sku === targetSearchSku);
-                const productName = product ? product.name : 'sáº£n pháº©m Ä‘ang tÃ¬m';
-                document.getElementById('bot-status-text').innerText = `Äang tÃ¬m ${productName}. HÃ£y hoÃ n táº¥t sáº£n pháº©m nÃ y trÆ°á»›c khi tÃ¬m sáº£n pháº©m khÃ¡c.`;
+                const productName = product ? product.name : 'sản phẩm đang tìm';
+                document.getElementById('bot-status-text').innerText = `Đang tìm ${productName}. Hãy hoàn tất sản phẩm này trước khi tìm sản phẩm khác.`;
                 return;
             }
 
@@ -2859,19 +2864,19 @@
             
             const selector = document.getElementById('rfid-product-selector');
             if (selector) {
-                if (products.length === 0) {
-                    selector.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào</div>';
+                const scanableProducts = products.filter(p => getBackroomDisplayStock(p) > 0);
+                if (scanableProducts.length === 0) {
+                    selector.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào khả dụng trong kho sau</div>';
+                    selectedRfidSku = null;
                 } else {
-                    selector.innerHTML = products.map((prod, idx) => `
+                    selector.innerHTML = scanableProducts.map((prod, idx) => `
                         <div class="rfid-product-item ${idx === 0 ? 'selected' : ''}" onclick="selectRfidProduct('${prod.sku}')" id="rfid-item-${prod.sku}" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(7, 18, 32, 0.4); cursor:pointer; font-size:11px; display:flex; justify-content:space-between; align-items:center; transition: all 0.2s;">
                             <span>${prod.name}</span>
                             <span class="font-mono" style="color:var(--text-secondary); font-size:9px;">${prod.sku}</span>
                         </div>
                     `).join('');
                     
-                    if (products.length > 0) {
-                        selectedRfidSku = products[0].sku;
-                    }
+                    selectedRfidSku = scanableProducts[0].sku;
                 }
             }
             
