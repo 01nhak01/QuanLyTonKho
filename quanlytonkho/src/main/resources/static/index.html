@@ -2416,6 +2416,7 @@
         let sonarAnimationFrame = null;
         let currentFoundProduct = null;
         let isCarryingProduct = false;
+        let carryingSku = null;
         const addedToCartSkus = new Set();
         const backroomMovedQty = {};
         let activeFoundSku = null;
@@ -3090,6 +3091,7 @@
             if (!currentFoundProduct) return;
             
             isCarryingProduct = true;
+            carryingSku = currentFoundProduct.sku;
             backroomMovedQty[currentFoundProduct.sku] = (backroomMovedQty[currentFoundProduct.sku] || 0) + 1;
             renderSvgProducts();
             
@@ -3196,6 +3198,7 @@
             }
             
             isCarryingProduct = false;
+            carryingSku = null;
         }
 
         function setStaffMode(mode) {
@@ -3345,7 +3348,7 @@
             let nearbyProduct = null;
             products.forEach((prod) => {
                 const moved = backroomMovedQty[prod.sku] || 0;
-                const carried = (isCarryingProduct && currentFoundProduct && prod.sku === currentFoundProduct.sku) ? 1 : 0;
+                const carried = (isCarryingProduct && carryingSku && prod.sku === carryingSku) ? 1 : 0;
                 const cartItem = cart && cart.items ? cart.items.find(item => item.productId === prod.id) : null;
                 const inCart = cartItem ? cartItem.quantity : 0;
 
@@ -4233,7 +4236,7 @@
             
             products.forEach((prod) => {
                 const moved = backroomMovedQty[prod.sku] || 0;
-                const carried = (isCarryingProduct && currentFoundProduct && prod.sku === currentFoundProduct.sku) ? 1 : 0;
+                const carried = (isCarryingProduct && carryingSku && prod.sku === carryingSku) ? 1 : 0;
                 const cartItem = cart && cart.items ? cart.items.find(item => item.productId === prod.id) : null;
                 const inCart = cartItem ? cartItem.quantity : 0;
 
@@ -4434,6 +4437,7 @@
             hasAlertedSecurity = false;
             hasCompletedSession = false;
             addedToCartSkus.clear();
+            carryingSku = null;
             for (let k in backroomMovedQty) {
                 delete backroomMovedQty[k];
             }
