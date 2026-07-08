@@ -3134,110 +3134,17 @@
                     const staffBasket = document.getElementById('staff-basket');
                     if (staffBasket) staffBasket.style.display = 'block';
                     
-                    // 4. Start staff running to customer bot
-                    startStaffAutomationToCustomer();
+                    document.getElementById('bot-status-text').innerText = 'Hãy tự điều khiển Nhân viên đến chỗ Khách hàng để giao sản phẩm!';
                 }, 800);
             } else {
                 // Fallback if SVG not loaded
                 const staffBasket = document.getElementById('staff-basket');
                 if (staffBasket) staffBasket.style.display = 'block';
-                startStaffAutomationToCustomer();
+                document.getElementById('bot-status-text').innerText = 'Hãy tự điều khiển Nhân viên đến chỗ Khách hàng để giao sản phẩm!';
             }
-        }
-
-        function startStaffAutomationToCustomer() {
-            if (isStaffAutomatingToCustomer) return;
-            isStaffAutomatingToCustomer = true;
-            
-            setStaffMode('MOVING');
-            
-            staffAutomationInterval = setInterval(() => {
-                if (!isStaffAutomatingToCustomer) {
-                    clearInterval(staffAutomationInterval);
-                    return;
-                }
-                
-                if (currentMap === 'backroom') {
-                    let dx = 0;
-                    let dy = 0;
-                    const step = 20;
-                    
-                    if (staffY > 120) {
-                        dy = -step;
-                    } else {
-                        if (staffX > 80) {
-                            dx = -step;
-                        } else if (staffY > 80) {
-                            dy = -step;
-                        } else if (staffY < 80) {
-                            dy = step;
-                        }
-                    }
-                    
-                    let nextX = staffX + dx;
-                    let nextY = staffY + dy;
-                    nextX = Math.max(38, Math.min(762, nextX));
-                    nextY = Math.max(38, Math.min(562, nextY));
-                    
-                    if (!checkCollision(nextX, nextY, false)) {
-                        staffX = nextX;
-                        staffY = nextY;
-                        updateStaffPositionVisual(staffX, staffY);
-                        checkMapTransition();
-                    } else {
-                        staffX = 80;
-                        staffY = 80;
-                        updateStaffPositionVisual(staffX, staffY);
-                        checkMapTransition();
-                    }
-                } else {
-                    let dx = 0;
-                    let dy = 0;
-                    const step = 20;
-                    
-                    const distToCustomer = Math.sqrt((staffX - botX)**2 + (staffY - botY)**2);
-                    if (distToCustomer < 35) {
-                        completeProductDelivery();
-                        return;
-                    }
-                    
-                    if (staffY < 135) {
-                        dy = step;
-                    } else if (Math.abs(staffX - botX) > 15) {
-                        dx = staffX < botX ? step : -step;
-                    } else {
-                        dy = staffY < botY ? step : -step;
-                    }
-                    
-                    let nextX = staffX + dx;
-                    let nextY = staffY + dy;
-                    nextX = Math.max(38, Math.min(762, nextX));
-                    nextY = Math.max(38, Math.min(562, nextY));
-                    
-                    if (!checkCollision(nextX, nextY, false)) {
-                        staffX = nextX;
-                        staffY = nextY;
-                        updateStaffPositionVisual(staffX, staffY);
-                        checkProximityTriggers();
-                    } else {
-                        if (Math.abs(staffX - botX) > Math.abs(staffY - botY)) {
-                            staffX += staffX < botX ? 5 : -5;
-                        } else {
-                            staffY += staffY < botY ? 5 : -5;
-                        }
-                        updateStaffPositionVisual(staffX, staffY);
-                    }
-                }
-            }, 80);
         }
 
         async function completeProductDelivery() {
-            isStaffAutomatingToCustomer = false;
-            if (staffAutomationInterval) {
-                clearInterval(staffAutomationInterval);
-                staffAutomationInterval = null;
-            }
-            
             setStaffMode('IDLE');
             
             // Hide staff basket
@@ -3337,6 +3244,14 @@
 
         // Check if Bot is close to checkout (to pay) or individual product dots (to show info)
         function checkProximityTriggers() {
+            if (selectedBot === 'staff' && currentMap === 'store' && currentFoundProduct) {
+                const distanceToCustomer = Math.sqrt((staffX - botX) ** 2 + (staffY - botY) ** 2);
+                if (distanceToCustomer < 35) {
+                    completeProductDelivery();
+                    return;
+                }
+            }
+
             if (currentMap === 'backroom' && selectedBot === 'staff') {
                 // 1. Proximity to RFID Scanner Station (4 grid cells from the store door, centered at x=295, y=50)
                 const distStation = Math.sqrt((staffX - 295) ** 2 + (staffY - 50) ** 2);
