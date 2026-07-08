@@ -2419,8 +2419,7 @@
         let sonarRadius = 0;
         let sonarAnimationFrame = null;
         let currentFoundProduct = null;
-        let isStaffAutomatingToCustomer = false;
-        let staffAutomationInterval = null;
+        let isCarryingProduct = false;
         let activeFoundSku = null;
         let rfidSearchInProgress = false;
 
@@ -3082,6 +3081,9 @@
         async function collectProductAction() {
             if (!currentFoundProduct) return;
             
+            isCarryingProduct = true;
+            renderSvgProducts();
+            
             // 1. Close modal
             const modal = document.getElementById('rfid-details-modal');
             if (modal) {
@@ -3146,6 +3148,7 @@
 
         async function completeProductDelivery() {
             setStaffMode('IDLE');
+            isCarryingProduct = false;
             
             // Hide staff basket
             const staffBasket = document.getElementById('staff-basket');
@@ -4184,8 +4187,21 @@
             group.innerHTML = '';
             
             products.forEach((prod) => {
-                if (currentMap === 'store' && prod.stockQuantity <= 1) {
-                    return; // Hide products with stock <= 1 on store shelves
+                let displayStock = prod.stockQuantity;
+                if (isCarryingProduct && currentFoundProduct && prod.sku === currentFoundProduct.sku) {
+                    displayStock = Math.max(0, displayStock - 1);
+                }
+
+                // Subtract what is already in the customer's cart
+                if (cart && cart.items) {
+                    const cartItem = cart.items.find(item => item.productId === prod.id);
+                    if (cartItem) {
+                        displayStock = Math.max(0, displayStock - cartItem.quantity);
+                    }
+                }
+
+                if (currentMap === 'store' && displayStock <= 0) {
+                    return; // Hide products with stock <= 0 on store shelves
                 }
                 const { cx, cy, aisleIndex } = getProductCoordinates(prod);
                 
@@ -4208,7 +4224,7 @@
                 iconGroup.setAttribute('id', `prod-${prod.sku}`);
                 iconGroup.setAttribute('data-cx', cx);
                 iconGroup.setAttribute('data-cy', cy);
-                if (prod.stockQuantity <= 0) {
+                if (displayStock <= 0) {
                     iconGroup.classList.add('picked');
                 }
                 
