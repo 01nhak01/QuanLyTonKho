@@ -3156,26 +3156,28 @@
         }
 
         async function completeProductDelivery() {
+            if (!currentFoundProduct) return;
+            const productToDeliver = currentFoundProduct;
+            currentFoundProduct = null; // Reset immediately to prevent double-triggering
+            
             setStaffMode('IDLE');
             
             // Hide staff basket
             const staffBasket = document.getElementById('staff-basket');
             if (staffBasket) staffBasket.style.display = 'none';
             
-            if (!currentFoundProduct) return;
-            
             try {
                 // Determine size tag for clothing or use base SKU for accessories
-                const isAccessory = (currentFoundProduct.sku || '').toUpperCase().startsWith('PK');
-                let tagIdWithSize = currentFoundProduct.sku;
+                const isAccessory = (productToDeliver.sku || '').toUpperCase().startsWith('PK');
+                let tagIdWithSize = productToDeliver.sku;
                 if (!isAccessory) {
-                    const sizes = getProductSizes(currentFoundProduct);
+                    const sizes = getProductSizes(productToDeliver);
                     let selectedSize = 'M';
                     if (sizes.M > 0) selectedSize = 'M';
                     else if (sizes.S > 0) selectedSize = 'S';
                     else if (sizes.L > 0) selectedSize = 'L';
                     else if (sizes.XL > 0) selectedSize = 'XL';
-                    tagIdWithSize = `${currentFoundProduct.sku}-${selectedSize}`;
+                    tagIdWithSize = `${productToDeliver.sku}-${selectedSize}`;
                 }
                 
                 // Add product to customer's cart
@@ -3184,17 +3186,16 @@
                 });
                 
                 if (response.ok) {
-                    addedToCartSkus.add(currentFoundProduct.sku);
+                    addedToCartSkus.add(productToDeliver.sku);
                     hasCompletedSession = false;
                     await refreshAllData(false);
-                    document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${currentFoundProduct.name} cho khách hàng thành công!`;
+                    document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${productToDeliver.name} cho khách hàng thành công!`;
                 }
             } catch (e) {
                 console.error("Lỗi khi hoàn tất bàn giao sản phẩm:", e);
             }
             
             isCarryingProduct = false;
-            currentFoundProduct = null;
         }
 
         function setStaffMode(mode) {
