@@ -3335,8 +3335,28 @@
             
             let nearbyProduct = null;
             products.forEach((prod) => {
-                if (currentMap === 'store' && prod.stockQuantity <= 1) {
-                    return; // Ignore products that have stockQuantity <= 1 when checking store map proximity!
+                let displayStock = prod.stockQuantity;
+                if (isCarryingProduct && currentFoundProduct && prod.sku === currentFoundProduct.sku) {
+                    displayStock = Math.max(0, displayStock - 1);
+                }
+                if (cart && cart.items) {
+                    const cartItem = cart.items.find(item => item.productId === prod.id);
+                    if (cartItem) {
+                        displayStock = Math.max(0, displayStock - cartItem.quantity);
+                    }
+                }
+
+                if (currentMap === 'store') {
+                    if (displayStock <= 0) {
+                        return; // Ignore if displayStock is 0
+                    }
+                    if (prod.stockQuantity <= 1) {
+                        // Original behavior: ignore products with stock <= 1
+                        // Exception: show if this specific product was added to cart and then canceled (displayStock > 0)
+                        if (!addedToCartSkus.has(prod.sku)) {
+                            return;
+                        }
+                    }
                 }
                 const { cx, cy } = getProductCoordinates(prod);
                 const distance = Math.sqrt((currentX - cx) ** 2 + (currentY - cy) ** 2);
@@ -4081,23 +4101,37 @@
                 if (events.length === 0) {
                     feedContainer.innerHTML = '<div class="loading-placeholder">Chưa có sự kiện nào được ghi nhận.</div>';
                 } else {
-                    feedContainer.innerHTML = events.slice(0, 50).map(evt => {
-                        const timeStr = formatTimestamp(evt.timestamp);
-                        const tagIdDisplay = evt.tagId === 'BOT-01' ? 'KHÁCH HÀNG' : (evt.tagId === 'staff' ? 'NHÂN VIÊN' : evt.tagId);
-                        const messageDisplay = evt.message.replace(/BOT-01/g, 'KHÁCH HÀNG').replace(/staff/g, 'NHÂN VIÊN');
-                        const isAlarm = evt.tagId === 'SEC-ALARM';
-                        const alarmClass = (isAlarm && hasAlertedSecurity) ? ' gate-alarm-active-card' : '';
-                        return `
-                            <div class="event-card${alarmClass}">
-                                <div class="event-header">
-                                    <span class="event-tag"><i class="fa-solid fa-barcode"></i> ${tagIdDisplay}</span>
-                                    <span class="event-time">${timeStr}</span>
+                    const filteredEvents = events.filter(evt => {
+                        if (evt.message && evt.message.includes('(Thêm vào giỏ hàng)')) {
+                            const matchingProduct = products.find(p => p.sku === evt.tagId);
+                            if (matchingProduct) {
+                                return cart.items.some(item => item.productId === matchingProduct.id);
+                            }
+                        }
+                        return true;
+                    });
+                    
+                    if (filteredEvents.length === 0) {
+                        feedContainer.innerHTML = '<div class="loading-placeholder">Chưa có sự kiện nào được ghi nhận.</div>';
+                    } else {
+                        feedContainer.innerHTML = filteredEvents.slice(0, 50).map(evt => {
+                            const timeStr = formatTimestamp(evt.timestamp);
+                            const tagIdDisplay = evt.tagId === 'BOT-01' ? 'KHÁCH HÀNG' : (evt.tagId === 'staff' ? 'NHÂN VIÊN' : evt.tagId);
+                            const messageDisplay = evt.message.replace(/BOT-01/g, 'KHÁCH HÀNG').replace(/staff/g, 'NHÂN VIÊN');
+                            const isAlarm = evt.tagId === 'SEC-ALARM';
+                            const alarmClass = (isAlarm && hasAlertedSecurity) ? ' gate-alarm-active-card' : '';
+                            return `
+                                <div class="event-card${alarmClass}">
+                                    <div class="event-header">
+                                        <span class="event-tag"><i class="fa-solid fa-barcode"></i> ${tagIdDisplay}</span>
+                                        <span class="event-time">${timeStr}</span>
+                                    </div>
+                                    <div class="event-msg">${messageDisplay}</div>
+                                    <div class="event-loc"><i class="fa-solid fa-location-dot"></i> ${evt.location}</div>
                                 </div>
-                                <div class="event-msg">${messageDisplay}</div>
-                                <div class="event-loc"><i class="fa-solid fa-location-dot"></i> ${evt.location}</div>
-                            </div>
-                        `;
-                    }).join('');
+                            `;
+                        }).join('');
+                    }
                 }
             }
 
