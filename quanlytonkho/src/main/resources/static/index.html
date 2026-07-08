@@ -4065,6 +4065,16 @@
                 if (cartRes.ok) cart = await cartRes.json();
                 if (eventsRes.ok) events = await eventsRes.json();
 
+                // Synchronize backroomMovedQty from current cart items
+                if (cart && cart.items) {
+                    cart.items.forEach(item => {
+                        const matchingProduct = products.find(p => p.id === item.productId);
+                        if (matchingProduct) {
+                            backroomMovedQty[matchingProduct.sku] = Math.max(backroomMovedQty[matchingProduct.sku] || 0, item.quantity);
+                        }
+                    });
+                }
+
                 // Dynamic stock baseline configuration
                 products.forEach(prod => {
                     if (!(prod.sku in initialStocks)) {
