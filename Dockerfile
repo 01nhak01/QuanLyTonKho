@@ -15,4 +15,4 @@ COPY --from=build /app/target/*.jar app.jar
 # Render tự động gán cổng qua biến môi trường $PORT
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
+ENTRYPOINT ["sh", "-c", "java -XX:ActiveProcessorCount=1 -Xmx256m -Xms128m -XX:+UseG1GC -jar app.jar --server.port=${PORT:-8080}"]
