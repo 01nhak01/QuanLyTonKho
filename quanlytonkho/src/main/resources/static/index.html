@@ -2420,6 +2420,7 @@
         let sonarAnimationFrame = null;
         let currentFoundProduct = null;
         let isCarryingProduct = false;
+        const addedToCartSkus = new Set();
         let activeFoundSku = null;
         let rfidSearchInProgress = false;
 
@@ -3176,6 +3177,7 @@
                 });
                 
                 if (response.ok) {
+                    addedToCartSkus.add(currentFoundProduct.sku);
                     hasCompletedSession = false;
                     await refreshAllData(false);
                     document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${currentFoundProduct.name} cho khách hàng thành công!`;
@@ -3707,6 +3709,7 @@
                     method: 'POST'
                 });
                 if (response.ok) {
+                    addedToCartSkus.add(currentNearbySku);
                     hasCompletedSession = false;
                     await refreshAllData(false);
                     // Update stock displayed on popover immediately
@@ -4200,8 +4203,17 @@
                     }
                 }
 
-                if (currentMap === 'store' && displayStock <= 0) {
-                    return; // Hide products with stock <= 0 on store shelves
+                if (currentMap === 'store') {
+                    if (displayStock <= 0) {
+                        return; // Hide if displayStock is 0 (picked or in cart)
+                    }
+                    if (prod.stockQuantity <= 1) {
+                        // Original behavior: hide products with stock <= 1
+                        // Exception: show if this specific product was added to cart and then canceled (displayStock > 0)
+                        if (!addedToCartSkus.has(prod.sku)) {
+                            return;
+                        }
+                    }
                 }
                 const { cx, cy, aisleIndex } = getProductCoordinates(prod);
                 
@@ -4384,6 +4396,7 @@
             document.getElementById('security-alert').classList.add('hidden');
             hasAlertedSecurity = false;
             hasCompletedSession = false;
+            addedToCartSkus.clear();
             
             sessionCount = 0;
             isProcessingCheckout = false;
