@@ -3989,8 +3989,9 @@
                         const dynamicShelf = `Lối đi ${aisleLetter} (${aisleName}) - Kệ ${shelfPosition}`;
 
                         // Calculate size stock breakdown
+                        const isAccessory = (prod.sku || '').toUpperCase().startsWith('PK');
                         const sizes = getProductSizes(prod);
-                        const sizeBreakdown = `S:${sizes.S} | M:${sizes.M} | L:${sizes.L} | XL:${sizes.XL}`;
+                        const sizeBreakdown = isAccessory ? '' : `S:${sizes.S} | M:${sizes.M} | L:${sizes.L} | XL:${sizes.XL}`;
 
                         return `
                             <tr>
@@ -3998,7 +3999,7 @@
                                 <td>${dynamicShelf}</td>
                                 <td class="font-mono">
                                     <strong style="color:var(--text-primary); font-size:13px;">${prod.stockQuantity}</strong>
-                                    <span style="display:block; font-size:10px; color:var(--text-secondary); margin-top:2px; white-space:nowrap;">${sizeBreakdown}</span>
+                                    ${isAccessory ? '' : `<span style="display:block; font-size:10px; color:var(--text-secondary); margin-top:2px; white-space:nowrap;">${sizeBreakdown}</span>`}
                                 </td>
                                 <td class="font-mono" style="color: var(--color-green); font-weight:600;">${prod.price.toLocaleString('vi-VN')} đ</td>
                                 <td><span class="tag-badge">${prod.sku}</span></td>
