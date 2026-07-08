@@ -4334,8 +4334,10 @@
                 group.appendChild(iconGroup);
                 
                 if (currentMap === 'backroom' && scanningActive && targetSearchSku === prod.sku) {
-                    const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                    if (distance <= 100) setProductScannedHighlight(iconGroup, true);
+                    if (getBackroomDisplayStock(prod) > 0) {
+                        const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                        if (distance <= 100) setProductScannedHighlight(iconGroup, true);
+                    }
                 }
             });
         }
