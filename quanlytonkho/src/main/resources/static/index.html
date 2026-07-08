@@ -1975,6 +1975,14 @@
                             
                             <!-- SONAR WAVE CIRCLE (Child of staff bot for perfect hardware-accelerated sync) -->
                             <circle id="sonar-wave" cx="580" cy="80" r="0" fill="none" stroke="none" style="display: none; pointer-events: none;"/>
+
+                            <!-- Small basket icon attached to staff bot -->
+                            <g id="staff-basket" style="display: none; pointer-events: none;">
+                                <circle cx="598" cy="68" r="8" fill="#FDFBF2" stroke="#ffaa00" stroke-width="1.2"/>
+                                <path d="M 595 66 L 596 66 L 598 69 L 601 69 L 602 67 L 596 67" fill="none" stroke="#ffaa00" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="598" cy="70" r="0.8" fill="#ffaa00"/>
+                                <circle cx="600.5" cy="70" r="0.8" fill="#ffaa00"/>
+                            </g>
                         </g>
 
                         <!-- LỐI VÀO KHO SAU (CỬA SAU) -->
@@ -2325,8 +2333,8 @@
                                     <span id="rfid-det-time" class="font-mono" style="color:var(--text-primary);">-</span>
                                 </div>
                                 <div style="margin-top:8px;">
-                                    <button class="btn-pay-method" onclick="closeRfidDetails()" style="width:100%; padding:10px; background:rgba(255, 170, 0, 0.1); border:1px solid var(--color-amber); color:var(--color-amber); font-weight:bold; border-radius:6px; cursor:pointer;">
-                                        Xác Nhận
+                                    <button class="btn-pay-method" onclick="collectProductAction()" style="width:100%; padding:10px; background:rgba(255, 170, 0, 0.1); border:1px solid var(--color-amber); color:var(--color-amber); font-weight:bold; border-radius:6px; cursor:pointer;">
+                                        Lấy hàng
                                     </button>
                                 </div>
                             </div>
@@ -2410,6 +2418,9 @@
         let targetSearchSku = null;
         let sonarRadius = 0;
         let sonarAnimationFrame = null;
+        let currentFoundProduct = null;
+        let isStaffAutomatingToCustomer = false;
+        let staffAutomationInterval = null;
         let activeFoundSku = null;
         let rfidSearchInProgress = false;
 
@@ -3014,6 +3025,7 @@
         }
 
         function showRfidProductDetails(product) {
+            currentFoundProduct = product;
             const modal = document.getElementById('rfid-details-modal');
             if (!modal) return;
             
@@ -3065,6 +3077,204 @@
             activeFoundSku = null;
             targetSearchSku = null;
             rfidSearchInProgress = false;
+        }
+
+        async function collectProductAction() {
+            if (!currentFoundProduct) return;
+            
+            // 1. Close modal
+            const modal = document.getElementById('rfid-details-modal');
+            if (modal) {
+                modal.classList.remove('visible');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+            
+            // 2. Hide active scanning states
+            scanningActive = false;
+            const accessory = document.getElementById('staff-scanner-accessory');
+            if (accessory) accessory.style.display = 'none';
+            const wave = document.getElementById('sonar-wave');
+            if (wave) wave.setAttribute('style', 'display: none;');
+            
+            clearScannedHighlights();
+            activeFoundSku = null;
+            targetSearchSku = null;
+            rfidSearchInProgress = false;
+
+            // 3. Trigger floating basket animation from product coordinates to staff position
+            const { cx, cy } = getProductCoordinates(currentFoundProduct);
+            const svg = document.querySelector('.store-svg');
+            if (svg) {
+                const flyingBasket = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                flyingBasket.setAttribute('id', 'flying-basket');
+                flyingBasket.innerHTML = `
+                    <circle cx="${cx}" cy="${cy}" r="8" fill="#FDFBF2" stroke="#ffaa00" stroke-width="1.2"/>
+                    <path d="M ${cx - 3} ${cy - 2} L ${cx - 2} ${cy - 2} L ${cx} ${cy + 1} L ${cx + 3} ${cy + 1} L ${cx + 4} ${cy - 1} L ${cx - 2} ${cy - 1}" fill="none" stroke="#ffaa00" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="${cx}" cy="${cy + 2}" r="0.9" fill="#ffaa00"/>
+                    <circle cx="${cx + 2.5}" cy="${cy + 2}" r="0.9" fill="#ffaa00"/>
+                `;
+                flyingBasket.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                svg.appendChild(flyingBasket);
+                
+                // Force reflow
+                flyingBasket.getBoundingClientRect();
+                
+                // Animate to staff's current position
+                const dx = staffX - cx;
+                const dy = staffY - cy;
+                flyingBasket.style.transform = `translate(${dx}px, ${dy}px)`;
+                
+                setTimeout(() => {
+                    if (flyingBasket.parentNode) {
+                        flyingBasket.parentNode.removeChild(flyingBasket);
+                    }
+                    // Show staff basket
+                    const staffBasket = document.getElementById('staff-basket');
+                    if (staffBasket) staffBasket.style.display = 'block';
+                    
+                    // 4. Start staff running to customer bot
+                    startStaffAutomationToCustomer();
+                }, 800);
+            } else {
+                // Fallback if SVG not loaded
+                const staffBasket = document.getElementById('staff-basket');
+                if (staffBasket) staffBasket.style.display = 'block';
+                startStaffAutomationToCustomer();
+            }
+        }
+
+        function startStaffAutomationToCustomer() {
+            if (isStaffAutomatingToCustomer) return;
+            isStaffAutomatingToCustomer = true;
+            
+            setStaffMode('MOVING');
+            
+            staffAutomationInterval = setInterval(() => {
+                if (!isStaffAutomatingToCustomer) {
+                    clearInterval(staffAutomationInterval);
+                    return;
+                }
+                
+                if (currentMap === 'backroom') {
+                    let dx = 0;
+                    let dy = 0;
+                    const step = 20;
+                    
+                    if (staffY > 120) {
+                        dy = -step;
+                    } else {
+                        if (staffX > 80) {
+                            dx = -step;
+                        } else if (staffY > 80) {
+                            dy = -step;
+                        } else if (staffY < 80) {
+                            dy = step;
+                        }
+                    }
+                    
+                    let nextX = staffX + dx;
+                    let nextY = staffY + dy;
+                    nextX = Math.max(38, Math.min(762, nextX));
+                    nextY = Math.max(38, Math.min(562, nextY));
+                    
+                    if (!checkCollision(nextX, nextY, false)) {
+                        staffX = nextX;
+                        staffY = nextY;
+                        updateStaffPositionVisual(staffX, staffY);
+                        checkMapTransition();
+                    } else {
+                        staffX = 80;
+                        staffY = 80;
+                        updateStaffPositionVisual(staffX, staffY);
+                        checkMapTransition();
+                    }
+                } else {
+                    let dx = 0;
+                    let dy = 0;
+                    const step = 20;
+                    
+                    const distToCustomer = Math.sqrt((staffX - botX)**2 + (staffY - botY)**2);
+                    if (distToCustomer < 35) {
+                        completeProductDelivery();
+                        return;
+                    }
+                    
+                    if (staffY < 135) {
+                        dy = step;
+                    } else if (Math.abs(staffX - botX) > 15) {
+                        dx = staffX < botX ? step : -step;
+                    } else {
+                        dy = staffY < botY ? step : -step;
+                    }
+                    
+                    let nextX = staffX + dx;
+                    let nextY = staffY + dy;
+                    nextX = Math.max(38, Math.min(762, nextX));
+                    nextY = Math.max(38, Math.min(562, nextY));
+                    
+                    if (!checkCollision(nextX, nextY, false)) {
+                        staffX = nextX;
+                        staffY = nextY;
+                        updateStaffPositionVisual(staffX, staffY);
+                        checkProximityTriggers();
+                    } else {
+                        if (Math.abs(staffX - botX) > Math.abs(staffY - botY)) {
+                            staffX += staffX < botX ? 5 : -5;
+                        } else {
+                            staffY += staffY < botY ? 5 : -5;
+                        }
+                        updateStaffPositionVisual(staffX, staffY);
+                    }
+                }
+            }, 80);
+        }
+
+        async function completeProductDelivery() {
+            isStaffAutomatingToCustomer = false;
+            if (staffAutomationInterval) {
+                clearInterval(staffAutomationInterval);
+                staffAutomationInterval = null;
+            }
+            
+            setStaffMode('IDLE');
+            
+            // Hide staff basket
+            const staffBasket = document.getElementById('staff-basket');
+            if (staffBasket) staffBasket.style.display = 'none';
+            
+            if (!currentFoundProduct) return;
+            
+            try {
+                // Determine size tag for clothing or use base SKU for accessories
+                const isAccessory = (currentFoundProduct.sku || '').toUpperCase().startsWith('PK');
+                let tagIdWithSize = currentFoundProduct.sku;
+                if (!isAccessory) {
+                    const sizes = getProductSizes(currentFoundProduct);
+                    let selectedSize = 'M';
+                    if (sizes.M > 0) selectedSize = 'M';
+                    else if (sizes.S > 0) selectedSize = 'S';
+                    else if (sizes.L > 0) selectedSize = 'L';
+                    else if (sizes.XL > 0) selectedSize = 'XL';
+                    tagIdWithSize = `${currentFoundProduct.sku}-${selectedSize}`;
+                }
+                
+                // Add product to customer's cart
+                const response = await fetch(`${API_BASE}/cart/add?tagId=${tagIdWithSize}&sessionCode=${sessionCode}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    hasCompletedSession = false;
+                    await refreshAllData(false);
+                    document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${currentFoundProduct.name} cho khách hàng thành công!`;
+                }
+            } catch (e) {
+                console.error("Lỗi khi hoàn tất bàn giao sản phẩm:", e);
+            }
+            
+            currentFoundProduct = null;
         }
 
         function setStaffMode(mode) {

@@ -176,6 +176,14 @@ public class StoreService {
                 }
                 cartItemRepository.save(cartItem);
 
+                // Decrement size stock in product_sizes on Supabase immediately
+                int newSizeStock = Math.max(0, sizeStock - 1);
+                updateProductSizeStockOnSupabase(product.getId(), size, newSizeStock);
+
+                // Decrement overall product stock in products on Supabase immediately
+                int newProductStock = Math.max(0, product.getStockQuantity() - 1);
+                updateProductStockOnSupabase(product.getSku(), newProductStock);
+
                 // Map location dynamically in logs
                 String location = "Khu Vực Quét";
                 if (baseSku.toLowerCase().startsWith("at")) {
@@ -188,7 +196,7 @@ public class StoreService {
                     location = "Hành lang D (Phụ kiện)";
                 }
 
-                // Log event without decrementing database stock yet
+                // Log event
                 logEvent(baseSku, location, "Quét sản phẩm: " + cartItemName + " (Thêm vào giỏ hàng)", sess);
                 return cartItem;
             } else {
@@ -216,32 +224,6 @@ public class StoreService {
         if (!items.isEmpty()) {
             double total = items.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
             
-            // Loop through each cart item and update stock on Supabase
-            for (CartItem item : items) {
-                Product product = getProductByIdFromSupabase(item.getProductId());
-                if (product != null) {
-                    // Extract size
-                    String productName = item.getProductName();
-                    String size = null;
-                    if (productName.contains(" (Size ")) {
-                        int startIdx = productName.lastIndexOf(" (Size ") + 7;
-                        int endIdx = productName.lastIndexOf(")");
-                        if (endIdx > startIdx) {
-                            size = productName.substring(startIdx, endIdx);
-                        }
-                    }
-
-                    // Decrement size stock in product_sizes on Supabase
-                    int sizeStock = getProductSizeStockFromSupabase(product.getId(), size);
-                    int newSizeStock = Math.max(0, sizeStock - item.getQuantity());
-                    updateProductSizeStockOnSupabase(product.getId(), size, newSizeStock);
-
-                    // Decrement overall product stock in products on Supabase
-                    int newProductStock = Math.max(0, product.getStockQuantity() - item.getQuantity());
-                    updateProductStockOnSupabase(product.getSku(), newProductStock);
-                }
-            }
-
             // Log event
             logEvent("CHECKOUT", "Quầy Thanh Toán", "Thanh toán hoàn tất (" + paymentMethod + ") - Đã nhận: " + String.format("%,.0f", total) + " đ", sess);
             
