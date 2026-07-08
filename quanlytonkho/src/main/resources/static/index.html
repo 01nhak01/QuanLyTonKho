@@ -2864,19 +2864,18 @@
             
             const selector = document.getElementById('rfid-product-selector');
             if (selector) {
-                const scanableProducts = products.filter(p => getBackroomDisplayStock(p) > 0);
-                if (scanableProducts.length === 0) {
-                    selector.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào khả dụng trong kho sau</div>';
+                if (products.length === 0) {
+                    selector.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào</div>';
                     selectedRfidSku = null;
                 } else {
-                    selector.innerHTML = scanableProducts.map((prod, idx) => `
+                    selector.innerHTML = products.map((prod, idx) => `
                         <div class="rfid-product-item ${idx === 0 ? 'selected' : ''}" onclick="selectRfidProduct('${prod.sku}')" id="rfid-item-${prod.sku}" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(7, 18, 32, 0.4); cursor:pointer; font-size:11px; display:flex; justify-content:space-between; align-items:center; transition: all 0.2s;">
                             <span>${prod.name}</span>
                             <span class="font-mono" style="color:var(--text-secondary); font-size:9px;">${prod.sku}</span>
                         </div>
                     `).join('');
                     
-                    selectedRfidSku = scanableProducts[0].sku;
+                    selectedRfidSku = products[0].sku;
                 }
             }
             
@@ -3006,6 +3005,12 @@
             
             const product = products.find(p => p.sku === targetSearchSku);
             if (!product) return;
+            
+            // If the product is out of stock in the backroom, scanner cannot find it!
+            if (getBackroomDisplayStock(product) <= 0) {
+                document.getElementById('bot-status-text').innerText = `Đang dò tìm ${product.name}... (Không phát hiện tín hiệu ở kho sau)`;
+                return;
+            }
             
             const { cx, cy } = getProductCoordinates(product);
             const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
@@ -3152,7 +3157,6 @@
 
         async function completeProductDelivery() {
             setStaffMode('IDLE');
-            isCarryingProduct = false;
             
             // Hide staff basket
             const staffBasket = document.getElementById('staff-basket');
@@ -3189,6 +3193,7 @@
                 console.error("Lỗi khi hoàn tất bàn giao sản phẩm:", e);
             }
             
+            isCarryingProduct = false;
             currentFoundProduct = null;
         }
 
