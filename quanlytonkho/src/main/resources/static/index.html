@@ -682,7 +682,7 @@
         #staff-scanner-accessory:hover path {
             fill: #ff3b30 !important;
         }
-        #staff-scanner-accessory:hover rect:not([fill="transparent"]) {
+        #staff-scanner-accessory:hover rect:not(.scanner-hitbox) {
             fill: #ff3b30 !important;
         }
         #staff-scanner-accessory:hover path[stroke] {
@@ -1253,6 +1253,9 @@
             opacity: 1;
             pointer-events: auto;
         }
+        .hidden {
+            display: none !important;
+        }
         /* Special style for RFID Details Modal - no background blur or darken (Only for Inventory mode) */
         #rfid-details-modal.transparent-backdrop {
             position: absolute !important;
@@ -1266,6 +1269,9 @@
         }
         #rfid-details-modal.transparent-backdrop.visible {
             opacity: 1 !important;
+        }
+        #rfid-details-modal.transparent-backdrop.hidden {
+            display: none !important;
         }
         #rfid-details-modal.transparent-backdrop .checkout-modal-card {
             width: 100% !important;
@@ -2012,7 +2018,7 @@
                             <g id="staff-scanner-accessory" style="display: none; cursor: pointer;" onclick="handleStaffScannerClick(event)">
                                 <title>Nhấn vào đây để dừng/hủy quá trình kiểm kê</title>
                                 <!-- Transparent backing shape for easy click targeting -->
-                                <rect x="584" y="58" width="23" height="22" fill="transparent" pointer-events="all"/>
+                                <rect class="scanner-hitbox" x="580" y="54" width="32" height="32" fill="#ffffff" opacity="0" pointer-events="all"/>
                                 <!-- Slanted head -->
                                 <path d="M 590 60 L 602 60 C 604 60, 605 61, 605 63 C 605 65, 604 66, 602 66 L 591 66 Z" fill="#ffaa00"/>
                                 <path d="M 586 60 L 589 60 L 591 65 L 588 65 Z" fill="#ffaa00"/>
@@ -2878,11 +2884,19 @@
             }
             
             const dialogWidth = 340;
-            const dialogHeight = 170; // Approximate height for the list modal
+            // Use actual height if rendered, fallback to 170
+            const dialogHeight = modal.offsetHeight || 170;
             
-            // Center horizontally above the staff bot (staffX, staffY)
+            // Center horizontally
             let targetLeft = staffX - (dialogWidth / 2);
-            let targetTop = staffY - dialogHeight - 25; // 25px gap above the bot
+            let targetTop;
+            
+            // If staff bot is near the top of the map, place modal below the bot to avoid covering it
+            if (staffY < 220) {
+                targetTop = staffY + 35; // 35px gap below the bot
+            } else {
+                targetTop = staffY - dialogHeight - 25; // 25px gap above the bot
+            }
             
             // Constrain within the map container (800x600)
             targetLeft = Math.max(10, Math.min(800 - dialogWidth - 10, targetLeft));
@@ -3515,7 +3529,6 @@
             // Toggle transparent backdrop style based on inventory mode vs search mode
             if (isInventoryScanning) {
                 modal.classList.add('transparent-backdrop');
-                updateRfidDetailsModalPosition(); // Position immediately above the staff bot
             } else {
                 modal.classList.remove('transparent-backdrop');
                 modal.style.left = '';
@@ -3650,6 +3663,9 @@
             activeFoundSku = null;
 
             modal.classList.remove('hidden');
+            if (isInventoryScanning) {
+                updateRfidDetailsModalPosition(); // Position now that it is no longer display: none
+            }
             setTimeout(() => {
                 modal.classList.add('visible');
             }, 10);
