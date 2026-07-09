@@ -2544,6 +2544,7 @@
         let isCarryingProduct = false;
         let carryingSku = null;
         const addedToCartSkus = new Set();
+        const inTransitSkus = new Set();
         const backroomMovedQty = {};
         let activeFoundSku = null;
         let rfidSearchInProgress = false;
@@ -3765,6 +3766,8 @@
             currentFoundProduct = null; // Reset immediately to prevent double-triggering
             
             setStaffMode('IDLE');
+            inTransitSkus.add(productToDeliver.sku); // Mark as in transit so it stays hidden on shelves
+            renderSvgProducts();
             
             // Hide staff basket
             const staffBasket = document.getElementById('staff-basket');
@@ -3835,10 +3838,16 @@
                         if (response.ok) {
                             addedToCartSkus.add(productToDeliver.sku);
                             hasCompletedSession = false;
+                            inTransitSkus.delete(productToDeliver.sku); // Remove transit mark
                             await refreshAllData(false);
                             document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${productToDeliver.name} cho khách hàng thành công!`;
+                        } else {
+                            inTransitSkus.delete(productToDeliver.sku);
+                            renderSvgProducts();
                         }
                     } catch (e) {
+                        inTransitSkus.delete(productToDeliver.sku);
+                        renderSvgProducts();
                         console.error("Lỗi khi hoàn tất bàn giao sản phẩm:", e);
                     }
                 }, 800);
@@ -3864,10 +3873,14 @@
                     if (response.ok) {
                         addedToCartSkus.add(productToDeliver.sku);
                         hasCompletedSession = false;
+                        inTransitSkus.delete(productToDeliver.sku);
                         await refreshAllData(false);
                         document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${productToDeliver.name} cho khách hàng thành công!`;
+                    } else {
+                        inTransitSkus.delete(productToDeliver.sku);
                     }
                 } catch (e) {
+                    inTransitSkus.delete(productToDeliver.sku);
                     console.error("Lỗi khi hoàn tất bàn giao sản phẩm:", e);
                 }
             }
@@ -4026,6 +4039,7 @@
             products.forEach((prod) => {
                 const moved = backroomMovedQty[prod.sku] || 0;
                 const carried = (isCarryingProduct && carryingSku && prod.sku === carryingSku) ? 1 : 0;
+                const inTransit = inTransitSkus.has(prod.sku) ? 1 : 0;
                 const cartItem = cart && cart.items ? cart.items.find(item => item.productId === prod.id) : null;
                 const inCart = cartItem ? cartItem.quantity : 0;
 
@@ -4035,9 +4049,9 @@
                     displayStock = Math.max(0, prod.stockQuantity - moved);
                 } else if (currentMap === 'store') {
                     if (prod.stockQuantity > 1) {
-                        displayStock = Math.max(0, prod.stockQuantity - inCart - carried);
+                        displayStock = Math.max(0, prod.stockQuantity - inCart - carried - inTransit);
                     } else {
-                        displayStock = Math.max(0, moved - inCart - carried);
+                        displayStock = Math.max(0, moved - inCart - carried - inTransit);
                     }
                     
                     if (displayStock <= 0) {
