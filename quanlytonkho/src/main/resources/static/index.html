@@ -3204,23 +3204,20 @@
             const sizes = { 'S': 0, 'M': 0, 'L': 0, 'XL': 0 };
             list.forEach(ps => {
                 const sz = ps.size;
-                let qty = 0;
-                
-                const storageQty = ps.stockStorage !== undefined ? ps.stockStorage : ps.stock_storage;
-                const storeQty = ps.stockStore !== undefined ? ps.stockStore : ps.stock_store;
-                
+                let qty = null;
                 if (mapType === 'both') {
+                    // Cumulative stock_storage + stock_store
+                    const storageQty = ps.stockStorage !== undefined ? ps.stockStorage : ps.stock_storage;
+                    const storeQty = ps.stockStore !== undefined ? ps.stockStore : ps.stock_store;
                     qty = (storageQty || 0) + (storeQty || 0);
                 } else if (mapType === 'backroom') {
-                    qty = storageQty || 0;
-                } else if (mapType === 'store') {
-                    qty = storeQty || 0;
+                    qty = ps.stockStorage !== undefined ? ps.stockStorage : ps.stock_storage;
                 } else {
-                    // Default fallback to stockQuantity for normal views if mapType is not specified or other
+                    qty = ps.stockStore !== undefined ? ps.stockStore : ps.stock_store;
+                }
+                
+                if (qty === undefined || qty === null) {
                     qty = ps.stockQuantity !== undefined ? ps.stockQuantity : ps.stock_quantity;
-                    if (qty === undefined || qty === null) {
-                        qty = (storageQty || 0) + (storeQty || 0);
-                    }
                 }
                 sizes[sz] = qty || 0;
             });
