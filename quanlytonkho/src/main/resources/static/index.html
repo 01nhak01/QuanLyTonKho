@@ -3266,17 +3266,22 @@
                 
                 const wave = document.getElementById('sonar-wave');
                 if (wave) {
-                    // Both search and inventory use the same red wave style
-                    wave.setAttribute('style', 'display: block; fill: rgba(255, 59, 48, 0.15); stroke: #ff3b30; stroke-width: 3; pointer-events: none;');
-                    
                     // Expand radius
                     sonarRadius += 1.8;
-                    const maxRadius = isInventoryScanning ? 140 : 100;
+                    const maxRadius = 100;
                     if (sonarRadius > maxRadius) {
                         sonarRadius = 0;
                     }
+                    
+                    const opacityVal = 1 - (sonarRadius / maxRadius);
+                    if (isInventoryScanning) {
+                        // Glowing Red wave for Inventory (Identical to image 2)
+                        wave.setAttribute('style', `display: block; fill: rgba(255, 59, 48, 0.08); stroke: #ff3b30; stroke-width: 1.5; pointer-events: none; opacity: ${opacityVal};`);
+                    } else {
+                        // Glowing Red wave for Search (Identical to image 2)
+                        wave.setAttribute('style', `display: block; fill: rgba(255, 59, 48, 0.08); stroke: #ff3b30; stroke-width: 1.5; pointer-events: none; opacity: ${opacityVal};`);
+                    }
                     wave.setAttribute('r', sonarRadius);
-                    wave.setAttribute('opacity', 1 - (sonarRadius / maxRadius));
                 }
                 
                 if (isInventoryScanning) {
