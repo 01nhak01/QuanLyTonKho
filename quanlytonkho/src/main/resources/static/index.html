@@ -3736,9 +3736,9 @@
                 // Force reflow
                 flyingBasket.getBoundingClientRect();
                 
-                // Animate to staff's current position
-                const dx = staffX - cx;
-                const dy = staffY - cy;
+                // Animate to staff's current position (hand/basket offset)
+                const dx = (staffX + 18) - cx;
+                const dy = (staffY - 12) - cy;
                 flyingBasket.style.transform = `translate(${dx}px, ${dy}px)`;
                 
                 setTimeout(() => {
@@ -3774,8 +3774,8 @@
             carryingSku = null;
 
             // Tọa độ điểm bắt đầu (Nhân viên) và điểm kết thúc (Giỏ hàng của Khách hàng)
-            const startX = staffX;
-            const startY = staffY;
+            const startX = staffX + 18; // 18px lệch về bên phải so với tâm staffX để trùng vị trí giỏ hàng nhân viên cầm
+            const startY = staffY - 12; // 12px lệch lên trên so với tâm staffY để trùng vị trí giỏ hàng nhân viên cầm
             const endX = botX + 18; // 18px lệch về bên phải so với tâm botX
             const endY = botY - 12; // 12px lệch lên trên so với tâm botY
 
