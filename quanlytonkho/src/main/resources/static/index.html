@@ -1239,16 +1239,16 @@
             opacity: 1;
             pointer-events: auto;
         }
-        /* Special style for RFID Details Modal - no background blur or darken */
-        #rfid-details-modal {
+        /* Special style for RFID Details Modal - no background blur or darken (Only for Inventory mode) */
+        #rfid-details-modal.transparent-backdrop {
             background: transparent !important;
             backdrop-filter: none !important;
             pointer-events: none !important;
         }
-        #rfid-details-modal.visible {
+        #rfid-details-modal.transparent-backdrop.visible {
             opacity: 1 !important;
         }
-        #rfid-details-modal .checkout-modal-card {
+        #rfid-details-modal.transparent-backdrop .checkout-modal-card {
             pointer-events: auto !important;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
         }
@@ -2471,6 +2471,11 @@
 
     <!-- JS Logic inline -->
     <script>
+        // Polyfill for NodeList.prototype.forEach on older browsers
+        if (window.NodeList && !NodeList.prototype.forEach) {
+            NodeList.prototype.forEach = Array.prototype.forEach;
+        }
+        
         // Config and State
         const API_BASE = '/api';
         let sessionCode = 'SESSION-' + Math.random().toString(36).substring(2, 9).toUpperCase();
@@ -3013,7 +3018,7 @@
                     selectedRfidSku = null;
                 } else {
                     selector.innerHTML = availableProducts.map((prod, idx) => `
-                        <div class="rfid-product-item ${idx === 0 ? 'selected' : ''}" onclick="selectRfidProduct('${prod.sku}')" id="rfid-item-${prod.sku}" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(7, 18, 32, 0.4); cursor:pointer; font-size:11px; display:flex; justify-content:space-between; align-items:center; transition: all 0.2s;">
+                        <div class="rfid-product-item ${idx === 0 ? 'selected' : ''}" onclick="selectRfidProduct('${prod.sku}')" id="rfid-item-${prod.sku}" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; cursor:pointer; font-size:11px; display:flex; justify-content:space-between; align-items:center; transition: all 0.2s; color: var(--text-primary);">
                             <span>${prod.name}</span>
                             <span class="font-mono" style="color:var(--text-secondary); font-size:9px;">${prod.sku}</span>
                         </div>
@@ -3403,6 +3408,13 @@
             currentFoundProduct = product;
             const modal = document.getElementById('rfid-details-modal');
             if (!modal) return;
+            
+            // Toggle transparent backdrop style based on inventory mode vs search mode
+            if (isInventoryScanning) {
+                modal.classList.add('transparent-backdrop');
+            } else {
+                modal.classList.remove('transparent-backdrop');
+            }
             
             // Set product image
             const images = parseProductImages(product.image_url || product.imageUrl);
