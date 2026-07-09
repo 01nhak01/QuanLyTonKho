@@ -3110,6 +3110,7 @@
                 
                 clearScannedHighlights();
                 lastScannedSku = null;
+                closeRfidDetails(); // Close active transparent list overlay
                 
                 logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Hoàn tất tiến trình kiểm kê RFID.");
                 document.getElementById('bot-status-text').innerText = 'Đã hoàn tất kiểm kê RFID.';
@@ -3129,6 +3130,7 @@
             const accessory = document.getElementById('staff-scanner-accessory');
             if (accessory) accessory.style.display = 'none';
             clearScannedHighlights();
+            closeRfidDetails(); // Close active search details modal
             document.getElementById('bot-status-text').innerText = 'Đã hủy tìm kiếm sản phẩm.';
         }
 
@@ -3469,11 +3471,26 @@
                         ${scannedProducts.map(p => {
                             const targetMap = resolveScannedMapTypeForProduct(p.sku);
                             const qty = getProductInventoryTotalStock(p, targetMap);
+                            const isAccessory = (p.sku || '').toUpperCase().startsWith('PK');
+                            let sizeText = '';
+                            if (!isAccessory) {
+                                const sizes = getProductInventorySizes(p, targetMap);
+                                const sizeParts = Object.entries(sizes)
+                                    .filter(([size, sQty]) => sQty > 0)
+                                    .map(([size, sQty]) => `${size}:${sQty}`)
+                                    .join(' ');
+                                if (sizeParts) {
+                                    sizeText = `<span style="font-size: 9px; color: var(--text-secondary); margin-left: 6px;">(${sizeParts})</span>`;
+                                }
+                            }
                             return `
                                 <div style="padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(7, 18, 32, 0.02); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                                     <div style="display: flex; flex-direction: column; gap: 2px;">
                                         <span style="font-weight: bold; color: var(--text-primary); font-size: 11px;">${p.name}</span>
-                                        <span class="font-mono" style="color: var(--text-secondary); font-size: 9px;">Mã: ${p.sku}</span>
+                                        <div style="display: flex; align-items: center; flex-wrap: wrap;">
+                                            <span class="font-mono" style="color: var(--text-secondary); font-size: 9px;">Mã: ${p.sku}</span>
+                                            ${sizeText}
+                                        </div>
                                     </div>
                                     <div style="font-weight: bold; color: var(--color-amber); font-size: 11px; white-space: nowrap;">
                                         ${qty} chiếc
@@ -3481,11 +3498,6 @@
                                 </div>
                             `;
                         }).join('')}
-                    </div>
-                    <div id="rfid-det-action-container" style="margin-top:8px;">
-                        <button class="btn-pay-method" onclick="closeRfidDetails()" style="width:100%; padding:10px; background:var(--color-amber); border:none; color:#ffffff; font-weight:bold; border-radius:6px; cursor:pointer;">
-                            Xác nhận kiểm kê
-                        </button>
                     </div>
                 `;
             } else {
