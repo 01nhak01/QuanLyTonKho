@@ -3025,6 +3025,19 @@
             return Math.max(0, prod.stockQuantity - moved);
         }
 
+        function getStoreDisplayStock(prod) {
+            const moved = backroomMovedQty[prod.sku] || 0;
+            const carried = (isCarryingProduct && carryingSku && prod.sku === carryingSku) ? 1 : 0;
+            const inTransit = inTransitSkus.has(prod.sku) ? 1 : 0;
+            const cartItem = cart && cart.items ? cart.items.find(item => item.productId === prod.id) : null;
+            const inCart = cartItem ? cartItem.quantity : 0;
+            if (prod.stockQuantity > 1) {
+                return Math.max(0, prod.stockQuantity - inCart - carried - inTransit);
+            } else {
+                return Math.max(0, moved - inCart - carried - inTransit);
+            }
+        }
+
         function isRfidSearchLocked() {
             return rfidSearchInProgress || scanningActive || !!activeFoundSku;
         }
@@ -3444,7 +3457,14 @@
                             const { cx, cy } = getProductCoordinates(p);
                             const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
                             
-                            if (distance <= 70) {
+                            let displayStock = p.stockQuantity;
+                            if (currentMap === 'backroom') {
+                                displayStock = getBackroomDisplayStock(p);
+                            } else if (currentMap === 'store') {
+                                displayStock = getStoreDisplayStock(p);
+                            }
+                            
+                            if (distance <= 70 && displayStock > 0) {
                                 foundCloseProduct = p;
                                 break;
                             }
@@ -4037,26 +4057,15 @@
             
             let nearbyProduct = null;
             products.forEach((prod) => {
-                const moved = backroomMovedQty[prod.sku] || 0;
-                const carried = (isCarryingProduct && carryingSku && prod.sku === carryingSku) ? 1 : 0;
-                const inTransit = inTransitSkus.has(prod.sku) ? 1 : 0;
-                const cartItem = cart && cart.items ? cart.items.find(item => item.productId === prod.id) : null;
-                const inCart = cartItem ? cartItem.quantity : 0;
-
                 let displayStock = prod.stockQuantity;
-
                 if (currentMap === 'backroom') {
-                    displayStock = Math.max(0, prod.stockQuantity - moved);
+                    displayStock = getBackroomDisplayStock(prod);
                 } else if (currentMap === 'store') {
-                    if (prod.stockQuantity > 1) {
-                        displayStock = Math.max(0, prod.stockQuantity - inCart - carried - inTransit);
-                    } else {
-                        displayStock = Math.max(0, moved - inCart - carried - inTransit);
-                    }
-                    
-                    if (displayStock <= 0) {
-                        return; // Ignore if displayStock is 0
-                    }
+                    displayStock = getStoreDisplayStock(prod);
+                }
+                
+                if (displayStock <= 0) {
+                    return; // Ignore if displayStock is 0
                 }
                 const { cx, cy } = getProductCoordinates(prod);
                 const distance = Math.sqrt((currentX - cx) ** 2 + (currentY - cy) ** 2);
@@ -4940,26 +4949,15 @@
             group.innerHTML = '';
             
             products.forEach((prod) => {
-                const moved = backroomMovedQty[prod.sku] || 0;
-                const carried = (isCarryingProduct && carryingSku && prod.sku === carryingSku) ? 1 : 0;
-                const inTransit = inTransitSkus.has(prod.sku) ? 1 : 0;
-                const cartItem = cart && cart.items ? cart.items.find(item => item.productId === prod.id) : null;
-                const inCart = cartItem ? cartItem.quantity : 0;
-
                 let displayStock = prod.stockQuantity;
-
                 if (currentMap === 'backroom') {
-                    displayStock = Math.max(0, prod.stockQuantity - moved);
+                    displayStock = getBackroomDisplayStock(prod);
                 } else if (currentMap === 'store') {
-                    if (prod.stockQuantity > 1) {
-                        displayStock = Math.max(0, prod.stockQuantity - inCart - carried - inTransit);
-                    } else {
-                        displayStock = Math.max(0, moved - inCart - carried - inTransit);
-                    }
-                    
-                    if (displayStock <= 0) {
-                        return; // Hide if displayStock is 0 (not moved/picked/in cart)
-                    }
+                    displayStock = getStoreDisplayStock(prod);
+                }
+                
+                if (currentMap === 'store' && displayStock <= 0) {
+                    return; // Hide if displayStock is 0 (not moved/picked/in cart)
                 }
                 const { cx, cy, aisleIndex } = getProductCoordinates(prod);
                 
