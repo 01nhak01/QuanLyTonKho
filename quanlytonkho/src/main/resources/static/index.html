@@ -3044,7 +3044,10 @@
         }
 
         function startRfidInventory() {
-            if (isRfidSearchLocked()) return;
+            // Automatically cancel any active single-product search to release the lock
+            targetSearchSku = null;
+            activeFoundSku = null;
+            
             isInventoryScanning = true;
             scanningActive = true;
             sonarRadius = 0;
@@ -3250,71 +3253,76 @@
         }
 
         function runSonarAnimationLoop() {
-            if (!scanningActive) {
+            try {
+                if (!scanningActive) {
+                    const wave = document.getElementById('sonar-wave');
+                    if (wave) {
+                        wave.setAttribute('style', 'display: none; pointer-events: none;');
+                        wave.setAttribute('r', '0');
+                    }
+                    sonarAnimationFrame = null;
+                    return;
+                }
+                
                 const wave = document.getElementById('sonar-wave');
                 if (wave) {
-                    wave.setAttribute('style', 'display: none; pointer-events: none;');
-                    wave.setAttribute('r', '0');
-                }
-                sonarAnimationFrame = null;
-                return;
-            }
-            
-            const wave = document.getElementById('sonar-wave');
-            if (wave) {
-                // Both search and inventory use the same red wave style
-                wave.setAttribute('style', 'display: block; fill: rgba(255, 59, 48, 0.15); stroke: #ff3b30; stroke-width: 3; pointer-events: none;');
-                
-                // Expand radius
-                sonarRadius += 1.8;
-                const maxRadius = isInventoryScanning ? 140 : 100;
-                if (sonarRadius > maxRadius) {
-                    sonarRadius = 0;
-                }
-                wave.setAttribute('r', sonarRadius);
-                wave.setAttribute('opacity', 1 - (sonarRadius / maxRadius));
-            }
-            
-            if (isInventoryScanning) {
-                products.forEach(p => {
-                    const productDot = document.getElementById(`prod-${p.sku}`);
-                    if (productDot) {
-                        const { cx, cy } = getProductCoordinates(p);
-                        const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                        if (distance <= sonarRadius) {
-                            setProductScannedHighlight(productDot, true);
-                        }
+                    // Both search and inventory use the same red wave style
+                    wave.setAttribute('style', 'display: block; fill: rgba(255, 59, 48, 0.15); stroke: #ff3b30; stroke-width: 3; pointer-events: none;');
+                    
+                    // Expand radius
+                    sonarRadius += 1.8;
+                    const maxRadius = isInventoryScanning ? 140 : 100;
+                    if (sonarRadius > maxRadius) {
+                        sonarRadius = 0;
                     }
-                });
-
-                // Proximity check to trigger product details modal during inventory scanning
-                const detailsModal = document.getElementById('rfid-details-modal');
-                const isModalVisible = detailsModal && detailsModal.classList.contains('visible');
+                    wave.setAttribute('r', sonarRadius);
+                    wave.setAttribute('opacity', 1 - (sonarRadius / maxRadius));
+                }
                 
-                if (!isModalVisible) {
-                    for (const p of products) {
-                        const { cx, cy } = getProductCoordinates(p);
-                        const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                        
-                        if (distance <= 45) {
-                            if (lastScannedSku !== p.sku) {
-                                lastScannedSku = p.sku;
-                                showRfidProductDetails(p);
-                                break;
+                if (isInventoryScanning) {
+                    products.forEach(p => {
+                        const productDot = document.getElementById(`prod-${p.sku}`);
+                        if (productDot) {
+                            const { cx, cy } = getProductCoordinates(p);
+                            const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                            if (distance <= sonarRadius) {
+                                setProductScannedHighlight(productDot, true);
                             }
-                        } else if (lastScannedSku === p.sku && distance > 60) {
-                            lastScannedSku = null;
+                        }
+                    });
+
+                    // Proximity check to trigger product details modal during inventory scanning
+                    const detailsModal = document.getElementById('rfid-details-modal');
+                    const isModalVisible = detailsModal && detailsModal.classList.contains('visible');
+                    
+                    if (!isModalVisible) {
+                        for (const p of products) {
+                            const { cx, cy } = getProductCoordinates(p);
+                            const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                            
+                            if (distance <= 45) {
+                                if (lastScannedSku !== p.sku) {
+                                    lastScannedSku = p.sku;
+                                    showRfidProductDetails(p);
+                                    break;
+                                }
+                            } else if (lastScannedSku === p.sku && distance > 60) {
+                                lastScannedSku = null;
+                            }
                         }
                     }
+                } else {
+                    checkSearchProximity();
                 }
-            } else {
-                checkSearchProximity();
-            }
-            
-            if (scanningActive) {
-                sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
-            } else {
-                sonarAnimationFrame = null;
+                
+                if (scanningActive) {
+                    sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
+                } else {
+                    sonarAnimationFrame = null;
+                }
+            } catch (err) {
+                console.error("Lỗi vòng lặp sóng quét:", err);
+                document.getElementById('bot-status-text').innerText = "LỖI SÓNG QUÉT: " + err.message;
             }
         }
 
