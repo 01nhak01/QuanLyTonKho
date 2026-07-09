@@ -2967,11 +2967,11 @@
                 if (scanningActive && !isInventoryScanning) {
                     searchBtn.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Dừng tìm';
                     searchBtn.style.background = '#ff9f0a';
-                    searchBtn.setAttribute('onclick', 'cancelActiveSearch(); closeRfidScanner();');
+                    searchBtn.onclick = function() { cancelActiveSearch(); closeRfidScanner(); };
                 } else {
                     searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Tìm';
                     searchBtn.style.background = 'var(--color-amber)';
-                    searchBtn.setAttribute('onclick', 'startRfidSearch()');
+                    searchBtn.onclick = startRfidSearch;
                 }
             }
             
@@ -2981,11 +2981,11 @@
                 if (isInventoryScanning) {
                     invBtn.innerHTML = '<i class="fa-solid fa-circle-stop"></i> Dừng kiểm kê';
                     invBtn.style.background = '#ff3b30';
-                    invBtn.setAttribute('onclick', 'stopRfidInventory(); closeRfidScanner();');
+                    invBtn.onclick = function() { stopRfidInventory(); closeRfidScanner(); };
                 } else {
                     invBtn.innerHTML = '<i class="fa-solid fa-boxes-stacked"></i> Kiểm kê';
                     invBtn.style.background = 'var(--color-amber)';
-                    invBtn.setAttribute('onclick', 'startRfidInventory()');
+                    invBtn.onclick = startRfidInventory;
                 }
             }
 
