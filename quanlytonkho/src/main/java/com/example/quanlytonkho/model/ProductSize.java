@@ -15,6 +15,12 @@ public class ProductSize {
     @JsonProperty("stock_quantity")
     private Integer stockQuantity;
 
+    @JsonProperty("stock_storage")
+    private Integer stockStorage;
+
+    @JsonProperty("stock_store")
+    private Integer stockStore;
+
     public ProductSize() {
     }
 
@@ -23,6 +29,15 @@ public class ProductSize {
         this.productId = productId;
         this.size = size;
         this.stockQuantity = stockQuantity;
+    }
+
+    public ProductSize(Long id, Long productId, String size, Integer stockQuantity, Integer stockStorage, Integer stockStore) {
+        this.id = id;
+        this.productId = productId;
+        this.size = size;
+        this.stockQuantity = stockQuantity;
+        this.stockStorage = stockStorage;
+        this.stockStore = stockStore;
     }
 
     public Long getId() {
@@ -55,5 +70,21 @@ public class ProductSize {
 
     public void setStockQuantity(Integer stockQuantity) {
         this.stockQuantity = stockQuantity;
+    }
+
+    public Integer getStockStorage() {
+        return stockStorage;
+    }
+
+    public void setStockStorage(Integer stockStorage) {
+        this.stockStorage = stockStorage;
+    }
+
+    public Integer getStockStore() {
+        return stockStore;
+    }
+
+    public void setStockStore(Integer stockStore) {
+        this.stockStore = stockStore;
     }
 }
