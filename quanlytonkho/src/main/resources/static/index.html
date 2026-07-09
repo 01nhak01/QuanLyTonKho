@@ -3044,46 +3044,56 @@
         }
 
         function startRfidInventory() {
-            // Automatically cancel any active single-product search to release the lock
-            targetSearchSku = null;
-            activeFoundSku = null;
-            
-            isInventoryScanning = true;
-            scanningActive = true;
-            sonarRadius = 0;
-            rfidSearchInProgress = true;
-            lastScannedSku = null;
-            clearScannedHighlights();
-            closeRfidScanner();
-            
-            const accessory = document.getElementById('staff-scanner-accessory');
-            if (accessory) accessory.style.display = 'block';
-            
-            logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Bắt đầu tiến trình kiểm kê RFID...");
-            document.getElementById('bot-status-text').innerText = 'Đang tiến hành kiểm kê RFID... Di chuyển lại gần các kệ sản phẩm.';
-            
-            if (sonarAnimationFrame) {
-                cancelAnimationFrame(sonarAnimationFrame);
-                sonarAnimationFrame = null;
+            try {
+                // Automatically cancel any active single-product search to release the lock
+                targetSearchSku = null;
+                activeFoundSku = null;
+                
+                isInventoryScanning = true;
+                scanningActive = true;
+                sonarRadius = 0;
+                rfidSearchInProgress = true;
+                lastScannedSku = null;
+                clearScannedHighlights();
+                closeRfidScanner();
+                
+                const accessory = document.getElementById('staff-scanner-accessory');
+                if (accessory) accessory.style.display = 'block';
+                
+                logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Bắt đầu tiến trình kiểm kê RFID...");
+                document.getElementById('bot-status-text').innerText = 'Đang tiến hành kiểm kê RFID... Di chuyển lại gần các kệ sản phẩm.';
+                
+                if (sonarAnimationFrame) {
+                    cancelAnimationFrame(sonarAnimationFrame);
+                    sonarAnimationFrame = null;
+                }
+                sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
+            } catch (err) {
+                console.error("Lỗi khởi động kiểm kê:", err);
+                document.getElementById('bot-status-text').innerText = "LỖI BẮT ĐẦU KIỂM KÊ: " + err.message;
             }
-            sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
         }
 
         function stopRfidInventory() {
-            scanningActive = false;
-            isInventoryScanning = false;
-            rfidSearchInProgress = false;
-            
-            const accessory = document.getElementById('staff-scanner-accessory');
-            if (accessory) accessory.style.display = 'none';
-            
-            clearScannedHighlights();
-            lastScannedSku = null;
-            
-            logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Hoàn tất tiến trình kiểm kê RFID.");
-            document.getElementById('bot-status-text').innerText = 'Đã hoàn tất kiểm kê RFID.';
-            
-            showInventoryResultsModal();
+            try {
+                scanningActive = false;
+                isInventoryScanning = false;
+                rfidSearchInProgress = false;
+                
+                const accessory = document.getElementById('staff-scanner-accessory');
+                if (accessory) accessory.style.display = 'none';
+                
+                clearScannedHighlights();
+                lastScannedSku = null;
+                
+                logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Hoàn tất tiến trình kiểm kê RFID.");
+                document.getElementById('bot-status-text').innerText = 'Đã hoàn tất kiểm kê RFID.';
+                
+                showInventoryResultsModal();
+            } catch (err) {
+                console.error("Lỗi dừng kiểm kê:", err);
+                document.getElementById('bot-status-text').innerText = "LỖI DỪNG KIỂM KÊ: " + err.message;
+            }
         }
 
         function cancelActiveSearch() {
@@ -3852,6 +3862,18 @@
                 refreshAllData(false);
             } catch (e) {
                 console.error("Lỗi ghi nhận sự kiện cảnh báo an ninh:", e);
+            }
+        }
+
+        // Send custom RFID events to the live logs in database
+        async function logEvent(tagId, location, message) {
+            try {
+                await fetch(`${API_BASE}/events?tagId=${encodeURIComponent(tagId)}&location=${encodeURIComponent(location)}&message=${encodeURIComponent(message)}&sessionCode=${sessionCode}`, {
+                    method: 'POST'
+                });
+                refreshAllData(false);
+            } catch (e) {
+                console.error("Lỗi ghi nhận sự kiện:", e);
             }
         }
 
