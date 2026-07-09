@@ -3295,17 +3295,6 @@
                 }
                 
                 if (isInventoryScanning) {
-                    products.forEach(p => {
-                        const productDot = document.getElementById(`prod-${p.sku}`);
-                        if (productDot) {
-                            const { cx, cy } = getProductCoordinates(p);
-                            const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                            if (distance <= sonarRadius) {
-                                setProductScannedHighlight(productDot, true);
-                            }
-                        }
-                    });
-
                     // Proximity check to trigger product details modal during inventory scanning
                     const detailsModal = document.getElementById('rfid-details-modal');
                     const isModalVisible = detailsModal && detailsModal.classList.contains('visible');
@@ -3315,13 +3304,13 @@
                             const { cx, cy } = getProductCoordinates(p);
                             const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
                             
-                            if (distance <= 45) {
+                            if (distance <= 65) {
                                 if (lastScannedSku !== p.sku) {
                                     lastScannedSku = p.sku;
                                     showRfidProductDetails(p);
                                     break;
                                 }
-                            } else if (lastScannedSku === p.sku && distance > 60) {
+                            } else if (lastScannedSku === p.sku && distance > 80) {
                                 lastScannedSku = null;
                             }
                         }
