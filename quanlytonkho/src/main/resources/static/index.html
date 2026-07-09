@@ -675,23 +675,7 @@
         .staff-glow-moving { fill: var(--color-amber); fill-opacity: 0.15; }
         .staff-legend-dot { background-color: var(--color-amber); box-shadow: 0 0 6px var(--color-amber); }
 
-        /* Sonar wave styles */
-        #sonar-wave {
-            pointer-events: none;
-            display: none;
-        }
-        .wave-inventory {
-            display: block !important;
-            fill: rgba(255, 159, 10, 0.15) !important;
-            stroke: #ff9f0a !important;
-            stroke-width: 3px !important;
-        }
-        .wave-search {
-            display: block !important;
-            fill: rgba(255, 59, 48, 0.15) !important;
-            stroke: #ff3b30 !important;
-            stroke-width: 3px !important;
-        }
+
 
         .bot-text-label {
             fill: var(--text-primary);
@@ -3269,7 +3253,7 @@
             if (!scanningActive) {
                 const wave = document.getElementById('sonar-wave');
                 if (wave) {
-                    wave.className = '';
+                    wave.setAttribute('style', 'display: none; pointer-events: none;');
                     wave.setAttribute('r', '0');
                 }
                 sonarAnimationFrame = null;
@@ -3278,11 +3262,8 @@
             
             const wave = document.getElementById('sonar-wave');
             if (wave) {
-                if (isInventoryScanning) {
-                    wave.className = 'wave-inventory';
-                } else {
-                    wave.className = 'wave-search';
-                }
+                // Both search and inventory use the same red wave style
+                wave.setAttribute('style', 'display: block; fill: rgba(255, 59, 48, 0.15); stroke: #ff3b30; stroke-width: 3; pointer-events: none;');
                 
                 // Expand radius
                 sonarRadius += 1.8;
