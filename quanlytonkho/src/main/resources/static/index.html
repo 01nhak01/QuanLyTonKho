@@ -3333,7 +3333,7 @@
                         const { cx, cy } = getProductCoordinates(p);
                         const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
                         
-                        if (distance <= 75) {
+                        if (distance <= 70) {
                             foundCloseProduct = p;
                             break;
                         }
@@ -3351,7 +3351,7 @@
                             if (prevProduct) {
                                 const { cx, cy } = getProductCoordinates(prevProduct);
                                 const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                                if (distance > 90) {
+                                if (distance > 70) {
                                     lastScannedSku = null;
                                     if (isModalVisible) {
                                         closeRfidDetails();
