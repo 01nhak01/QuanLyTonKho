@@ -3628,6 +3628,36 @@
             }
         }
 
+        function updateRfidTriggerButton() {
+            const triggerPanel = document.getElementById('rfid-trigger-panel');
+            if (!triggerPanel) return;
+            
+            if (selectedBot === 'staff') {
+                triggerPanel.style.display = 'block';
+                if (isInventoryScanning) {
+                    triggerPanel.innerHTML = `
+                        <button class="btn-pay-method" onclick="stopRfidInventory()" style="width: 100%; font-size: 11px; padding: 8px 10px; background: #ff3b30; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(255, 59, 48, 0.2);">
+                            <i class="fa-solid fa-circle-stop"></i> Dừng kiểm kê
+                        </button>
+                    `;
+                } else if (scanningActive && !isInventoryScanning) {
+                    triggerPanel.innerHTML = `
+                        <button class="btn-pay-method" onclick="cancelActiveSearch()" style="width: 100%; font-size: 11px; padding: 8px 10px; background: #ff9f0a; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(255, 159, 10, 0.2);">
+                            <i class="fa-solid fa-circle-xmark"></i> Hủy tìm kiếm
+                        </button>
+                    `;
+                } else {
+                    triggerPanel.innerHTML = `
+                        <button class="btn-pay-method" onclick="showRfidScannerModal()" style="width: 100%; font-size: 11px; padding: 8px 10px; background: var(--color-amber); color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(140, 106, 46, 0.2);">
+                            <i class="fa-solid fa-satellite-dish"></i> Máy quét RFID
+                        </button>
+                    `;
+                }
+            } else {
+                triggerPanel.style.display = 'none';
+            }
+        }
+
         function selectBot(botId) {
             selectedBot = botId;
             const botRing = document.getElementById('bot-select-ring');
