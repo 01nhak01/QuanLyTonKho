@@ -675,6 +675,24 @@
         .staff-glow-moving { fill: var(--color-amber); fill-opacity: 0.15; }
         .staff-legend-dot { background-color: var(--color-amber); box-shadow: 0 0 6px var(--color-amber); }
 
+        /* Sonar wave styles */
+        #sonar-wave {
+            pointer-events: none;
+            display: none;
+        }
+        .wave-inventory {
+            display: block !important;
+            fill: rgba(255, 159, 10, 0.15) !important;
+            stroke: #ff9f0a !important;
+            stroke-width: 3px !important;
+        }
+        .wave-search {
+            display: block !important;
+            fill: rgba(255, 59, 48, 0.15) !important;
+            stroke: #ff3b30 !important;
+            stroke-width: 3px !important;
+        }
+
         .bot-text-label {
             fill: var(--text-primary);
             font-family: var(--font-mono);
@@ -3246,7 +3264,10 @@
         function runSonarAnimationLoop() {
             if (!scanningActive) {
                 const wave = document.getElementById('sonar-wave');
-                if (wave) wave.setAttribute('style', 'display: none;');
+                if (wave) {
+                    wave.className = '';
+                    wave.setAttribute('r', '0');
+                }
                 sonarAnimationFrame = null;
                 return;
             }
@@ -3254,9 +3275,9 @@
             const wave = document.getElementById('sonar-wave');
             if (wave) {
                 if (isInventoryScanning) {
-                    wave.setAttribute('style', 'display: block; fill: rgba(255, 170, 0, 0.08); stroke: var(--color-amber); stroke-width: 1.5; pointer-events: none;');
+                    wave.className = 'wave-inventory';
                 } else {
-                    wave.setAttribute('style', 'display: block; fill: rgba(255, 59, 48, 0.08); stroke: #ff3b30; stroke-width: 1.5; pointer-events: none;');
+                    wave.className = 'wave-search';
                 }
                 
                 // Expand radius
