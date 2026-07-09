@@ -2978,6 +2978,8 @@
         }
 
         function showRfidScannerModal() {
+            closeRfidDetails(); // Prevent details modal overlay from blocking scanner clicks
+            
             const modal = document.getElementById('rfid-scanner-modal');
             if (!modal) return;
             
@@ -3425,6 +3427,8 @@
         }
 
         function showRfidProductDetails(product) {
+            closeRfidScanner(); // Prevent scanner modal from conflicting with details modal
+            
             currentFoundProduct = product;
             const modal = document.getElementById('rfid-details-modal');
             if (!modal) return;
