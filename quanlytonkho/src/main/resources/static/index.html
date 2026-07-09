@@ -2616,7 +2616,8 @@
 
         // Kiểm tra xem tọa độ (x, y) có va chạm với các hành lang (kệ hàng) hay không
         function checkCollision(x, y, isBot01 = false) {
-            const r = 12; // Bán kính Bot
+            // Giảm bán kính va chạm ở sơ đồ kho sau để nhân viên di chuyển trái phải được trong hành lang
+            const r = (currentMap === 'backroom') ? 8 : 12;
             const backroomOffsetY = (currentMap === 'backroom') ? 60 : 0;
             const obstacles = [
                 { xMin: 60, xMax: 180, yMin: 160 + backroomOffsetY, yMax: 400 + backroomOffsetY }, // Hành lang A
@@ -3324,41 +3325,47 @@
                 }
                 
                 if (isInventoryScanning) {
-                    // Proximity check to trigger product details modal during inventory scanning
-                    const detailsModal = document.getElementById('rfid-details-modal');
-                    const isModalVisible = detailsModal && detailsModal.classList.contains('visible');
+                    // Check if the main RFID scanner settings modal is currently open
+                    const scannerModal = document.getElementById('rfid-scanner-modal');
+                    const isScannerOpen = scannerModal && scannerModal.classList.contains('visible');
                     
-                    let foundCloseProduct = null;
-                    for (const p of products) {
-                        const { cx, cy } = getProductCoordinates(p);
-                        const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                    if (!isScannerOpen) {
+                        // Proximity check to trigger product details modal during inventory scanning
+                        const detailsModal = document.getElementById('rfid-details-modal');
+                        const isModalVisible = detailsModal && detailsModal.classList.contains('visible');
                         
-                        if (distance <= 70) {
-                            foundCloseProduct = p;
-                            break;
+                        let foundCloseProduct = null;
+                        for (const p of products) {
+                            const { cx, cy } = getProductCoordinates(p);
+                            const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                            
+                            if (distance <= 70) {
+                                foundCloseProduct = p;
+                                break;
+                            }
                         }
-                    }
-                    
-                    if (foundCloseProduct) {
-                        if (lastScannedSku !== foundCloseProduct.sku) {
-                            lastScannedSku = foundCloseProduct.sku;
-                            showRfidProductDetails(foundCloseProduct);
-                        }
-                    } else {
-                        // Check if we need to reset/close details because we walked away
-                        if (lastScannedSku) {
-                            const prevProduct = products.find(p => p.sku === lastScannedSku);
-                            if (prevProduct) {
-                                const { cx, cy } = getProductCoordinates(prevProduct);
-                                const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                                if (distance > 70) {
-                                    lastScannedSku = null;
-                                    if (isModalVisible) {
-                                        closeRfidDetails();
+                        
+                        if (foundCloseProduct) {
+                            if (lastScannedSku !== foundCloseProduct.sku) {
+                                lastScannedSku = foundCloseProduct.sku;
+                                showRfidProductDetails(foundCloseProduct);
+                            }
+                        } else {
+                            // Check if we need to reset/close details because we walked away
+                            if (lastScannedSku) {
+                                const prevProduct = products.find(p => p.sku === lastScannedSku);
+                                if (prevProduct) {
+                                    const { cx, cy } = getProductCoordinates(prevProduct);
+                                    const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                                    if (distance > 70) {
+                                        lastScannedSku = null;
+                                        if (isModalVisible) {
+                                            closeRfidDetails();
+                                        }
                                     }
+                                } else {
+                                    lastScannedSku = null;
                                 }
-                            } else {
-                                lastScannedSku = null;
                             }
                         }
                     }
