@@ -2418,12 +2418,6 @@
 
                     <!-- Control Pad D-Pad (Thủ công) -->
                     <div class="control-pad">
-                        <!-- RFID Scanner Trigger Button (Visible when Staff is selected) -->
-                        <div id="rfid-trigger-panel" style="display: none; margin-bottom: 6px; width: 100%;">
-                            <button class="btn-pay-method" onclick="showRfidScannerModal()" style="width: 100%; font-size: 11px; padding: 8px 10px; background: var(--color-amber); color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(140, 106, 46, 0.2);">
-                                <i class="fa-solid fa-satellite-dish"></i> Máy quét RFID
-                            </button>
-                        </div>
                         <button class="ctrl-btn ctrl-up" onmousedown="startMoveLoop('UP')" onmouseup="stopMoveLoop()" onmouseleave="stopMoveLoop()" ontouchstart="startMoveLoop('UP', event)" ontouchend="stopMoveLoop()"><i class="fa-solid fa-chevron-up"></i></button>
                         <div class="ctrl-row">
                             <button class="ctrl-btn ctrl-left" onmousedown="startMoveLoop('LEFT')" onmouseup="stopMoveLoop()" onmouseleave="stopMoveLoop()" ontouchstart="startMoveLoop('LEFT', event)" ontouchend="stopMoveLoop()"><i class="fa-solid fa-chevron-left"></i></button>
@@ -2911,17 +2905,17 @@
                     
                     document.getElementById('bot-status-text').innerText = 'Nhân viên đã trở lại Cửa hàng';
                     
-                    // Reset RFID search & active highlights
-                    scanningActive = false;
-                    const accessory = document.getElementById('staff-scanner-accessory');
-                    if (accessory) accessory.style.display = 'none';
-                    clearScannedHighlights();
-                    activeFoundSku = null;
-                    targetSearchSku = null;
-                    rfidSearchInProgress = false;
-                    isInventoryScanning = false;
-                    lastScannedSku = null;
-                    updateRfidTriggerButton();
+                    // Reset RFID search & active highlights only if not in inventory scanning mode
+                    if (!isInventoryScanning) {
+                        scanningActive = false;
+                        const accessory = document.getElementById('staff-scanner-accessory');
+                        if (accessory) accessory.style.display = 'none';
+                        clearScannedHighlights();
+                        activeFoundSku = null;
+                        targetSearchSku = null;
+                        rfidSearchInProgress = false;
+                    }
+                    lastScannedSku = null; // reset to allow fresh scan in the new map
                     closeRfidDetails();
                     renderSvgProducts(); // Re-render product dots for the Store map
                 }
@@ -2962,16 +2956,37 @@
         }
 
         function showRfidScannerModal() {
-            if (isRfidSearchLocked()) {
-                const product = products.find(p => p.sku === targetSearchSku);
-                const productName = product ? product.name : 'sản phẩm đang tìm';
-                document.getElementById('bot-status-text').innerText = `Đang tìm ${productName}. Hãy hoàn tất sản phẩm này trước khi tìm sản phẩm khác.`;
-                return;
-            }
-
             const modal = document.getElementById('rfid-scanner-modal');
             if (!modal) return;
             
+            // Configure Search button based on active search
+            const searchBtn = document.getElementById('btn-rfid-search');
+            if (searchBtn) {
+                if (scanningActive && !isInventoryScanning) {
+                    searchBtn.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Dừng tìm';
+                    searchBtn.style.background = '#ff9f0a';
+                    searchBtn.setAttribute('onclick', 'cancelActiveSearch(); closeRfidScanner();');
+                } else {
+                    searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Tìm';
+                    searchBtn.style.background = 'var(--color-amber)';
+                    searchBtn.setAttribute('onclick', 'startRfidSearch()');
+                }
+            }
+            
+            // Configure Inventory button based on active scanning
+            const invBtn = document.getElementById('btn-rfid-inventory');
+            if (invBtn) {
+                if (isInventoryScanning) {
+                    invBtn.innerHTML = '<i class="fa-solid fa-circle-stop"></i> Dừng kiểm kê';
+                    invBtn.style.background = '#ff3b30';
+                    invBtn.setAttribute('onclick', 'stopRfidInventory(); closeRfidScanner();');
+                } else {
+                    invBtn.innerHTML = '<i class="fa-solid fa-boxes-stacked"></i> Kiểm kê';
+                    invBtn.style.background = 'var(--color-amber)';
+                    invBtn.setAttribute('onclick', 'startRfidInventory()');
+                }
+            }
+
             switchRfidTab('search');
             
             const selector = document.getElementById('rfid-product-selector');
@@ -3045,8 +3060,6 @@
             if (!sonarAnimationFrame) {
                 sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
             }
-            
-            updateRfidTriggerButton();
         }
 
         function stopRfidInventory() {
@@ -3063,7 +3076,6 @@
             logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Hoàn tất tiến trình kiểm kê RFID.");
             document.getElementById('bot-status-text').innerText = 'Đã hoàn tất kiểm kê RFID.';
             
-            updateRfidTriggerButton();
             showInventoryResultsModal();
         }
 
@@ -3076,7 +3088,6 @@
             if (accessory) accessory.style.display = 'none';
             clearScannedHighlights();
             document.getElementById('bot-status-text').innerText = 'Đã hủy tìm kiếm sản phẩm.';
-            updateRfidTriggerButton();
         }
 
         function showInventoryResultsModal() {
@@ -3243,9 +3254,9 @@
             const wave = document.getElementById('sonar-wave');
             if (wave) {
                 if (isInventoryScanning) {
-                    wave.setAttribute('style', 'display: block; fill: rgba(255, 170, 0, 0.08); stroke: var(--color-amber); stroke-width: 1.5;');
+                    wave.setAttribute('style', 'display: block; fill: rgba(255, 170, 0, 0.08); stroke: var(--color-amber); stroke-width: 1.5; pointer-events: none;');
                 } else {
-                    wave.setAttribute('style', 'display: block; fill: rgba(255, 59, 48, 0.08); stroke: #ff3b30; stroke-width: 1.5;');
+                    wave.setAttribute('style', 'display: block; fill: rgba(255, 59, 48, 0.08); stroke: #ff3b30; stroke-width: 1.5; pointer-events: none;');
                 }
                 
                 // Expand radius
@@ -3628,42 +3639,10 @@
             }
         }
 
-        function updateRfidTriggerButton() {
-            const triggerPanel = document.getElementById('rfid-trigger-panel');
-            if (!triggerPanel) return;
-            
-            if (selectedBot === 'staff') {
-                triggerPanel.style.display = 'block';
-                if (isInventoryScanning) {
-                    triggerPanel.innerHTML = `
-                        <button class="btn-pay-method" onclick="stopRfidInventory()" style="width: 100%; font-size: 11px; padding: 8px 10px; background: #ff3b30; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(255, 59, 48, 0.2);">
-                            <i class="fa-solid fa-circle-stop"></i> Dừng kiểm kê
-                        </button>
-                    `;
-                } else if (scanningActive && !isInventoryScanning) {
-                    triggerPanel.innerHTML = `
-                        <button class="btn-pay-method" onclick="cancelActiveSearch()" style="width: 100%; font-size: 11px; padding: 8px 10px; background: #ff9f0a; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(255, 159, 10, 0.2);">
-                            <i class="fa-solid fa-circle-xmark"></i> Hủy tìm kiếm
-                        </button>
-                    `;
-                } else {
-                    triggerPanel.innerHTML = `
-                        <button class="btn-pay-method" onclick="showRfidScannerModal()" style="width: 100%; font-size: 11px; padding: 8px 10px; background: var(--color-amber); color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 10px rgba(140, 106, 46, 0.2);">
-                            <i class="fa-solid fa-satellite-dish"></i> Máy quét RFID
-                        </button>
-                    `;
-                }
-            } else {
-                triggerPanel.style.display = 'none';
-            }
-        }
-
         function selectBot(botId) {
             selectedBot = botId;
             const botRing = document.getElementById('bot-select-ring');
             const staffRing = document.getElementById('staff-select-ring');
-            
-            updateRfidTriggerButton();
             
             if (botId === 'bot01') {
                 if (botRing) botRing.style.display = 'block';
