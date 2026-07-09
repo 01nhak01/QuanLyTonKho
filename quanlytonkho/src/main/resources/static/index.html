@@ -2500,6 +2500,7 @@
         let rfidSearchInProgress = false;
         let isInventoryScanning = false;
         let lastScannedSku = null;
+        let rfidScannedMapsBySku = {};
 
         // Initial stocks mapping to track if items have been scanned/picked in the current run
         const initialStocks = {};
@@ -3054,6 +3055,7 @@
                 sonarRadius = 0;
                 rfidSearchInProgress = true;
                 lastScannedSku = null;
+                rfidScannedMapsBySku = {}; // Reset cumulative maps scan tracking
                 clearScannedHighlights();
                 closeRfidScanner();
                 
@@ -3113,11 +3115,7 @@
             
             const modalHeaderH3 = modal.querySelector('.checkout-modal-header h3');
             if (modalHeaderH3) {
-                if (currentMap === 'backroom') {
-                    modalHeaderH3.innerHTML = '<i class="fa-solid fa-square-poll-horizontal text-warning"></i> Kết Quả Kiểm Kê Kho Sau';
-                } else {
-                    modalHeaderH3.innerHTML = '<i class="fa-solid fa-square-poll-horizontal text-warning"></i> Kết Quả Kiểm Kê Cửa Hàng';
-                }
+                modalHeaderH3.innerHTML = '<i class="fa-solid fa-square-poll-horizontal text-warning"></i> Kết Quả Kiểm Kê RFID';
             }
             
             const listContainer = document.getElementById('rfid-inventory-list');
@@ -3126,9 +3124,10 @@
                     listContainer.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào</div>';
                 } else {
                     listContainer.innerHTML = products.map(prod => {
-                        const currentStock = getProductInventoryTotalStock(prod, currentMap);
+                        const targetMap = resolveScannedMapTypeForProduct(prod.sku);
+                        const currentStock = getProductInventoryTotalStock(prod, targetMap);
                         const isAccessory = (prod.sku || '').toUpperCase().startsWith('PK');
-                        const sizes = getProductInventorySizes(prod, currentMap);
+                        const sizes = getProductInventorySizes(prod, targetMap);
                         const sizeStockText = Object.entries(sizes)
                             .filter(([size, qty]) => qty > 0)
                             .map(([size, qty]) => `${size}: ${qty}`)
@@ -3172,11 +3171,17 @@
             list.forEach(ps => {
                 const sz = ps.size;
                 let qty = null;
-                if (mapType === 'backroom') {
+                if (mapType === 'both') {
+                    // Cumulative stock_storage + stock_store
+                    const storageQty = ps.stockStorage !== undefined ? ps.stockStorage : ps.stock_storage;
+                    const storeQty = ps.stockStore !== undefined ? ps.stockStore : ps.stock_store;
+                    qty = (storageQty || 0) + (storeQty || 0);
+                } else if (mapType === 'backroom') {
                     qty = ps.stockStorage !== undefined ? ps.stockStorage : ps.stock_storage;
                 } else {
                     qty = ps.stockStore !== undefined ? ps.stockStore : ps.stock_store;
                 }
+                
                 if (qty === undefined || qty === null) {
                     qty = ps.stockQuantity !== undefined ? ps.stockQuantity : ps.stock_quantity;
                 }
@@ -3186,21 +3191,23 @@
         }
 
         function getProductInventoryTotalStock(prod, mapType) {
-            const list = productSizes.filter(ps => ps.productId === prod.id || ps.product_id === prod.id);
-            let total = 0;
-            list.forEach(ps => {
-                let qty = null;
-                if (mapType === 'backroom') {
-                    qty = ps.stockStorage !== undefined ? ps.stockStorage : ps.stock_storage;
-                } else {
-                    qty = ps.stockStore !== undefined ? ps.stockStore : ps.stock_store;
+            const sizes = getProductInventorySizes(prod, mapType);
+            return Object.values(sizes).reduce((acc, curr) => acc + curr, 0);
+        }
+
+        function resolveScannedMapTypeForProduct(sku) {
+            let mapType = currentMap;
+            if (isInventoryScanning && rfidScannedMapsBySku[sku]) {
+                const state = rfidScannedMapsBySku[sku];
+                if (state.backroom && state.store) {
+                    mapType = 'both';
+                } else if (state.backroom) {
+                    mapType = 'backroom';
+                } else if (state.store) {
+                    mapType = 'store';
                 }
-                if (qty === undefined || qty === null) {
-                    qty = ps.stockQuantity !== undefined ? ps.stockQuantity : ps.stock_quantity;
-                }
-                total += (qty || 0);
-            });
-            return total;
+            }
+            return mapType;
         }
 
         function triggerSonarScan(targetSku) {
@@ -3299,18 +3306,36 @@
                     const detailsModal = document.getElementById('rfid-details-modal');
                     const isModalVisible = detailsModal && detailsModal.classList.contains('visible');
                     
-                    if (!isModalVisible) {
-                        for (const p of products) {
-                            const { cx, cy } = getProductCoordinates(p);
-                            const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                            
-                            if (distance <= 65) {
-                                if (lastScannedSku !== p.sku) {
-                                    lastScannedSku = p.sku;
-                                    showRfidProductDetails(p);
-                                    break;
+                    let foundCloseProduct = null;
+                    for (const p of products) {
+                        const { cx, cy } = getProductCoordinates(p);
+                        const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                        
+                        if (distance <= 65) {
+                            foundCloseProduct = p;
+                            break;
+                        }
+                    }
+                    
+                    if (foundCloseProduct) {
+                        if (lastScannedSku !== foundCloseProduct.sku) {
+                            lastScannedSku = foundCloseProduct.sku;
+                            showRfidProductDetails(foundCloseProduct);
+                        }
+                    } else {
+                        // Check if we need to reset/close details because we walked away
+                        if (lastScannedSku) {
+                            const prevProduct = products.find(p => p.sku === lastScannedSku);
+                            if (prevProduct) {
+                                const { cx, cy } = getProductCoordinates(prevProduct);
+                                const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
+                                if (distance > 80) {
+                                    lastScannedSku = null;
+                                    if (isModalVisible) {
+                                        closeRfidDetails();
+                                    }
                                 }
-                            } else if (lastScannedSku === p.sku && distance > 80) {
+                            } else {
                                 lastScannedSku = null;
                             }
                         }
@@ -3389,14 +3414,28 @@
             const sizesLabel = document.getElementById('rfid-det-sizes-label');
             const sizesVal = document.getElementById('rfid-det-sizes');
             
+            // Record map scan for this product
+            if (isInventoryScanning) {
+                if (!rfidScannedMapsBySku[product.sku]) {
+                    rfidScannedMapsBySku[product.sku] = { backroom: false, store: false };
+                }
+                if (currentMap === 'backroom') {
+                    rfidScannedMapsBySku[product.sku].backroom = true;
+                } else if (currentMap === 'store') {
+                    rfidScannedMapsBySku[product.sku].store = true;
+                }
+            }
+
+            const targetMap = resolveScannedMapTypeForProduct(product.sku);
+            
             if (isAccessory) {
                 if (sizesLabel) sizesLabel.innerText = "Số lượng:";
                 if (sizesVal) {
-                    sizesVal.innerText = getProductInventoryTotalStock(product, currentMap);
+                    sizesVal.innerText = getProductInventoryTotalStock(product, targetMap);
                 }
             } else {
                 if (sizesLabel) sizesLabel.innerText = "Số lượng size:";
-                const sizes = getProductInventorySizes(product, currentMap);
+                const sizes = getProductInventorySizes(product, targetMap);
                 const sizeStockText = `S: ${sizes['S'] || 0} | M: ${sizes['M'] || 0} | L: ${sizes['L'] || 0} | XL: ${sizes['XL'] || 0}`;
                 if (sizesVal) sizesVal.innerText = sizeStockText;
             }
