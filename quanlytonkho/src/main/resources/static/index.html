@@ -2316,6 +2316,10 @@
                                 <button class="close-modal-btn" onclick="closeRfidDetails()">&times;</button>
                             </div>
                             <div class="checkout-modal-body" style="padding: 15px; font-size:11px; display:flex; flex-direction:column; gap:10px;">
+                                <!-- Product Image Container -->
+                                <div style="display:flex; justify-content:center; align-items:center; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0, 0, 0, 0.03); overflow:hidden; height: 160px; margin-bottom: 4px;">
+                                    <img id="rfid-det-img" src="" alt="Product Image" style="max-height: 100%; max-width: 100%; object-fit: contain;" onerror="this.src='https://via.placeholder.com/260x160?text=No+Image'">
+                                </div>
                                 <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
                                     <span style="color:var(--text-secondary);">Tên sản phẩm:</span>
                                     <span id="rfid-det-name" style="font-weight:bold; color:var(--text-primary);">-</span>
@@ -2865,18 +2869,19 @@
             
             const selector = document.getElementById('rfid-product-selector');
             if (selector) {
-                if (products.length === 0) {
+                const availableProducts = products.filter(prod => prod.stockQuantity > 0);
+                if (availableProducts.length === 0) {
                     selector.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào</div>';
                     selectedRfidSku = null;
                 } else {
-                    selector.innerHTML = products.map((prod, idx) => `
+                    selector.innerHTML = availableProducts.map((prod, idx) => `
                         <div class="rfid-product-item ${idx === 0 ? 'selected' : ''}" onclick="selectRfidProduct('${prod.sku}')" id="rfid-item-${prod.sku}" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(7, 18, 32, 0.4); cursor:pointer; font-size:11px; display:flex; justify-content:space-between; align-items:center; transition: all 0.2s;">
                             <span>${prod.name}</span>
                             <span class="font-mono" style="color:var(--text-secondary); font-size:9px;">${prod.sku}</span>
                         </div>
                     `).join('');
                     
-                    selectedRfidSku = products[0].sku;
+                    selectedRfidSku = availableProducts[0].sku;
                 }
             }
             
@@ -3036,6 +3041,14 @@
             currentFoundProduct = product;
             const modal = document.getElementById('rfid-details-modal');
             if (!modal) return;
+            
+            // Set product image
+            const images = parseProductImages(product.image_url || product.imageUrl);
+            const imgSrc = images.length > 0 ? images[0] : 'https://via.placeholder.com/260x160?text=No+Image';
+            const imgElement = document.getElementById('rfid-det-img');
+            if (imgElement) {
+                imgElement.src = imgSrc;
+            }
             
             document.getElementById('rfid-det-name').innerText = product.name;
             document.getElementById('rfid-det-sku').innerText = product.sku;
