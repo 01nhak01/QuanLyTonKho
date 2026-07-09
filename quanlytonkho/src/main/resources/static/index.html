@@ -3008,7 +3008,11 @@
                 }
             }
 
-            switchRfidTab('search');
+            if (isInventoryScanning) {
+                switchRfidTab('inventory');
+            } else {
+                switchRfidTab('search');
+            }
             
             const selector = document.getElementById('rfid-product-selector');
             if (selector) {
@@ -3329,7 +3333,7 @@
                         const { cx, cy } = getProductCoordinates(p);
                         const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
                         
-                        if (distance <= 65) {
+                        if (distance <= 75) {
                             foundCloseProduct = p;
                             break;
                         }
@@ -3347,7 +3351,7 @@
                             if (prevProduct) {
                                 const { cx, cy } = getProductCoordinates(prevProduct);
                                 const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
-                                if (distance > 80) {
+                                if (distance > 90) {
                                     lastScannedSku = null;
                                     if (isModalVisible) {
                                         closeRfidDetails();
