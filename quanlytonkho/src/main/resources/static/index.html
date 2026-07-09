@@ -38,6 +38,17 @@
             --font-mono: 'JetBrains Mono', monospace;
         }
 
+        /* Hiệu ứng nảy giỏ hàng của Khách hàng */
+        @keyframes cart-bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .cart-bounce-active {
+            animation: cart-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: 418px 498px;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -2869,7 +2880,7 @@
             
             const selector = document.getElementById('rfid-product-selector');
             if (selector) {
-                const availableProducts = products.filter(prod => prod.stockQuantity > 0);
+                const availableProducts = products.filter(prod => getBackroomDisplayStock(prod) > 0);
                 if (availableProducts.length === 0) {
                     selector.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào</div>';
                     selectedRfidSku = null;
@@ -3181,37 +3192,107 @@
             const staffBasket = document.getElementById('staff-basket');
             if (staffBasket) staffBasket.style.display = 'none';
             
-            try {
-                // Determine size tag for clothing or use base SKU for accessories
-                const isAccessory = (productToDeliver.sku || '').toUpperCase().startsWith('PK');
-                let tagIdWithSize = productToDeliver.sku;
-                if (!isAccessory) {
-                    const sizes = getProductSizes(productToDeliver);
-                    let selectedSize = 'M';
-                    if (sizes.M > 0) selectedSize = 'M';
-                    else if (sizes.S > 0) selectedSize = 'S';
-                    else if (sizes.L > 0) selectedSize = 'L';
-                    else if (sizes.XL > 0) selectedSize = 'XL';
-                    tagIdWithSize = `${productToDeliver.sku}-${selectedSize}`;
-                }
-                
-                // Add product to customer's cart
-                const response = await fetch(`${API_BASE}/cart/add?tagId=${tagIdWithSize}&sessionCode=${sessionCode}`, {
-                    method: 'POST'
-                });
-                
-                if (response.ok) {
-                    addedToCartSkus.add(productToDeliver.sku);
-                    hasCompletedSession = false;
-                    await refreshAllData(false);
-                    document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${productToDeliver.name} cho khách hàng thành công!`;
-                }
-            } catch (e) {
-                console.error("Lỗi khi hoàn tất bàn giao sản phẩm:", e);
-            }
-            
             isCarryingProduct = false;
             carryingSku = null;
+
+            // Tọa độ điểm bắt đầu (Nhân viên) và điểm kết thúc (Giỏ hàng của Khách hàng)
+            const startX = staffX;
+            const startY = staffY;
+            const endX = botX + 18; // 18px lệch về bên phải so với tâm botX
+            const endY = botY - 12; // 12px lệch lên trên so với tâm botY
+
+            const svg = document.querySelector('.store-svg');
+            if (svg) {
+                const flyingBasket = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                flyingBasket.setAttribute('id', 'flying-basket-delivery');
+                flyingBasket.innerHTML = `
+                    <circle cx="${startX}" cy="${startY}" r="8" fill="#FDFBF2" stroke="#ffaa00" stroke-width="1.2"/>
+                    <path d="M ${startX - 3} ${startY - 2} L ${startX - 2} ${startY - 2} L ${startX} ${startY + 1} L ${startX + 3} ${startY + 1} L ${startX + 4} ${startY - 1} L ${startX - 2} ${startY - 1}" fill="none" stroke="#ffaa00" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="${startX}" cy="${startY + 2}" r="0.9" fill="#ffaa00"/>
+                    <circle cx="${startX + 2.5}" cy="${startY + 2}" r="0.9" fill="#ffaa00"/>
+                `;
+                flyingBasket.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                svg.appendChild(flyingBasket);
+                
+                // Force reflow
+                flyingBasket.getBoundingClientRect();
+                
+                // Di chuyển tới vị trí giỏ hàng của Khách hàng
+                const dx = endX - startX;
+                const dy = endY - startY;
+                flyingBasket.style.transform = `translate(${dx}px, ${dy}px)`;
+                
+                setTimeout(async () => {
+                    if (flyingBasket.parentNode) {
+                        flyingBasket.parentNode.removeChild(flyingBasket);
+                    }
+                    
+                    // Hiệu ứng nảy giỏ hàng của Khách hàng
+                    const botCartBtn = document.getElementById('bot-cart-btn');
+                    if (botCartBtn) {
+                        botCartBtn.classList.add('cart-bounce-active');
+                        setTimeout(() => {
+                            botCartBtn.classList.remove('cart-bounce-active');
+                        }, 400);
+                    }
+
+                    // Thực hiện thêm sản phẩm vào giỏ hàng và làm mới dữ liệu
+                    try {
+                        const isAccessory = (productToDeliver.sku || '').toUpperCase().startsWith('PK');
+                        let tagIdWithSize = productToDeliver.sku;
+                        if (!isAccessory) {
+                            const sizes = getProductSizes(productToDeliver);
+                            let selectedSize = 'M';
+                            if (sizes.M > 0) selectedSize = 'M';
+                            else if (sizes.S > 0) selectedSize = 'S';
+                            else if (sizes.L > 0) selectedSize = 'L';
+                            else if (sizes.XL > 0) selectedSize = 'XL';
+                            tagIdWithSize = `${productToDeliver.sku}-${selectedSize}`;
+                        }
+                        
+                        const response = await fetch(`${API_BASE}/cart/add?tagId=${tagIdWithSize}&sessionCode=${sessionCode}`, {
+                            method: 'POST'
+                        });
+                        
+                        if (response.ok) {
+                            addedToCartSkus.add(productToDeliver.sku);
+                            hasCompletedSession = false;
+                            await refreshAllData(false);
+                            document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${productToDeliver.name} cho khách hàng thành công!`;
+                        }
+                    } catch (e) {
+                        console.error("Lỗi khi hoàn tất bàn giao sản phẩm:", e);
+                    }
+                }, 800);
+            } else {
+                // Fallback nếu không có SVG
+                try {
+                    const isAccessory = (productToDeliver.sku || '').toUpperCase().startsWith('PK');
+                    let tagIdWithSize = productToDeliver.sku;
+                    if (!isAccessory) {
+                        const sizes = getProductSizes(productToDeliver);
+                        let selectedSize = 'M';
+                        if (sizes.M > 0) selectedSize = 'M';
+                        else if (sizes.S > 0) selectedSize = 'S';
+                        else if (sizes.L > 0) selectedSize = 'L';
+                        else if (sizes.XL > 0) selectedSize = 'XL';
+                        tagIdWithSize = `${productToDeliver.sku}-${selectedSize}`;
+                    }
+                    
+                    const response = await fetch(`${API_BASE}/cart/add?tagId=${tagIdWithSize}&sessionCode=${sessionCode}`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        addedToCartSkus.add(productToDeliver.sku);
+                        hasCompletedSession = false;
+                        await refreshAllData(false);
+                        document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${productToDeliver.name} cho khách hàng thành công!`;
+                    }
+                } catch (e) {
+                    console.error("Lỗi khi hoàn tất bàn giao sản phẩm:", e);
+                }
+            }
         }
 
         function setStaffMode(mode) {
