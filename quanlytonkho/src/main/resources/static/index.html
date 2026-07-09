@@ -3114,8 +3114,6 @@
                 
                 logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Hoàn tất tiến trình kiểm kê RFID.");
                 document.getElementById('bot-status-text').innerText = 'Đã hoàn tất kiểm kê RFID.';
-                
-                showInventoryResultsModal();
             } catch (err) {
                 console.error("Lỗi dừng kiểm kê:", err);
                 document.getElementById('bot-status-text').innerText = "LỖI DỪNG KIỂM KÊ: " + err.message;
