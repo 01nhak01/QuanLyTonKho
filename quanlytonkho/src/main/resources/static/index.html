@@ -1239,6 +1239,19 @@
             opacity: 1;
             pointer-events: auto;
         }
+        /* Special style for RFID Details Modal - no background blur or darken */
+        #rfid-details-modal {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            pointer-events: none !important;
+        }
+        #rfid-details-modal.visible {
+            opacity: 1 !important;
+        }
+        #rfid-details-modal .checkout-modal-card {
+            pointer-events: auto !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+        }
         .checkout-modal-card, .qr-scan-card {
             width: 90%;
             max-width: 380px;
