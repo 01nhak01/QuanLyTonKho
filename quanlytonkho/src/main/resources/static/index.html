@@ -2019,7 +2019,7 @@
                         </g>
 
                         <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - XA CỬA HÀNG) -->
-                        <g id="rfid-scanner-station" class="sim-component">
+                        <g id="rfid-scanner-station" class="sim-component" onclick="showRfidScannerModal()" style="cursor: pointer;">
                             <rect x="240" y="20" width="110" height="60" class="backroom-door" rx="5"/>
                             <text x="295" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
                             
@@ -3435,30 +3435,7 @@
             } else {
                 modal.classList.remove('transparent-backdrop');
             }
-            
-            // Set product image
-            const images = parseProductImages(product.image_url || product.imageUrl);
-            const imgSrc = images.length > 0 ? images[0] : 'https://via.placeholder.com/260x160?text=No+Image';
-            const imgElement = document.getElementById('rfid-det-img');
-            if (imgElement) {
-                imgElement.src = imgSrc;
-            }
-            
-            document.getElementById('rfid-det-name').innerText = product.name;
-            document.getElementById('rfid-det-sku').innerText = product.sku;
-            
-            // Set price
-            const priceElement = document.getElementById('rfid-det-price');
-            if (priceElement) {
-                const formattedPrice = String(product.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' đ';
-                priceElement.innerText = formattedPrice;
-            }
-            
-            const skuUpper = (product.sku || '').toUpperCase();
-            const isAccessory = skuUpper.startsWith('PK');
-            const sizesLabel = document.getElementById('rfid-det-sizes-label');
-            const sizesVal = document.getElementById('rfid-det-sizes');
-            
+
             // Record map scan for this product
             if (isInventoryScanning) {
                 if (!rfidScannedMapsBySku[product.sku]) {
@@ -3471,51 +3448,116 @@
                 }
             }
 
-            const targetMap = resolveScannedMapTypeForProduct(product.sku);
-            
-            if (isAccessory) {
-                if (sizesLabel) sizesLabel.innerText = "Số lượng:";
-                if (sizesVal) {
-                    sizesVal.innerText = getProductInventoryTotalStock(product, targetMap);
+            const headerTitle = modal.querySelector('.checkout-modal-header h3');
+            const body = modal.querySelector('.checkout-modal-body');
+            if (!body) return;
+
+            if (isInventoryScanning) {
+                // Dual Mode 1: Inventory Stocktaking Mode - Render list of all scanned products so far
+                if (headerTitle) {
+                    headerTitle.innerHTML = '<i class="fa-solid fa-boxes-stacked text-warning"></i> Danh Sách Kiểm Kê';
                 }
-            } else {
-                if (sizesLabel) sizesLabel.innerText = "Số lượng size:";
-                const sizes = getProductInventorySizes(product, targetMap);
-                const sizeStockText = `S: ${sizes['S'] || 0} | M: ${sizes['M'] || 0} | L: ${sizes['L'] || 0} | XL: ${sizes['XL'] || 0}`;
-                if (sizesVal) sizesVal.innerText = sizeStockText;
-            }
-            
-            // Time from the products table (created_at)
-            const prodTime = product.created_at || product.createdAt || '';
-            const formattedTime = formatTimestamp(prodTime);
-            document.getElementById('rfid-det-time').innerText = formattedTime || 'Chưa cập nhật';
-            
-            // Configure Action Button
-            const actionContainer = document.getElementById('rfid-det-action-container');
-            if (actionContainer) {
-                if (isInventoryScanning) {
-                    actionContainer.innerHTML = `
+
+                const scannedProducts = products.filter(p => {
+                    const state = rfidScannedMapsBySku[p.sku];
+                    return state && (state.backroom || state.store);
+                });
+
+                body.innerHTML = `
+                    <div style="font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; font-size:10px;">SẢN PHẨM ĐÃ QUÉT CẬN KỀ:</div>
+                    <div style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+                        ${scannedProducts.map(p => {
+                            const targetMap = resolveScannedMapTypeForProduct(p.sku);
+                            const qty = getProductInventoryTotalStock(p, targetMap);
+                            return `
+                                <div style="padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(7, 18, 32, 0.02); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                                        <span style="font-weight: bold; color: var(--text-primary); font-size: 11px;">${p.name}</span>
+                                        <span class="font-mono" style="color: var(--text-secondary); font-size: 9px;">Mã: ${p.sku}</span>
+                                    </div>
+                                    <div style="font-weight: bold; color: var(--color-amber); font-size: 11px; white-space: nowrap;">
+                                        ${qty} chiếc
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div id="rfid-det-action-container" style="margin-top:8px;">
                         <button class="btn-pay-method" onclick="closeRfidDetails()" style="width:100%; padding:10px; background:var(--color-amber); border:none; color:#ffffff; font-weight:bold; border-radius:6px; cursor:pointer;">
                             Xác nhận kiểm kê
                         </button>
+                    </div>
+                `;
+            } else {
+                // Dual Mode 2: Search Mode - Render single product detail layout
+                if (headerTitle) {
+                    headerTitle.innerHTML = '<i class="fa-solid fa-clipboard-check text-warning"></i> Thông Tin Chi Tiết Sản Phẩm';
+                }
+
+                const images = parseProductImages(product.image_url || product.imageUrl);
+                const imgSrc = images.length > 0 ? images[0] : 'https://via.placeholder.com/260x160?text=No+Image';
+                const formattedPrice = String(product.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' đ';
+
+                const skuUpper = (product.sku || '').toUpperCase();
+                const isAccessory = skuUpper.startsWith('PK');
+                const targetMap = resolveScannedMapTypeForProduct(product.sku);
+                let sizesHtml = '';
+                if (isAccessory) {
+                    sizesHtml = `
+                        <span style="color:var(--text-secondary);">Số lượng:</span>
+                        <span class="font-mono" style="font-weight:bold; color:var(--text-primary);">${getProductInventoryTotalStock(product, targetMap)}</span>
                     `;
                 } else {
-                    actionContainer.innerHTML = `
+                    const sizes = getProductInventorySizes(product, targetMap);
+                    const sizeStockText = `S: ${sizes['S'] || 0} | M: ${sizes['M'] || 0} | L: ${sizes['L'] || 0} | XL: ${sizes['XL'] || 0}`;
+                    sizesHtml = `
+                        <span style="color:var(--text-secondary);">Số lượng size:</span>
+                        <span class="font-mono" style="font-weight:bold; color:var(--text-primary);">${sizeStockText}</span>
+                    `;
+                }
+
+                const prodTime = product.created_at || product.createdAt || '';
+                const formattedTime = formatTimestamp(prodTime);
+
+                body.innerHTML = `
+                    <div style="display:flex; justify-content:center; align-items:center; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0, 0, 0, 0.03); overflow:hidden; height: 160px; margin-bottom: 4px;">
+                        <img src="${imgSrc}" alt="Product Image" style="max-height: 100%; max-width: 100%; object-fit: contain;" onerror="this.src='https://via.placeholder.com/260x160?text=No+Image'">
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+                        <span style="color:var(--text-secondary);">Tên sản phẩm:</span>
+                        <span style="font-weight:bold; color:var(--text-primary);">${product.name}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+                        <span style="color:var(--text-secondary);">Mã sản phẩm:</span>
+                        <span class="font-mono" style="font-weight:bold; color:var(--color-amber);">${product.sku}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+                        <span style="color:var(--text-secondary);">Giá bán:</span>
+                        <span style="font-weight:bold; color:var(--text-primary);">${formattedPrice}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+                        ${sizesHtml}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+                        <span style="color:var(--text-secondary);">Thời gian nhập kho:</span>
+                        <span class="font-mono" style="color:var(--text-primary);">${formattedTime || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div id="rfid-det-action-container" style="margin-top:8px;">
                         <button class="btn-pay-method" onclick="collectProductAction()" style="width:100%; padding:10px; background:rgba(255, 170, 0, 0.1); border:1px solid var(--color-amber); color:var(--color-amber); font-weight:bold; border-radius:6px; cursor:pointer;">
                             Lấy hàng
                         </button>
-                    `;
-                }
+                    </div>
+                `;
             }
-            
+
             clearScannedHighlights();
             activeFoundSku = null;
-            
+
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.add('visible');
             }, 10);
-            
+
             document.getElementById('bot-status-text').innerText = `Đã kiểm kho sản phẩm: ${product.name}`;
         }
 
@@ -3791,12 +3833,8 @@
                 // 1. Proximity to RFID Scanner Station (4 grid cells from the store door, centered at x=295, y=50)
                 const distStation = Math.sqrt((staffX - 295) ** 2 + (staffY - 50) ** 2);
                 if (distStation < 55) {
-                    // Do NOT trigger scanner modal if we are currently checking inventory!
-                    if (!isInventoryScanning) {
-                        if (isRfidSearchLocked()) {
-                            hasOpenedScannerThisProximity = false;
-                            showRfidScannerModal();
-                        } else if (!hasOpenedScannerThisProximity) {
+                    if (!isInventoryScanning && !scanningActive && !rfidSearchInProgress) {
+                        if (!hasOpenedScannerThisProximity) {
                             hasOpenedScannerThisProximity = true;
                             showRfidScannerModal();
                         }
@@ -3812,10 +3850,11 @@
                         const { cx, cy } = getProductCoordinates(product);
                         const distance = Math.sqrt((staffX - cx) ** 2 + (staffY - cy) ** 2);
                         
-                        const closeLimit = 70; // Proximity threshold (expanded so it triggers when close to shelf boundary lines)
+                        const closeLimit = 70; // Proximity threshold
                         if (distance <= closeLimit) {
                             // Arrived at product! Stop scanning now!
                             scanningActive = false;
+                            rfidSearchInProgress = false;
                             
                             const accessory = document.getElementById('staff-scanner-accessory');
                             if (accessory) accessory.style.display = 'none';
