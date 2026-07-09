@@ -4942,6 +4942,7 @@
             products.forEach((prod) => {
                 const moved = backroomMovedQty[prod.sku] || 0;
                 const carried = (isCarryingProduct && carryingSku && prod.sku === carryingSku) ? 1 : 0;
+                const inTransit = inTransitSkus.has(prod.sku) ? 1 : 0;
                 const cartItem = cart && cart.items ? cart.items.find(item => item.productId === prod.id) : null;
                 const inCart = cartItem ? cartItem.quantity : 0;
 
@@ -4951,9 +4952,9 @@
                     displayStock = Math.max(0, prod.stockQuantity - moved);
                 } else if (currentMap === 'store') {
                     if (prod.stockQuantity > 1) {
-                        displayStock = Math.max(0, prod.stockQuantity - inCart - carried);
+                        displayStock = Math.max(0, prod.stockQuantity - inCart - carried - inTransit);
                     } else {
-                        displayStock = Math.max(0, moved - inCart - carried);
+                        displayStock = Math.max(0, moved - inCart - carried - inTransit);
                     }
                     
                     if (displayStock <= 0) {
