@@ -675,6 +675,20 @@
         .staff-glow-moving { fill: var(--color-amber); fill-opacity: 0.15; }
         .staff-legend-dot { background-color: var(--color-amber); box-shadow: 0 0 6px var(--color-amber); }
 
+        /* Hover effect for staff scanner accessory to indicate clickability */
+        #staff-scanner-accessory {
+            transition: all 0.2s ease;
+        }
+        #staff-scanner-accessory:hover path {
+            fill: #ff3b30 !important;
+        }
+        #staff-scanner-accessory:hover rect:not([fill="transparent"]) {
+            fill: #ff3b30 !important;
+        }
+        #staff-scanner-accessory:hover path[stroke] {
+            stroke: #ff3b30 !important;
+        }
+
 
 
         .bot-text-label {
@@ -1996,6 +2010,7 @@
                             
                             <!-- Small floating scanner accessory (only visible during active search) -->
                             <g id="staff-scanner-accessory" style="display: none; cursor: pointer;" onclick="handleStaffScannerClick(event)">
+                                <title>Nhấn vào đây để dừng/hủy quá trình kiểm kê</title>
                                 <!-- Transparent backing shape for easy click targeting -->
                                 <rect x="584" y="58" width="23" height="22" fill="transparent" pointer-events="all"/>
                                 <!-- Slanted head -->
@@ -3213,10 +3228,15 @@
             
             const listContainer = document.getElementById('rfid-inventory-list');
             if (listContainer) {
-                if (products.length === 0) {
-                    listContainer.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào</div>';
+                const scannedProducts = products.filter(p => {
+                    const state = rfidScannedMapsBySku[p.sku];
+                    return state && (state.backroom || state.store);
+                });
+
+                if (scannedProducts.length === 0) {
+                    listContainer.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào được quét</div>';
                 } else {
-                    listContainer.innerHTML = products.map(prod => {
+                    listContainer.innerHTML = scannedProducts.map(prod => {
                         const targetMap = resolveScannedMapTypeForProduct(prod.sku, true);
                         const currentStock = getProductInventoryTotalStock(prod, targetMap);
                         const isAccessory = (prod.sku || '').toUpperCase().startsWith('PK');
@@ -3563,9 +3583,6 @@
                             `;
                         }).join('')}
                     </div>
-                    <button class="btn-pay-method" onclick="stopRfidInventory()" style="width:100%; padding:8px; background:#ff3b30; border:none; color:white; font-weight:bold; border-radius:6px; cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.2);">
-                        <i class="fa-solid fa-circle-stop"></i> Dừng kiểm kê
-                    </button>
                 `;
             } else {
                 // Dual Mode 2: Search Mode - Render single product detail layout
