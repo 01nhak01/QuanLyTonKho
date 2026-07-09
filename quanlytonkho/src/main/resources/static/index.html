@@ -1241,16 +1241,24 @@
         }
         /* Special style for RFID Details Modal - no background blur or darken (Only for Inventory mode) */
         #rfid-details-modal.transparent-backdrop {
+            position: absolute !important;
+            width: 340px !important;
+            height: auto !important;
+            display: block !important;
             background: transparent !important;
             backdrop-filter: none !important;
             pointer-events: none !important;
+            transform: none !important;
         }
         #rfid-details-modal.transparent-backdrop.visible {
             opacity: 1 !important;
         }
         #rfid-details-modal.transparent-backdrop .checkout-modal-card {
+            width: 100% !important;
+            max-width: 340px !important;
             pointer-events: auto !important;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+            transform: none !important;
         }
         .checkout-modal-card, .qr-scan-card {
             width: 90%;
@@ -1988,6 +1996,8 @@
                             
                             <!-- Small floating scanner accessory (only visible during active search) -->
                             <g id="staff-scanner-accessory" style="display: none; cursor: pointer;" onclick="handleStaffScannerClick(event)">
+                                <!-- Transparent backing shape for easy click targeting -->
+                                <rect x="584" y="58" width="23" height="22" fill="transparent" pointer-events="all"/>
                                 <!-- Slanted head -->
                                 <path d="M 590 60 L 602 60 C 604 60, 605 61, 605 63 C 605 65, 604 66, 602 66 L 591 66 Z" fill="#ffaa00"/>
                                 <path d="M 586 60 L 589 60 L 591 65 L 588 65 Z" fill="#ffaa00"/>
@@ -2019,7 +2029,7 @@
                         </g>
 
                         <!-- MÁY QUÉT RFID CẦM TAY (KHO SAU - XA CỬA HÀNG) -->
-                        <g id="rfid-scanner-station" class="sim-component" onclick="showRfidScannerModal()" style="cursor: pointer;">
+                        <g id="rfid-scanner-station" class="sim-component" onclick="handleRfidScannerStationClick(event)" style="cursor: pointer;">
                             <rect x="240" y="20" width="110" height="60" class="backroom-door" rx="5"/>
                             <text x="295" y="70" class="backroom-door-label" text-anchor="middle" font-size="7.5px">MÁY QUÉT RFID</text>
                             
@@ -2843,6 +2853,28 @@
                 staffContainer.style.transform = `translate(${dx}px, ${dy}px)`;
             }
             updateStaffVisualClass(staffMode);
+            updateRfidDetailsModalPosition(); // Update details modal position to follow the staff bot
+        }
+
+        function updateRfidDetailsModalPosition() {
+            const modal = document.getElementById('rfid-details-modal');
+            if (!modal || !modal.classList.contains('transparent-backdrop') || modal.classList.contains('hidden')) {
+                return;
+            }
+            
+            const dialogWidth = 340;
+            const dialogHeight = 170; // Approximate height for the list modal
+            
+            // Center horizontally above the staff bot (staffX, staffY)
+            let targetLeft = staffX - (dialogWidth / 2);
+            let targetTop = staffY - dialogHeight - 25; // 25px gap above the bot
+            
+            // Constrain within the map container (800x600)
+            targetLeft = Math.max(10, Math.min(800 - dialogWidth - 10, targetLeft));
+            targetTop = Math.max(10, Math.min(600 - dialogHeight - 10, targetTop));
+            
+            modal.style.left = targetLeft + 'px';
+            modal.style.top = targetTop + 'px';
         }
 
         function checkMapTransition() {
@@ -2886,6 +2918,19 @@
                     updateStaffPositionVisual(staffX, staffY);
                     
                     document.getElementById('bot-status-text').innerText = 'Nhân viên đã vào Kho sau';
+                    
+                    // Reset RFID search & active highlights only if not in inventory scanning mode
+                    if (!isInventoryScanning) {
+                        scanningActive = false;
+                        const accessory = document.getElementById('staff-scanner-accessory');
+                        if (accessory) accessory.style.display = 'none';
+                        clearScannedHighlights();
+                        activeFoundSku = null;
+                        targetSearchSku = null;
+                        rfidSearchInProgress = false;
+                    }
+                    lastScannedSku = null; // reset to allow fresh scan in the new map
+                    closeRfidDetails();
                     renderSvgProducts(); // Re-render product dots for the Backroom map
                 }
             } else if (currentMap === 'backroom') {
@@ -3116,6 +3161,9 @@
                 
                 logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Hoàn tất tiến trình kiểm kê RFID.");
                 document.getElementById('bot-status-text').innerText = 'Đã hoàn tất kiểm kê RFID.';
+                
+                // Show inventory results modal
+                showInventoryResultsModal();
             } catch (err) {
                 console.error("Lỗi dừng kiểm kê:", err);
                 document.getElementById('bot-status-text').innerText = "LỖI DỪNG KIỂM KÊ: " + err.message;
@@ -3143,6 +3191,17 @@
             }
         }
 
+        function handleRfidScannerStationClick(event) {
+            if (event) event.stopPropagation();
+            if (isInventoryScanning) {
+                stopRfidInventory();
+            } else if (scanningActive) {
+                cancelActiveSearch();
+            } else {
+                showRfidScannerModal();
+            }
+        }
+
         function showInventoryResultsModal() {
             const modal = document.getElementById('rfid-inventory-results-modal');
             if (!modal) return;
@@ -3158,7 +3217,7 @@
                     listContainer.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-secondary);">Không có sản phẩm nào</div>';
                 } else {
                     listContainer.innerHTML = products.map(prod => {
-                        const targetMap = resolveScannedMapTypeForProduct(prod.sku);
+                        const targetMap = resolveScannedMapTypeForProduct(prod.sku, true);
                         const currentStock = getProductInventoryTotalStock(prod, targetMap);
                         const isAccessory = (prod.sku || '').toUpperCase().startsWith('PK');
                         const sizes = getProductInventorySizes(prod, targetMap);
@@ -3229,9 +3288,9 @@
             return Object.values(sizes).reduce((acc, curr) => acc + curr, 0);
         }
 
-        function resolveScannedMapTypeForProduct(sku) {
+        function resolveScannedMapTypeForProduct(sku, forceUseHistory = false) {
             let mapType = currentMap;
-            if (isInventoryScanning && rfidScannedMapsBySku[sku]) {
+            if ((isInventoryScanning || forceUseHistory) && rfidScannedMapsBySku[sku]) {
                 const state = rfidScannedMapsBySku[sku];
                 if (state.backroom && state.store) {
                     mapType = 'both';
@@ -3436,8 +3495,11 @@
             // Toggle transparent backdrop style based on inventory mode vs search mode
             if (isInventoryScanning) {
                 modal.classList.add('transparent-backdrop');
+                updateRfidDetailsModalPosition(); // Position immediately above the staff bot
             } else {
                 modal.classList.remove('transparent-backdrop');
+                modal.style.left = '';
+                modal.style.top = '';
             }
 
             // Record map scan for this product
@@ -3469,7 +3531,7 @@
 
                 body.innerHTML = `
                     <div style="font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; font-size:10px;">SẢN PHẨM ĐÃ QUÉT CẬN KỀ:</div>
-                    <div style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+                    <div style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; margin-bottom: 8px;">
                         ${scannedProducts.map(p => {
                             const targetMap = resolveScannedMapTypeForProduct(p.sku);
                             const qty = getProductInventoryTotalStock(p, targetMap);
@@ -3501,6 +3563,9 @@
                             `;
                         }).join('')}
                     </div>
+                    <button class="btn-pay-method" onclick="stopRfidInventory()" style="width:100%; padding:8px; background:#ff3b30; border:none; color:white; font-weight:bold; border-radius:6px; cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.2);">
+                        <i class="fa-solid fa-circle-stop"></i> Dừng kiểm kê
+                    </button>
                 `;
             } else {
                 // Dual Mode 2: Search Mode - Render single product detail layout
