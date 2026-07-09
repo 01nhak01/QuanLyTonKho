@@ -1987,7 +1987,7 @@
                             <text x="580" y="56" id="staff-label" class="bot-text-label" text-anchor="middle">NHÂN VIÊN</text>
                             
                             <!-- Small floating scanner accessory (only visible during active search) -->
-                            <g id="staff-scanner-accessory" style="display: none;">
+                            <g id="staff-scanner-accessory" style="display: none; cursor: pointer;" onclick="handleStaffScannerClick(event)">
                                 <!-- Slanted head -->
                                 <path d="M 590 60 L 602 60 C 604 60, 605 61, 605 63 C 605 65, 604 66, 602 66 L 591 66 Z" fill="#ffaa00"/>
                                 <path d="M 586 60 L 589 60 L 591 65 L 588 65 Z" fill="#ffaa00"/>
@@ -3132,6 +3132,15 @@
             document.getElementById('bot-status-text').innerText = 'Đã hủy tìm kiếm sản phẩm.';
         }
 
+        function handleStaffScannerClick(event) {
+            if (event) event.stopPropagation();
+            if (isInventoryScanning) {
+                stopRfidInventory();
+            } else if (scanningActive) {
+                cancelActiveSearch();
+            }
+        }
+
         function showInventoryResultsModal() {
             const modal = document.getElementById('rfid-inventory-results-modal');
             if (!modal) return;
@@ -3782,12 +3791,15 @@
                 // 1. Proximity to RFID Scanner Station (4 grid cells from the store door, centered at x=295, y=50)
                 const distStation = Math.sqrt((staffX - 295) ** 2 + (staffY - 50) ** 2);
                 if (distStation < 55) {
-                    if (isRfidSearchLocked()) {
-                        hasOpenedScannerThisProximity = false;
-                        showRfidScannerModal();
-                    } else if (!hasOpenedScannerThisProximity) {
-                        hasOpenedScannerThisProximity = true;
-                        showRfidScannerModal();
+                    // Do NOT trigger scanner modal if we are currently checking inventory!
+                    if (!isInventoryScanning) {
+                        if (isRfidSearchLocked()) {
+                            hasOpenedScannerThisProximity = false;
+                            showRfidScannerModal();
+                        } else if (!hasOpenedScannerThisProximity) {
+                            hasOpenedScannerThisProximity = true;
+                            showRfidScannerModal();
+                        }
                     }
                 } else {
                     hasOpenedScannerThisProximity = false;
@@ -3851,6 +3863,11 @@
             }
             
             // Check if active Bot is close to individual product dots to display details card
+            if (selectedBot === 'staff' && isInventoryScanning) {
+                hideProductPopover();
+                return;
+            }
+            
             const currentX = (selectedBot === 'staff') ? staffX : botX;
             const currentY = (selectedBot === 'staff') ? staffY : botY;
             
