@@ -682,8 +682,8 @@
         }
         .wave-inventory {
             display: block !important;
-            fill: rgba(255, 159, 10, 0.15) !important;
-            stroke: #ff9f0a !important;
+            fill: rgba(255, 59, 48, 0.15) !important;
+            stroke: #ff3b30 !important;
             stroke-width: 3px !important;
         }
         .wave-search {
@@ -3075,9 +3075,11 @@
             logEvent("RFID-INV", currentMap === 'backroom' ? "Phòng Kho Sau" : "Khu Vực Cửa Hàng", "Bắt đầu tiến trình kiểm kê RFID...");
             document.getElementById('bot-status-text').innerText = 'Đang tiến hành kiểm kê RFID... Di chuyển lại gần các kệ sản phẩm.';
             
-            if (!sonarAnimationFrame) {
-                sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
+            if (sonarAnimationFrame) {
+                cancelAnimationFrame(sonarAnimationFrame);
+                sonarAnimationFrame = null;
             }
+            sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
         }
 
         function stopRfidInventory() {
@@ -3217,9 +3219,11 @@
             const accessory = document.getElementById('staff-scanner-accessory');
             if (accessory) accessory.style.display = 'block';
             
-            if (!sonarAnimationFrame) {
-                sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
+            if (sonarAnimationFrame) {
+                cancelAnimationFrame(sonarAnimationFrame);
+                sonarAnimationFrame = null;
             }
+            sonarAnimationFrame = requestAnimationFrame(runSonarAnimationLoop);
         }
 
         function setProductScannedHighlight(dot, isHighlighted) {
