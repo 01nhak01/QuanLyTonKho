@@ -1241,16 +1241,24 @@
         }
         /* Special style for RFID Details Modal - no background blur or darken (Only for Inventory mode) */
         #rfid-details-modal.transparent-backdrop {
+            position: absolute !important;
+            width: 340px !important;
+            height: auto !important;
+            display: block !important;
             background: transparent !important;
             backdrop-filter: none !important;
             pointer-events: none !important;
+            transform: none !important;
         }
         #rfid-details-modal.transparent-backdrop.visible {
             opacity: 1 !important;
         }
         #rfid-details-modal.transparent-backdrop .checkout-modal-card {
+            width: 100% !important;
+            max-width: 340px !important;
             pointer-events: auto !important;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+            transform: none !important;
         }
         .checkout-modal-card, .qr-scan-card {
             width: 90%;
@@ -2843,6 +2851,28 @@
                 staffContainer.style.transform = `translate(${dx}px, ${dy}px)`;
             }
             updateStaffVisualClass(staffMode);
+            updateRfidDetailsModalPosition(); // Update details modal position to follow the staff bot
+        }
+
+        function updateRfidDetailsModalPosition() {
+            const modal = document.getElementById('rfid-details-modal');
+            if (!modal || !modal.classList.contains('transparent-backdrop') || modal.classList.contains('hidden')) {
+                return;
+            }
+            
+            const dialogWidth = 340;
+            const dialogHeight = 170; // Approximate height for the list modal
+            
+            // Center horizontally above the staff bot (staffX, staffY)
+            let targetLeft = staffX - (dialogWidth / 2);
+            let targetTop = staffY - dialogHeight - 25; // 25px gap above the bot
+            
+            // Constrain within the map container (800x600)
+            targetLeft = Math.max(10, Math.min(800 - dialogWidth - 10, targetLeft));
+            targetTop = Math.max(10, Math.min(600 - dialogHeight - 10, targetTop));
+            
+            modal.style.left = targetLeft + 'px';
+            modal.style.top = targetTop + 'px';
         }
 
         function checkMapTransition() {
@@ -3439,8 +3469,11 @@
             // Toggle transparent backdrop style based on inventory mode vs search mode
             if (isInventoryScanning) {
                 modal.classList.add('transparent-backdrop');
+                updateRfidDetailsModalPosition(); // Position immediately above the staff bot
             } else {
                 modal.classList.remove('transparent-backdrop');
+                modal.style.left = '';
+                modal.style.top = '';
             }
 
             // Record map scan for this product
