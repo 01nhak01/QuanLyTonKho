@@ -2888,16 +2888,20 @@
             // Use actual height if rendered, fallback to 170
             const dialogHeight = modal.offsetHeight || 170;
             
-            // Center horizontally
-            let targetLeft = staffX - (dialogWidth / 2);
-            let targetTop;
+            // Position to the left of the staff bot to not cover the employee
+            const gap = 40;
+            let targetLeft;
             
-            // If staff bot is near the top of the map, place modal below the bot to avoid covering it
-            if (staffY < 220) {
-                targetTop = staffY + 35; // 35px gap below the bot
+            if (staffX - dialogWidth - gap >= 10) {
+                // There is enough space on the left side
+                targetLeft = staffX - dialogWidth - gap;
             } else {
-                targetTop = staffY - dialogHeight - 25; // 25px gap above the bot
+                // Not enough space on the left, place on the right side instead
+                targetLeft = staffX + gap;
             }
+            
+            // Center vertically relative to the staff bot
+            let targetTop = staffY - (dialogHeight / 2);
             
             // Constrain within the map container (800x600)
             targetLeft = Math.max(10, Math.min(800 - dialogWidth - 10, targetLeft));
