@@ -3865,8 +3865,9 @@
                         if (response.ok) {
                             addedToCartSkus.add(productToDeliver.sku);
                             hasCompletedSession = false;
-                            inTransitSkus.delete(productToDeliver.sku); // Remove transit mark
                             await refreshAllData(false);
+                            inTransitSkus.delete(productToDeliver.sku); // Remove transit mark after refresh completes
+                            renderSvgProducts();
                             document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${productToDeliver.name} cho khách hàng thành công!`;
                         } else {
                             inTransitSkus.delete(productToDeliver.sku);
@@ -3900,8 +3901,8 @@
                     if (response.ok) {
                         addedToCartSkus.add(productToDeliver.sku);
                         hasCompletedSession = false;
-                        inTransitSkus.delete(productToDeliver.sku);
                         await refreshAllData(false);
+                        inTransitSkus.delete(productToDeliver.sku);
                         document.getElementById('bot-status-text').innerText = `Đã giao sản phẩm ${productToDeliver.name} cho khách hàng thành công!`;
                     } else {
                         inTransitSkus.delete(productToDeliver.sku);
